@@ -25,10 +25,10 @@ importers:
         version: 2.2.7(vue@3.5.13)
       sass:
         specifier: ^1.77.6
-        version: 1.81.0
+        version: 1.81.1
       vite-plugin-vuetify:
         specifier: ^2.0.3
-        version: 2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4)
+        version: 2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4)
       vue:
         specifier: ^3.4.29
         version: 3.5.13
@@ -53,7 +53,7 @@ importers:
         version: 1.10.4
       '@vitejs/plugin-vue':
         specifier: ^5.0.5
-        version: 5.2.0(vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1))(vue@3.5.13)
+        version: 5.2.0(vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1))(vue@3.5.13)
       '@vue/eslint-config-prettier':
         specifier: ^10.0.0
         version: 10.1.0(@types/eslint@8.56.10)(eslint@9.14.0)(prettier@3.3.3)
@@ -77,7 +77,7 @@ importers:
         version: 3.3.3
       vite:
         specifier: ^5.3.1
-        version: 5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1)
+        version: 5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1)
 
 packages:
 
@@ -999,8 +999,8 @@ packages:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
 
-  immutable@5.0.2:
-    resolution: {integrity: sha512-1NU7hWZDkV7hJ4PJ9dur9gTNQ4ePNPN4k9/0YhwjzykTi/+3Q5pF93YU5QoVj8BuOnhLgaY8gs0U2pj4kSYVcw==}
+  immutable@5.0.3:
+    resolution: {integrity: sha512-P8IdPQHq3lA1xVeBRi5VPqUm5HDgKnx0Ru51wZz5mjxHr5n3RWhjIpOFU7ybkUxfB+5IToy+OLaHYDBIWsv+uw==}
 
   import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
@@ -1314,8 +1314,8 @@ packages:
     resolution: {integrity: sha512-CdASjNJPvRa7roO6Ra/gLYBTzYzzPyyBXxIMdGW3USQLyjWEls2RgW5UBTXaQVp+OrpeCK3bLem8smtmheoRuw==}
     engines: {node: '>= 0.4'}
 
-  sass@1.81.0:
-    resolution: {integrity: sha512-Q4fOxRfhmv3sqCLoGfvrC9pRV8btc0UtqL9mN6Yrv6Qi9ScL55CVH1vlPP863ISLEEMNLLuu9P+enCeGHlnzhA==}
+  sass@1.81.1:
+    resolution: {integrity: sha512-VNLgf4FC5yFyKwAumAAwwNh8X4SevlVREq3Y8aDZIkm0lI/zO1feycMXQ4hn+eB6FVhRbleSQ1Yb/q8juSldTA==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -1876,9 +1876,9 @@ snapshots:
 
   '@types/trusted-types@2.0.7': {}
 
-  '@vitejs/plugin-vue@5.2.0(vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1))(vue@3.5.13)':
+  '@vitejs/plugin-vue@5.2.0(vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1))(vue@3.5.13)':
     dependencies:
-      vite: 5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1)
+      vite: 5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1)
       vue: 3.5.13
 
   '@vue/compiler-core@3.5.13':
@@ -2494,7 +2494,7 @@ snapshots:
 
   ignore@5.3.2: {}
 
-  immutable@5.0.2: {}
+  immutable@5.0.3: {}
 
   import-fresh@3.3.0:
     dependencies:
@@ -2829,10 +2829,10 @@ snapshots:
       es-errors: 1.3.0
       is-regex: 1.1.4
 
-  sass@1.81.0:
+  sass@1.81.1:
     dependencies:
       chokidar: 4.0.1
-      immutable: 5.0.2
+      immutable: 5.0.3
       source-map-js: 1.2.1
     optionalDependencies:
       '@parcel/watcher': 2.5.0
@@ -2997,18 +2997,18 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-plugin-vuetify@2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4):
+  vite-plugin-vuetify@2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4):
     dependencies:
       '@vuetify/loader-shared': 2.0.3(vue@3.5.13)(vuetify@3.7.4)
       debug: 4.3.7
       upath: 2.0.1
-      vite: 5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1)
+      vite: 5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1)
       vue: 3.5.13
       vuetify: 3.7.4(vite-plugin-vuetify@2.0.4)(vue@3.5.13)
     transitivePeerDependencies:
       - supports-color
 
-  vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1):
+  vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.49
@@ -3016,7 +3016,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.14.9
       fsevents: 2.3.3
-      sass: 1.81.0
+      sass: 1.81.1
       terser: 5.31.1
 
   vue-demi@0.14.10(vue@3.5.13):
@@ -3058,7 +3058,7 @@ snapshots:
     dependencies:
       vue: 3.5.13
     optionalDependencies:
-      vite-plugin-vuetify: 2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.0)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4)
+      vite-plugin-vuetify: 2.0.4(vite@5.4.11(@types/node@20.14.9)(sass@1.81.1)(terser@5.31.1))(vue@3.5.13)(vuetify@3.7.4)
 
   which-boxed-primitive@1.0.2:
     dependencies:
