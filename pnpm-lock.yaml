@@ -19,7 +19,7 @@ dependencies:
     version: github.com/treeder/material/40c29103dbca32f6b90bcca9d3d50952123e4603
   material-symbols:
     specifier: ^0.27.0
-    version: 0.27.0
+    version: 0.27.2
   pinia:
     specifier: ^2.1.7
     version: 2.2.6(vue@3.5.13)
@@ -1949,8 +1949,8 @@ packages:
       uc.micro: 1.0.6
     dev: false
 
-  /material-symbols@0.27.0:
-    resolution: {integrity: sha512-nRHpnw2Cz7eNl6GptgHHhkjauL0zvkYsuiqy1HBifOYCY4fdbZ/PwtdZN4RNmwA+9jQPoymvlArVPPX5nYTdZg==}
+  /material-symbols@0.27.2:
+    resolution: {integrity: sha512-3/p3V+UfAfeHrT2HMOBVGWyzsvpHZNxlJJ6jQ01XqqxCCQU+szIbrfpsXOHkZ5glMJi+IB/SMJIRt55l/gYWvQ==}
     dev: false
 
   /mdurl@1.0.1:
