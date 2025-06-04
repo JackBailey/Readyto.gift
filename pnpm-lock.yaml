@@ -76,8 +76,8 @@ importers:
         specifier: ^16.0.0
         version: 16.2.0
       node-appwrite:
-        specifier: ^14.0.0
-        version: 14.2.0
+        specifier: ^17.0.0
+        version: 17.0.0
       prettier:
         specifier: ^3.2.5
         version: 3.5.3
@@ -1452,8 +1452,8 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-appwrite@14.2.0:
-    resolution: {integrity: sha512-sPPA+JzdBJRS+lM6azX85y3/6iyKQYlHcXCbjMuWLROh6IiU9EfXRW3XSUTa5HDoBrlo8ve+AnVA6BIjQfUs1g==}
+  node-appwrite@17.0.0:
+    resolution: {integrity: sha512-5Moi5ENPnoAfU1/6CZP9K2NTuB6Nm3dSyhokno+24RDuP7czjXCdwzfeyjmyHieggbrLkN89AYSOv9W1XkCL9w==}
 
   node-fetch-native-with-agent@1.7.2:
     resolution: {integrity: sha512-5MaOOCuJEvcckoz7/tjdx1M6OusOY6Xc5f459IaruGStWnKzlI1qpNgaAwmn4LmFYcsSlj+jBMk84wmmRxfk5g==}
@@ -3271,7 +3271,7 @@ snapshots:
   node-addon-api@7.1.1:
     optional: true
 
-  node-appwrite@14.2.0:
+  node-appwrite@17.0.0:
     dependencies:
       node-fetch-native-with-agent: 1.7.2
 
