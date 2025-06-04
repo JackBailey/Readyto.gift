@@ -10,7 +10,7 @@
   "dependencies": {
     "abort-controller": "^3.0.0",
     "cheerio": "1.0.0",
-    "cross-fetch": "4.0.0",
+    "cross-fetch": "4.1.0",
     "node-appwrite": "^14.0.0",
     "tidy-url": "^1.18.3",
     "url": "0.11.4"
