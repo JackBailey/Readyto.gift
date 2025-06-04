@@ -12,8 +12,8 @@ importers:
         specifier: ^3.0.0
         version: 3.3.1
       '@sentry/vue':
-        specifier: ^8.43.0
-        version: 8.55.0(pinia@2.3.1(vue@3.5.15))(vue@3.5.15)
+        specifier: ^9.0.0
+        version: 9.25.1(pinia@2.3.1(vue@3.5.15))(vue@3.5.15)
       appwrite:
         specifier: ^18.0.0
         version: 18.1.1
@@ -22,7 +22,7 @@ importers:
         version: 16.5.0
       material:
         specifier: github:treeder/material
-        version: https://codeload.github.com/treeder/material/tar.gz/dc3adbc8896ac6849aad856ee1630aecb5ba2529
+        version: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2
       material-symbols:
         specifier: ^0.31.0
         version: 0.31.2
@@ -586,29 +586,29 @@ packages:
   '@rushstack/eslint-patch@1.11.0':
     resolution: {integrity: sha512-zxnHvoMQVqewTJr/W4pKjF0bMGiKJv1WX7bSrkl46Hg0QjESbzBROWK0Wg4RphzSOS5Jiy7eFimmM3UgMrMZbQ==}
 
-  '@sentry-internal/browser-utils@8.55.0':
-    resolution: {integrity: sha512-ROgqtQfpH/82AQIpESPqPQe0UyWywKJsmVIqi3c5Fh+zkds5LUxnssTj3yNd1x+kxaPDVB023jAP+3ibNgeNDw==}
-    engines: {node: '>=14.18'}
+  '@sentry-internal/browser-utils@9.25.1':
+    resolution: {integrity: sha512-/E8NKoGpkZCiGfZ7OuROWjnhBDKs22JpeiLDpbvl+zdA11zJXOl/i99fDzwZZmx/yGH737Ai7KSLiw3HVcsH5A==}
+    engines: {node: '>=18'}
 
-  '@sentry-internal/feedback@8.55.0':
-    resolution: {integrity: sha512-cP3BD/Q6pquVQ+YL+rwCnorKuTXiS9KXW8HNKu4nmmBAyf7urjs+F6Hr1k9MXP5yQ8W3yK7jRWd09Yu6DHWOiw==}
-    engines: {node: '>=14.18'}
+  '@sentry-internal/feedback@9.25.1':
+    resolution: {integrity: sha512-wPyX68izXUGRHIpE2vz/LzgIJXtfnEL+LXjKJW11RA2yzAvd8SSmX+raBTuIr4dFhUJ8fn08OlYSAo4L1fY1RQ==}
+    engines: {node: '>=18'}
 
-  '@sentry-internal/replay-canvas@8.55.0':
-    resolution: {integrity: sha512-nIkfgRWk1091zHdu4NbocQsxZF1rv1f7bbp3tTIlZYbrH62XVZosx5iHAuZG0Zc48AETLE7K4AX9VGjvQj8i9w==}
-    engines: {node: '>=14.18'}
+  '@sentry-internal/replay-canvas@9.25.1':
+    resolution: {integrity: sha512-KR/zvg9Oe7pH0OBioHNSYOsk/Og6Ih7emkfIUvN6RmVkVeycOERDqJyXmKM8mKC9wFXDpivBZRhrWgg/dtAAPw==}
+    engines: {node: '>=18'}
 
-  '@sentry-internal/replay@8.55.0':
-    resolution: {integrity: sha512-roCDEGkORwolxBn8xAKedybY+Jlefq3xYmgN2fr3BTnsXjSYOPC7D1/mYqINBat99nDtvgFvNfRcZPiwwZ1hSw==}
-    engines: {node: '>=14.18'}
+  '@sentry-internal/replay@9.25.1':
+    resolution: {integrity: sha512-m5e2t8TolKeRYwZkUQ19Z9sjntVnEHomfI5ggiGyMGLobOgRpG40q1+BVwuO6sjaT7jMvDSZeIbjeEl/f+jABA==}
+    engines: {node: '>=18'}
 
   '@sentry/babel-plugin-component-annotate@3.3.1':
     resolution: {integrity: sha512-5GOxGT7lZN+I8A7Vp0rWY+726FDKEw8HnFiebe51rQrMbfGfCu2Aw9uSM0nT9OG6xhV6WvGccIcCszTPs4fUZQ==}
     engines: {node: '>= 14'}
 
-  '@sentry/browser@8.55.0':
-    resolution: {integrity: sha512-1A31mCEWCjaMxJt6qGUK+aDnLDcK6AwLAZnqpSchNysGni1pSn1RWSmk9TBF8qyTds5FH8B31H480uxMPUJ7Cw==}
-    engines: {node: '>=14.18'}
+  '@sentry/browser@9.25.1':
+    resolution: {integrity: sha512-wIpRGtwlO4SBqlO0E2xjM0ag3/J6H/zIySMz/zyG9onYThtjKVuM0I1IIWt4PN0cEO8eznBO/6cPSECVnIrQZA==}
+    engines: {node: '>=18'}
 
   '@sentry/bundler-plugin-core@3.3.1':
     resolution: {integrity: sha512-Dd6xaWb293j9otEJ1yJqG2Ra6zB49OPzMNdIkdP8wdY+S9UFQE5PyKTyredmPY7hqCc005OrUQZolIIo9Zl13A==}
@@ -660,17 +660,17 @@ packages:
     engines: {node: '>= 10'}
     hasBin: true
 
-  '@sentry/core@8.55.0':
-    resolution: {integrity: sha512-6g7jpbefjHYs821Z+EBJ8r4Z7LT5h80YSWRJaylGS4nW5W5Z2KXzpdnyFarv37O7QjauzVC2E+PABmpkw5/JGA==}
-    engines: {node: '>=14.18'}
+  '@sentry/core@9.25.1':
+    resolution: {integrity: sha512-c87MOAJ7nAdysQgMFCnQXoKgWx30poLTJRsK+N72ZQhGiLIzp25xuIhCsTLuftxR852tZShd9X11yU0NuolmkA==}
+    engines: {node: '>=18'}
 
   '@sentry/vite-plugin@3.3.1':
     resolution: {integrity: sha512-eIIIHqVOTO0m7+3aTg//gVi11XNpKi4G0xA45hjz46UmRiToVfqgBH7Dsn1qRrDxa7YPYCdREQkyGEINlElT2A==}
     engines: {node: '>= 14'}
 
-  '@sentry/vue@8.55.0':
-    resolution: {integrity: sha512-J6lcpzL39snV/spoGpwyk5Rp1wSFxOV4qV1NhQ9OlLHORVBp/Xpw7cEA0oKqG2w1wVtCV+gC5Jjf9HTmYiHQOQ==}
-    engines: {node: '>=14.18'}
+  '@sentry/vue@9.25.1':
+    resolution: {integrity: sha512-FOCfG6LLE2CXC7RVOZrelYPJod1Mnv1FHQFt89PwFrwyO74wvodWxJofq4ugNIJOmVKmjzLOr7uxbX8XDKH7vQ==}
+    engines: {node: '>=18'}
     peerDependencies:
       pinia: 2.x || 3.x
       vue: 2.x || 3.x
@@ -1409,9 +1409,9 @@ packages:
   material-symbols@0.31.2:
     resolution: {integrity: sha512-WANME7n9kqLNG1mcdcTuvbxkMuBQ64ktK/18d44/p/wZF0XkYXjXWs62cp4qnYGjtWABvUM3ZTB096MJsLbNSw==}
 
-  material@https://codeload.github.com/treeder/material/tar.gz/dc3adbc8896ac6849aad856ee1630aecb5ba2529:
-    resolution: {tarball: https://codeload.github.com/treeder/material/tar.gz/dc3adbc8896ac6849aad856ee1630aecb5ba2529}
-    version: 1.0.17
+  material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
+    resolution: {tarball: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2}
+    version: 1.0.18
 
   mdurl@1.0.1:
     resolution: {integrity: sha512-/sKlQJCBYVY9Ers9hqzKou4H6V5UWc/M59TH2dvkt+84itfnq7uFOMLpOiOS4ujvHP4etln18fmIxA5R5fll0g==}
@@ -2274,33 +2274,33 @@ snapshots:
 
   '@rushstack/eslint-patch@1.11.0': {}
 
-  '@sentry-internal/browser-utils@8.55.0':
+  '@sentry-internal/browser-utils@9.25.1':
     dependencies:
-      '@sentry/core': 8.55.0
+      '@sentry/core': 9.25.1
 
-  '@sentry-internal/feedback@8.55.0':
+  '@sentry-internal/feedback@9.25.1':
     dependencies:
-      '@sentry/core': 8.55.0
+      '@sentry/core': 9.25.1
 
-  '@sentry-internal/replay-canvas@8.55.0':
+  '@sentry-internal/replay-canvas@9.25.1':
     dependencies:
-      '@sentry-internal/replay': 8.55.0
-      '@sentry/core': 8.55.0
+      '@sentry-internal/replay': 9.25.1
+      '@sentry/core': 9.25.1
 
-  '@sentry-internal/replay@8.55.0':
+  '@sentry-internal/replay@9.25.1':
     dependencies:
-      '@sentry-internal/browser-utils': 8.55.0
-      '@sentry/core': 8.55.0
+      '@sentry-internal/browser-utils': 9.25.1
+      '@sentry/core': 9.25.1
 
   '@sentry/babel-plugin-component-annotate@3.3.1': {}
 
-  '@sentry/browser@8.55.0':
+  '@sentry/browser@9.25.1':
     dependencies:
-      '@sentry-internal/browser-utils': 8.55.0
-      '@sentry-internal/feedback': 8.55.0
-      '@sentry-internal/replay': 8.55.0
-      '@sentry-internal/replay-canvas': 8.55.0
-      '@sentry/core': 8.55.0
+      '@sentry-internal/browser-utils': 9.25.1
+      '@sentry-internal/feedback': 9.25.1
+      '@sentry-internal/replay': 9.25.1
+      '@sentry-internal/replay-canvas': 9.25.1
+      '@sentry/core': 9.25.1
 
   '@sentry/bundler-plugin-core@3.3.1':
     dependencies:
@@ -2356,7 +2356,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@sentry/core@8.55.0': {}
+  '@sentry/core@9.25.1': {}
 
   '@sentry/vite-plugin@3.3.1':
     dependencies:
@@ -2366,10 +2366,10 @@ snapshots:
       - encoding
       - supports-color
 
-  '@sentry/vue@8.55.0(pinia@2.3.1(vue@3.5.15))(vue@3.5.15)':
+  '@sentry/vue@9.25.1(pinia@2.3.1(vue@3.5.15))(vue@3.5.15)':
     dependencies:
-      '@sentry/browser': 8.55.0
-      '@sentry/core': 8.55.0
+      '@sentry/browser': 9.25.1
+      '@sentry/core': 9.25.1
       vue: 3.5.15
     optionalDependencies:
       pinia: 2.3.1(vue@3.5.15)
@@ -3236,7 +3236,7 @@ snapshots:
 
   material-symbols@0.31.2: {}
 
-  material@https://codeload.github.com/treeder/material/tar.gz/dc3adbc8896ac6849aad856ee1630aecb5ba2529:
+  material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
     dependencies:
       lit: 3.2.1
 
