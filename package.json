@@ -15,7 +15,7 @@
     "dependencies": {
         "@sentry/vite-plugin": "^2.22.7",
         "@sentry/vue": "^8.43.0",
-        "appwrite": "^16.0.0",
+        "appwrite": "^18.0.0",
         "dotenv": "^16.4.5",
         "material": "github:treeder/material",
         "material-symbols": "^0.31.0",

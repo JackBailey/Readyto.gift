@@ -15,8 +15,8 @@ importers:
         specifier: ^8.43.0
         version: 8.55.0(pinia@2.3.1(vue@3.5.15))(vue@3.5.15)
       appwrite:
-        specifier: ^16.0.0
-        version: 16.1.0
+        specifier: ^18.0.0
+        version: 18.1.1
       dotenv:
         specifier: ^16.4.5
         version: 16.5.0
@@ -769,8 +769,8 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  appwrite@16.1.0:
-    resolution: {integrity: sha512-fFkhpOjxvobKKWdgvG3fcsYt93QEk0VJ86q7ALD53eWAFiFmpklNXeE4rpXqdmtWpin4VuyWhkmH1aOF/QxvsA==}
+  appwrite@18.1.1:
+    resolution: {integrity: sha512-krwHjuwJcF+9Ig2+nqOEKMA/5kPIFhwwZsaLc7Gb8y2oP6EnG4ZMRPeHTFscdevOtVQj2Ax92cYYWAEvzlrc7A==}
 
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
@@ -2488,7 +2488,7 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  appwrite@16.1.0: {}
+  appwrite@18.1.1: {}
 
   argparse@2.0.1: {}
 
