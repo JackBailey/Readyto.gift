@@ -1,7 +1,7 @@
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { InputFile } from "node-appwrite/file";
-import { Client, Storage } from "node-appwrite";
+import { Client, ID, Storage } from "node-appwrite";
 import { TidyURL } from "tidy-url";
 
 const formatTitle = (data, site) => {
@@ -102,11 +102,11 @@ export default async ({ req, res, log, error }) => {
             throw new Error("Failed to fetch image");
         }
 
-        const imageBuffer = await imageData.buffer();
+        const imageBuffer = await imageData.arrayBuffer();
 
         const result = await storage.createFile(
             "66866e74001d3e2f2629",
-            sdk.ID.unique(),
+            ID.unique(),
             InputFile.fromBuffer(imageBuffer)
         );
 
