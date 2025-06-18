@@ -110,6 +110,15 @@ export default async ({ req, res, log, error }) => {
             if (!imageData.ok) {
                 throw new Error("Failed to fetch image");
             }
+            try {
+                // delete original
+                await storage.deleteFile(
+                    "66866e74001d3e2f2629",
+                    itemID
+                );
+            }  catch {
+                // ignore error if file does not exist
+            }
     
             const imageBuffer = await imageData.arrayBuffer();
     
