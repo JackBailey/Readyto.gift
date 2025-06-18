@@ -125,8 +125,8 @@ export default {
             dialogOpen: false,
             errors: {},
             fileState: false,
-            listId: null,
             itemID: null,
+            listId: null,
             loading: false,
             mdiAlert,
             mdiPencil,
@@ -207,8 +207,8 @@ export default {
                 const result = await functions.createExecution(
                     "get-autofill-data",
                     JSON.stringify({
-                        url,
                         itemID: this.itemID,
+                        url: url
                     }),
                     false
                 );
