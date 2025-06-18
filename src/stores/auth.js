@@ -11,6 +11,7 @@ export const useAuthStore = defineStore({
         userPrefs: {
             darkMode: false,
             spoilSurprises: false,
+            showTotalPrice: false,
             savedLists: [],
             listSorting: {
                 type: { name: "Last updated", value: "$updatedAt" },
@@ -21,6 +22,7 @@ export const useAuthStore = defineStore({
         newUserPrefs: {
             darkMode: false,
             spoilSurprises: false,
+            showTotalPrice: false,
             savedLists: [],
             listSorting: {
                 type: { name: "Last updated", value: "$updatedAt" },
@@ -75,7 +77,8 @@ export const useAuthStore = defineStore({
                         darkMode:
                             window.matchMedia &&
                             window.matchMedia("(prefers-color-scheme: dark)").matches,
-                        spoilSurprises: false
+                        spoilSurprises: false,
+                        showTotalPrice: false
                     };
                 }
             }

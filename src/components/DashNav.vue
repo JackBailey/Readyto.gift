@@ -54,6 +54,15 @@
                                     color="primary"
                                 />
                             </v-list-item>
+                            <v-list-item>
+                                <v-switch
+                                    v-model="auth.newUserPrefs.showTotalPrice"
+                                    label="Show Total Price"
+                                    hide-details
+                                    inset
+                                    color="primary"
+                                />
+                            </v-list-item>                            
                             <v-list-item v-if="!!auth.user">
                                 <v-switch
                                     v-model="auth.newUserPrefs.spoilSurprises"

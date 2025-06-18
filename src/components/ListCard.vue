@@ -38,6 +38,14 @@
                 >
                     {{ new Date(list.$updatedAt).toLocaleString() }}
                 </v-chip>
+                <v-chip
+                    :prepend-icon="mdiInvoiceList"
+                    variant="tonal"
+                    rounded
+                    v-if="authStore.userPrefs.showTotalPrice && list.items.length > 0"
+                >
+                    {{ currencyStore.formatter(props.list.currency).format(list.items.reduce((sum, item) => sum + (item.price || 0), 0)) }}
+                </v-chip>
             </div>
         </template>
 
@@ -79,12 +87,17 @@
 
 <script setup>
 import { defineEmits, defineProps } from "vue";
-import { mdiFileDocumentMultiple, mdiUpdate } from "@mdi/js";
+import { mdiFileDocumentMultiple, mdiInvoiceList, mdiUpdate } from "@mdi/js";
 import { avatars } from "@/appwrite";
 import ListManagementButtons from "@/components/dialogs/ListManagementButtons.vue";
+import { useAuthStore } from "@/stores/auth";
+import { useCurrencyStore } from "@/stores/currency";
 import VueMarkdown from "vue-markdown-render";
 
 const emit = defineEmits(["newItem", "updateList"]);
+
+const currencyStore = useCurrencyStore();
+const authStore = useAuthStore();
 
 const props = defineProps({
     buttonProps: {
