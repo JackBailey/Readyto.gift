@@ -38,12 +38,6 @@
                 >
                     {{ new Date(list.$updatedAt).toLocaleString() }}
                 </v-chip>
-                <v-chip
-                    variant="tonal"
-                    rounded
-                >
-                    {{ list.items.reduce((sum, item) => sum + (item.price || 0), 0) }}
-                </v-chip>
             </div>
         </template>
 

@@ -230,7 +230,7 @@ export default {
                         if (responseData.title) this.modifiedItem.title = responseData.title;
                         this.modifiedItem.description = responseData.description;
                         this.modifiedItem.url = responseData.url;
-                        if (responseData.imageID) this.modifiedItem.image = responseData.imageID;
+                        if (responseData.imageID) this.modifiedItem.imageID = responseData.imageID;
                         if (responseData.price) {
                             this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
                         }
