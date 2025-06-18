@@ -283,27 +283,36 @@ const saveList = async () => {
 };
 
 const quickCreate = async () => {
-    const result = await navigator.permissions.query({ name: "clipboard-read" });
-    if (result.state !== "denied") {
-        const clipboardContents = await navigator.clipboard.readText();
+    try {
+        const result = await navigator.permissions.query({ name: "clipboard-read" });
+        if (result.state !== "denied") {
+            const clipboardContents = await navigator.clipboard.readText();
 
-        const validURLs = clipboardContents.match(validation.urlRegexGlobal);
+            const validURLs = clipboardContents.match(validation.urlRegexGlobal);
 
-        if (!validURLs || validURLs.length === 0) {
+            if (!validURLs || validURLs.length === 0) {
+                quickCreateError.value = {
+                    text: "The clipboard does not contain any valid URLs.",
+                    title: "Invalid URL"
+                };
+                quickcreateDialogOpen.value = true;
+            } else {
+                quickCreateURL.value = validURLs[0];
+            }
+        } else {
             quickCreateError.value = {
-                text: "The clipboard does not contain any valid URLs.",
-                title: "Invalid URL"
+                text: "Clipboard read permission denied",
+                title: "Error"
             };
             quickcreateDialogOpen.value = true;
-        } else {
-            quickCreateURL.value = validURLs[0];
         }
-    } else {
+    } catch (error) {
         quickCreateError.value = {
-            text: "Clipboard read permission denied",
+            text: "An error occurred while reading the clipboard: " + error.message,
             title: "Error"
         };
         quickcreateDialogOpen.value = true;
+        console.error("Clipboard read error:", error);
     }
 };
 
