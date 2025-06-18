@@ -191,6 +191,10 @@ export default {
     methods: {
         setFileState(value) {
             this.fileState = value;
+            if (value === "removed") {
+                this.modifiedItem.imageFile = null;
+                this.modifiedItem.imageID = null;
+            }
         },
         async autoFill() {
             this.errors = {};
