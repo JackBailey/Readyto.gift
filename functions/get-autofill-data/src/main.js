@@ -70,12 +70,17 @@ const getBestImage = (url, images) => {
 
 export default async ({ req, res, log, error }) => {
     try {
-        const { url } = req.bodyJson;
-
+        const { url, itemID } = req.bodyJson;
 
         if (!url) {
             return res.json({
                 error: "No URL provided"
+            });
+        }
+
+        if (!itemID) {
+            return res.json({
+                error: "No item ID provided"
             });
         }
 
@@ -98,27 +103,36 @@ export default async ({ req, res, log, error }) => {
             });
         }
 
-        const imageData = await fetch(getBestImage(data.url, data.images));
-        if (!imageData.ok) {
-            throw new Error("Failed to fetch image");
+        let imageID, imageSize;
+
+        if (data.images.length) {
+            const imageData = await fetch(getBestImage(data.url, data.images));
+            if (!imageData.ok) {
+                throw new Error("Failed to fetch image");
+            }
+    
+            const imageBuffer = await imageData.arrayBuffer();
+    
+            const mimeType = imageData.headers.get("content-type") || "image/jpeg";
+            const fileExt = mime.extension(mimeType) || "jpg";
+    
+            const result = await storage.createFile(
+                "66866e74001d3e2f2629",
+                itemID,
+                InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
+            );
+
+            imageID = result.$id;
+            imageSize = result.size;
         }
 
-        const imageBuffer = await imageData.arrayBuffer();
-
-        const mimeType = imageData.headers.get("content-type") || "image/jpeg";
-        const fileExt = mime.extension(mimeType) || "jpg";
-
-        const result = await storage.createFile(
-            "66866e74001d3e2f2629",
-            ID.unique(),
-            InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
-        );
 
         const autofillData = {
             title: formatTitle(data, site),
             url: TidyURL.clean(data.url).url,
             image: "",
-            imageID: result.$id,
+            imageID,
+            imageSize,
             price: data.price
         };
 

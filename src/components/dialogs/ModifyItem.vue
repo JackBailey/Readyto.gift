@@ -126,6 +126,7 @@ export default {
             errors: {},
             fileState: false,
             listId: null,
+            itemID: null,
             loading: false,
             mdiAlert,
             mdiPencil,
@@ -152,6 +153,7 @@ export default {
                 this.listId = this.list.$id;
 
                 if (this.item) {
+                    this.itemID = this.item.$id;
                     this.modifiedItem = {
                         description: this.item.description,
                         displayPrice: this.item.displayPrice,
@@ -171,6 +173,8 @@ export default {
 
                         this.modifiedItem.imageFile = new File(["a".repeat(file.sizeOriginal)], file.name);
                     }
+                } else {
+                    this.itemID = ID.unique();
                 }
             }
         },
@@ -203,7 +207,8 @@ export default {
                 const result = await functions.createExecution(
                     "get-autofill-data",
                     JSON.stringify({
-                        url
+                        url,
+                        itemID: this.itemID,
                     }),
                     false
                 );
@@ -230,7 +235,12 @@ export default {
                         if (responseData.title) this.modifiedItem.title = responseData.title;
                         this.modifiedItem.description = responseData.description;
                         this.modifiedItem.url = responseData.url;
-                        if (responseData.imageID) this.modifiedItem.imageID = responseData.imageID;
+                        if (responseData.imageID) {
+                            this.modifiedItem.imageFile = new File(["a".repeat(responseData.imageSize)], responseData.imageID);
+                            this.modifiedItem.imageID = responseData.imageID;
+
+
+                        }
                         if (responseData.price) {
                             this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
                         }
@@ -268,7 +278,7 @@ export default {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
                         import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                        ID.unique(),
+                        this.itemID,
                         this.modifiedItem.imageFile
                     );
 
