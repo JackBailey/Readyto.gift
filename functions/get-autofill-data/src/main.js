@@ -1,7 +1,8 @@
+import { Client, ID, Storage } from "node-appwrite";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { InputFile } from "node-appwrite/file";
-import { Client, ID, Storage } from "node-appwrite";
+import mime from "mime-types";
 import { TidyURL } from "tidy-url";
 
 const formatTitle = (data, site) => {
@@ -104,10 +105,13 @@ export default async ({ req, res, log, error }) => {
 
         const imageBuffer = await imageData.arrayBuffer();
 
+        const mimeType = imageData.headers.get("content-type") || "image/jpeg";
+        const fileExt = mime.extension(mimeType) || "jpg";
+
         const result = await storage.createFile(
             "66866e74001d3e2f2629",
             ID.unique(),
-            InputFile.fromBuffer(imageBuffer)
+            InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
         );
 
         const autofillData = {
