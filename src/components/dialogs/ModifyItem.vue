@@ -189,9 +189,13 @@ export default {
         }
     },
     methods: {
-        setFileState(value) {
+        async setFileState(value) {
             this.fileState = value;
             if (value === "removed") {
+                await storage.deleteFile(
+                    import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                    this.modifiedItem.imageID
+                );
                 this.modifiedItem.imageFile = null;
                 this.modifiedItem.imageID = null;
             }
