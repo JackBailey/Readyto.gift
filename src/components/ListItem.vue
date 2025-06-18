@@ -23,10 +23,20 @@
                 :append-icon="mdiOpenInNew"
                 :href="item.url"
                 target="_blank"
-                v-if="item.url"
+                v-if="item.url && !$vuetify.display.mobile"
                 variant="outlined"
                 size="small"
-            >Open Website</v-btn>
+            >
+                Open Website
+            </v-btn>
+            <v-btn
+                :icon="mdiOpenInNew"
+                :href="item.url"
+                target="_blank"
+                v-if="item.url && $vuetify.display.mobile"
+                variant="outlined"
+                size="small"
+            />
             <ModifyItem
                 variant="outlined"
                 :item="item"

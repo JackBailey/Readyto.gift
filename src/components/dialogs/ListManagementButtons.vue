@@ -16,7 +16,7 @@
             @newItem="(data) => $emit('newItem', data)"
             @updateList="$emit('updateList', $event)"
             v-if="wishlistOwner"
-        />
+        /> 
 
         <v-btn
             size="small"
