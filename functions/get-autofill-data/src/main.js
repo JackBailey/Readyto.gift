@@ -81,7 +81,7 @@ export default async ({ req, res, log, error }) => {
         const client = new Client()
             .setEndpoint("https://appwrite.readyto.gift/v1") // Your API Endpoint
             .setProject("6838baa30010ce23e059") // Your project ID
-            .setJWT(req.variables["APPWRITE_FUNCTION_JWT"]);
+            .setJWT(req.headers["x-appwrite-user-jwt"]);
 
         const storage = new Storage(client);
 
