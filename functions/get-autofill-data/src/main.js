@@ -123,7 +123,7 @@ export default async ({ req, res, log, error }) => {
             );
 
             imageID = result.$id;
-            imageSize = result.size;
+            imageSize = result.sizeOriginal;
         }
 
 

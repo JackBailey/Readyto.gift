@@ -274,7 +274,7 @@ export default {
                 return;
             }
             try {
-                if (this.modifiedItem.imageFile) {
+                if (this.modifiedItem.imageFile && !this.modifiedItem.imageID) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
                         import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
