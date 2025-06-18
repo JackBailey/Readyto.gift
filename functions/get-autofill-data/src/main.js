@@ -1,7 +1,7 @@
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { InputFile } from "node-appwrite/file";
-import sdk from "node-appwrite";
+import { Client, Storage } from "node-appwrite";
 import { TidyURL } from "tidy-url";
 
 const formatTitle = (data, site) => {
@@ -78,12 +78,12 @@ export default async ({ req, res, log, error }) => {
             });
         }
 
-        const client = new sdk.Client()
+        const client = new Client()
             .setEndpoint("https://appwrite.readyto.gift/v1") // Your API Endpoint
             .setProject("6838baa30010ce23e059") // Your project ID
             .setJWT(req.variables["APPWRITE_FUNCTION_JWT"]);
 
-        const storage = new sdk.Storage(client);
+        const storage = new Storage(client);
 
         const data = await getPreview(url);
         const site = getSite(url);
