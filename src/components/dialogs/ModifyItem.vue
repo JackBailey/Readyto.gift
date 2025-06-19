@@ -182,6 +182,7 @@ export default {
             if (newURL) {
                 this.dialogOpen = true;
                 this.modifiedItem.url = newURL;
+                this.itemID = ID.unique();
                 this.autoFill();
 
                 this.$emit("unsetQuickCreateURL", "");
