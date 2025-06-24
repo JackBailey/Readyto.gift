@@ -25,7 +25,7 @@ importers:
         version: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2
       material-symbols:
         specifier: ^0.31.0
-        version: 0.31.2
+        version: 0.31.9
       pinia:
         specifier: ^2.1.7
         version: 2.3.1(vue@3.5.15)
@@ -1406,8 +1406,8 @@ packages:
     resolution: {integrity: sha512-FtwnEuuK+2yVU7goGn/MJ0WBZMM9ZPgU9spqlFs7/A/pDIUNSOQZhUgOqYCficIuR2QaFnrt8LHqBWsbTAoI5w==}
     hasBin: true
 
-  material-symbols@0.31.2:
-    resolution: {integrity: sha512-WANME7n9kqLNG1mcdcTuvbxkMuBQ64ktK/18d44/p/wZF0XkYXjXWs62cp4qnYGjtWABvUM3ZTB096MJsLbNSw==}
+  material-symbols@0.31.9:
+    resolution: {integrity: sha512-WCuJh+pgPtOq3scouRkztK+RBRj4XGHe2Jy2F8xD5T/dyLn09nP1fCJib0sf92jD/OaTE4C8/dzgIc54FkDDqA==}
 
   material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
     resolution: {tarball: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2}
@@ -3234,7 +3234,7 @@ snapshots:
       mdurl: 1.0.1
       uc.micro: 1.0.6
 
-  material-symbols@0.31.2: {}
+  material-symbols@0.31.9: {}
 
   material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
     dependencies:
