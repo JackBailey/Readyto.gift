@@ -223,5 +223,22 @@
             </style>
         </div>
         <script type="module" src="/src/main.js"></script>
+        <script src="https://swetrix.org/swetrix.js" defer></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            swetrix.init('WQ7nlIp2JaHl', {
+            apiURL: 'https://analytics-v2.jackbailey.dev/api/log',
+            })
+            swetrix.trackViews()
+        })
+        </script>
+
+        <noscript>
+        <img
+            src="https://analytics-v2.jackbailey.dev/api/log/noscript?pid=WQ7nlIp2JaHl"
+            alt=""
+            referrerpolicy="no-referrer-when-downgrade"
+        />
+        </noscript>
     </body>
 </html>
