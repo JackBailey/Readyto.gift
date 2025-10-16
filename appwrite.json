@@ -1,5 +1,5 @@
 {
-    "projectId": "67362a00001100c0587c",
+    "projectId": "6838baa30010ce23e059",
     "projectName": "readytogift",
     "settings": {
         "services": {
@@ -280,7 +280,9 @@
             "maximumFileSize": 20000000,
             "allowedFileExtensions": [
                 "jpg",
-                "png"
+                "png",
+                "jpeg",
+                "webp"
             ],
             "compression": "gzip",
             "encryption": true,

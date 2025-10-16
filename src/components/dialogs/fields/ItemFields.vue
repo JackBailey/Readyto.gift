@@ -41,7 +41,7 @@
             <v-file-input
                 :prepend-icon="mdiImage"
                 v-model="item.imageFile"
-                accept=".png,.jpg"
+                accept=".png,.jpg,.jpeg,.webp"
                 label="Image"
                 clearable
                 show-size="1000"
