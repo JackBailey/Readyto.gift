@@ -243,6 +243,14 @@ export default {
                 }
                 return item;
             });
+
+            this.$nextTick(() => {
+                const el = this.$el.querySelector(`[data-item-id="${data.item.$id}"]`);
+                el.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            });
         },
         unfulfillItem(itemId) {
             this.list.items = this.list.items.map((item) => {
@@ -250,6 +258,14 @@ export default {
                     item.fulfillment = null;
                 }
                 return item;
+            });
+
+            this.$nextTick(() => {
+                const el = this.$el.querySelector(`[data-item-id="${itemId}"]`);
+                el.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
             });
         },
         async createAvoidSpoilersDialog(list) {
