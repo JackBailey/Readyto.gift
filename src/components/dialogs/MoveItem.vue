@@ -42,7 +42,7 @@
                                 v-for="list in lists"
                                 :key="list.$id"
                                 :list="list"
-                                :selected="selectedList === list.$id"
+                                :selected="selectedList === list"
                                 @click="selectList(list)"
                                 type="selectable"
                             />
@@ -206,6 +206,24 @@ export default {
                     }
                 );
 
+                await databases.updateDocument(
+                    import.meta.env.VITE_APPWRITE_DB,
+                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    this.list.$id,
+                    {
+                        itemCount: this.list.items.length - 1
+                    }
+                );
+                
+                await databases.updateDocument(
+                    import.meta.env.VITE_APPWRITE_DB,
+                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    this.selectedList.$id,
+                    {
+                        itemCount: this.selectedList.items.length + 1
+                    }
+                );
+
                 this.loadingMove = false;
                 this.success = true;
             } catch (error) {
@@ -226,16 +244,16 @@ export default {
             }
         },
         goToList() {
-            this.$router.push(`/list/${this.selectedList}`);
-            this.$emit("loadList", this.selectedList);
+            this.$router.push(`/list/${this.selectedList.$id}`);
+            this.$emit("loadList", this.selectedList.$id);
             this.dialogOpen = false;
         },
         selectList(list) {
-            if (this.selectedList === list.$id) {
+            if (this.selectedList && this.selectedList.$id === list.$id) {
                 this.selectedList = null;
                 return;
             }
-            this.selectedList = list.$id;
+            this.selectedList = list;
         }
     }
 };
