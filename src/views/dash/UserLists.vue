@@ -238,14 +238,16 @@ export default {
     },
     methods: {
         createList(data) {
+            const query = {};
+            if (this.quickCreateURL) {
+                query.quickcreateurl = this.quickCreateURL;
+            }
             this.$router.push({
                 name: "list",
                 params: {
                     id: data.list.$id
                 },
-                query: {
-                    quickcreateurl: this.quickCreateURL
-                }
+                query
             });
         },
         async getLists() {
