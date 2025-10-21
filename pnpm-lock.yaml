@@ -22,7 +22,7 @@ importers:
         version: 16.5.0
       material:
         specifier: github:treeder/material
-        version: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2
+        version: git+https://github.com/treeder/material.git#74061567c003a2cce71912b3349cada5d4a63b3b
       material-symbols:
         specifier: ^0.31.0
         version: 0.31.2
@@ -34,7 +34,7 @@ importers:
         version: 1.89.1
       vite-plugin-vuetify:
         specifier: ^2.0.3
-        version: 2.1.1(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7)
+        version: 2.1.2(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7)
       vue:
         specifier: ^3.4.29
         version: 3.5.15
@@ -46,7 +46,7 @@ importers:
         version: 4.5.1(vue@3.5.15)
       vuetify:
         specifier: ^3.6.10
-        version: 3.8.7(vite-plugin-vuetify@2.1.1)(vue@3.5.15)
+        version: 3.8.7(vite-plugin-vuetify@2.1.2)(vue@3.5.15)
     devDependencies:
       '@eslint/js':
         specifier: ^9.5.0
@@ -385,11 +385,11 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@lit-labs/ssr-dom-shim@1.2.1':
-    resolution: {integrity: sha512-wx4aBmgeGvFmOKucFKY+8VFJSYZxs9poN3SDNQFF6lT6NrQUnHiPB2PWz2sc4ieEcAaYYzN+1uWahEeTq2aRIQ==}
+  '@lit-labs/ssr-dom-shim@1.4.0':
+    resolution: {integrity: sha512-ficsEARKnmmW5njugNYKipTm4SFnbik7CXtoencDZzmzo/dQ+2Q0bgkzJuoJP20Aj0F+izzJjOqsnkd6F/o1bw==}
 
-  '@lit/reactive-element@2.0.4':
-    resolution: {integrity: sha512-GFn91inaUa2oHLak8awSIigYz0cU0Payr1rcFsrkf5OJ5eSPxElyZfKh0f2p9FsTiZWXQdWGJeXZICEfXXYSXQ==}
+  '@lit/reactive-element@2.1.1':
+    resolution: {integrity: sha512-N+dm5PAYdQ8e6UlywyyrgI2t++wFGXfHx+dSJ1oBrg6FAxUj40jId++EaRm80MKX5JnlH1sBsyZ5h0bcZKemCg==}
 
   '@mdi/js@7.4.47':
     resolution: {integrity: sha512-KPnNOtm5i2pMabqZxpUz7iQf+mfrYZyKCZ8QNz85czgEt7cuHcGorWfdzUMWYA0SD+a6Hn4FmJ+YhzzzjkTZrQ==}
@@ -738,8 +738,8 @@ packages:
   '@vue/shared@3.5.15':
     resolution: {integrity: sha512-bKvgFJJL1ZX9KxMCTQY6xD9Dhe3nusd1OhyOb1cJYGqvAr0Vg8FIjHPMOEVbJ9GDT9HG+Bjdn4oS8ohKP8EvoA==}
 
-  '@vuetify/loader-shared@2.1.0':
-    resolution: {integrity: sha512-dNE6Ceym9ijFsmJKB7YGW0cxs7xbYV8+1LjU6jd4P14xOt/ji4Igtgzt0rJFbxu+ZhAzqz853lhB0z8V9Dy9cQ==}
+  '@vuetify/loader-shared@2.1.1':
+    resolution: {integrity: sha512-jSZTzTYaoiv8iwonFCVZQ0YYX/M+Uyl4ng+C4egMJT0Hcmh9gIxJL89qfZICDeo3g0IhqrvipW2FFKKRDMtVcA==}
     peerDependencies:
       vue: ^3.0.0
       vuetify: ^3.0.0
@@ -905,8 +905,8 @@ packages:
       supports-color:
         optional: true
 
-  debug@4.4.0:
-    resolution: {integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==}
+  debug@4.4.3:
+    resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
@@ -1370,14 +1370,14 @@ packages:
   linkify-it@4.0.1:
     resolution: {integrity: sha512-C7bfi1UZmoj8+PQx22XyeXCuBlokoyWQL5pWSP+EI6nzRylyThouddufc2c1NDIcP9k5agmN9fLpA7VNJfIiqw==}
 
-  lit-element@4.1.1:
-    resolution: {integrity: sha512-HO9Tkkh34QkTeUmEdNYhMT8hzLid7YlMlATSi1q4q17HE5d9mrrEHJ/o8O2D0cMi182zK1F3v7x0PWFjrhXFew==}
+  lit-element@4.2.1:
+    resolution: {integrity: sha512-WGAWRGzirAgyphK2urmYOV72tlvnxw7YfyLDgQ+OZnM9vQQBQnumQ7jUJe6unEzwGU3ahFOjuz1iz1jjrpCPuw==}
 
-  lit-html@3.2.1:
-    resolution: {integrity: sha512-qI/3lziaPMSKsrwlxH/xMgikhQ0EGOX2ICU73Bi/YHFvz2j/yMCIrw4+puF2IpQ4+upd3EWbvnHM9+PnJn48YA==}
+  lit-html@3.3.1:
+    resolution: {integrity: sha512-S9hbyDu/vs1qNrithiNyeyv64c9yqiW9l+DBgI18fL+MTvOtWoFR0FWiyq1TxaYef5wNlpEmzlXoBlZEO+WjoA==}
 
-  lit@3.2.1:
-    resolution: {integrity: sha512-1BBa1E/z0O9ye5fZprPtdqnc0BFzxIxTTOO/tQFmyC/hj1O3jL4TfmLBw0WEwjAokdLwpclkvGgDJwTIh0/22w==}
+  lit@3.3.1:
+    resolution: {integrity: sha512-Ksr/8L3PTapbdXJCk+EJVB78jDodUMaP54gD24W186zGRARvwrsPfS60wae/SSCTCNZVPd1chXqio1qHQmu4NA==}
 
   locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
@@ -1409,9 +1409,9 @@ packages:
   material-symbols@0.31.2:
     resolution: {integrity: sha512-WANME7n9kqLNG1mcdcTuvbxkMuBQ64ktK/18d44/p/wZF0XkYXjXWs62cp4qnYGjtWABvUM3ZTB096MJsLbNSw==}
 
-  material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
-    resolution: {tarball: https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2}
-    version: 1.0.18
+  material@git+https://github.com/treeder/material.git#74061567c003a2cce71912b3349cada5d4a63b3b:
+    resolution: {commit: 74061567c003a2cce71912b3349cada5d4a63b3b, repo: https://github.com/treeder/material.git, type: git}
+    version: 2.3.16
 
   mdurl@1.0.1:
     resolution: {integrity: sha512-/sKlQJCBYVY9Ers9hqzKou4H6V5UWc/M59TH2dvkt+84itfnq7uFOMLpOiOS4ujvHP4etln18fmIxA5R5fll0g==}
@@ -1748,8 +1748,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  vite-plugin-vuetify@2.1.1:
-    resolution: {integrity: sha512-Pb7bKhQH8qPMzURmEGq2aIqCJkruFNsyf1NcrrtnjsOIkqJPMcBbiP0oJoO8/uAmyB5W/1JTbbUEsyXdMM0QHQ==}
+  vite-plugin-vuetify@2.1.2:
+    resolution: {integrity: sha512-I/wd6QS+DO6lHmuGoi1UTyvvBTQ2KDzQZ9oowJQEJ6OcjWfJnscYXx2ptm6S7fJSASuZT8jGRBL3LV4oS3LpaA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: '>=5'
@@ -1906,7 +1906,7 @@ snapshots:
       '@babel/traverse': 7.27.0
       '@babel/types': 7.27.0
       convert-source-map: 2.0.0
-      debug: 4.4.0
+      debug: 4.4.3
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -1981,7 +1981,7 @@ snapshots:
       '@babel/parser': 7.27.0
       '@babel/template': 7.27.0
       '@babel/types': 7.27.0
-      debug: 4.4.0
+      debug: 4.4.3
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -2139,11 +2139,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@lit-labs/ssr-dom-shim@1.2.1': {}
+  '@lit-labs/ssr-dom-shim@1.4.0': {}
 
-  '@lit/reactive-element@2.0.4':
+  '@lit/reactive-element@2.1.1':
     dependencies:
-      '@lit-labs/ssr-dom-shim': 1.2.1
+      '@lit-labs/ssr-dom-shim': 1.4.0
 
   '@mdi/js@7.4.47': {}
 
@@ -2454,11 +2454,11 @@ snapshots:
 
   '@vue/shared@3.5.15': {}
 
-  '@vuetify/loader-shared@2.1.0(vue@3.5.15)(vuetify@3.8.7)':
+  '@vuetify/loader-shared@2.1.1(vue@3.5.15)(vuetify@3.8.7)':
     dependencies:
       upath: 2.0.1
       vue: 3.5.15
-      vuetify: 3.8.7(vite-plugin-vuetify@2.1.1)(vue@3.5.15)
+      vuetify: 3.8.7(vite-plugin-vuetify@2.1.2)(vue@3.5.15)
 
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:
@@ -2468,7 +2468,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
@@ -2649,7 +2649,7 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.0:
+  debug@4.4.3:
     dependencies:
       ms: 2.1.3
 
@@ -3059,7 +3059,7 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.0
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
@@ -3188,21 +3188,21 @@ snapshots:
     dependencies:
       uc.micro: 1.0.6
 
-  lit-element@4.1.1:
+  lit-element@4.2.1:
     dependencies:
-      '@lit-labs/ssr-dom-shim': 1.2.1
-      '@lit/reactive-element': 2.0.4
-      lit-html: 3.2.1
+      '@lit-labs/ssr-dom-shim': 1.4.0
+      '@lit/reactive-element': 2.1.1
+      lit-html: 3.3.1
 
-  lit-html@3.2.1:
+  lit-html@3.3.1:
     dependencies:
       '@types/trusted-types': 2.0.7
 
-  lit@3.2.1:
+  lit@3.3.1:
     dependencies:
-      '@lit/reactive-element': 2.0.4
-      lit-element: 4.1.1
-      lit-html: 3.2.1
+      '@lit/reactive-element': 2.1.1
+      lit-element: 4.2.1
+      lit-html: 3.3.1
 
   locate-path@6.0.0:
     dependencies:
@@ -3236,9 +3236,9 @@ snapshots:
 
   material-symbols@0.31.2: {}
 
-  material@https://codeload.github.com/treeder/material/tar.gz/d2b34e52f317348518c5d4d8aedf2e27c8c378f2:
+  material@git+https://github.com/treeder/material.git#74061567c003a2cce71912b3349cada5d4a63b3b:
     dependencies:
-      lit: 3.2.1
+      lit: 3.3.1
 
   mdurl@1.0.1: {}
 
@@ -3610,14 +3610,14 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  vite-plugin-vuetify@2.1.1(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7):
+  vite-plugin-vuetify@2.1.2(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7):
     dependencies:
-      '@vuetify/loader-shared': 2.1.0(vue@3.5.15)(vuetify@3.8.7)
-      debug: 4.3.7
+      '@vuetify/loader-shared': 2.1.1(vue@3.5.15)(vuetify@3.8.7)
+      debug: 4.4.3
       upath: 2.0.1
       vite: 5.4.19(sass@1.89.1)
       vue: 3.5.15
-      vuetify: 3.8.7(vite-plugin-vuetify@2.1.1)(vue@3.5.15)
+      vuetify: 3.8.7(vite-plugin-vuetify@2.1.2)(vue@3.5.15)
     transitivePeerDependencies:
       - supports-color
 
@@ -3636,7 +3636,7 @@ snapshots:
 
   vue-eslint-parser@9.4.3(eslint@9.27.0):
     dependencies:
-      debug: 4.3.7
+      debug: 4.4.3
       eslint: 9.27.0
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
@@ -3665,11 +3665,11 @@ snapshots:
       '@vue/server-renderer': 3.5.15(vue@3.5.15)
       '@vue/shared': 3.5.15
 
-  vuetify@3.8.7(vite-plugin-vuetify@2.1.1)(vue@3.5.15):
+  vuetify@3.8.7(vite-plugin-vuetify@2.1.2)(vue@3.5.15):
     dependencies:
       vue: 3.5.15
     optionalDependencies:
-      vite-plugin-vuetify: 2.1.1(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7)
+      vite-plugin-vuetify: 2.1.2(vite@5.4.19(sass@1.89.1))(vue@3.5.15)(vuetify@3.8.7)
 
   webidl-conversions@3.0.1: {}
 
