@@ -94,7 +94,7 @@
                 </v-chip>
                 <v-chip
                     :prepend-icon="mdiWeb"
-                    v-if="item.url"
+                    v-if="item.url && validation.urlRegex.test(item.url)"
                     :href="item.url"
                     target="_blank"
                     rounded
@@ -136,6 +136,7 @@ import MoveItem from "@/components/dialogs/MoveItem.vue";
 import { storage } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
+import validation from "@/utils/validation";
 import VueMarkdown from "vue-markdown-render";
 
 export default {
@@ -209,7 +210,7 @@ export default {
         }
     },
     methods: {
-        getWebsiteHostname(url) {
+        getWebsiteHostname(url) {            
             const toTitleCase = (str) => {
                 return str.replace(
                     /\w\S*/g,
