@@ -1,8 +1,7 @@
 import { defineStore } from "pinia";
 import { locale } from "@/appwrite";
 
-export const useCurrencyStore = defineStore({
-    id: "currency",
+export const useCurrencyStore = defineStore("currency", {
     state: () => ({
         currencies: []
     }),

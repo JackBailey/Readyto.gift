@@ -2,8 +2,7 @@ import { defineStore } from "pinia";
 
 const appInstalled = window.matchMedia("(display-mode: standalone)").matches;
 
-export const usePWA = defineStore({
-    id: "pwa",
+export const usePWA = defineStore("pwa",{
     state: () => ({
         deferredPrompt: null,
         appInstalled

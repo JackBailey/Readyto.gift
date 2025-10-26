@@ -42,7 +42,7 @@
 
         <div
             class="items"
-            v-if="itemsByPriceGroups.length"
+            v-if="itemsByPriceGroups && itemsByPriceGroups.length"
         >
             <div
                 class="item-price-group"
@@ -82,7 +82,7 @@
             >
                 <template
                     v-slot:text
-                    v-if="list.items.length"
+                    v-if="list.items && list.items.length"
                 >
                     Items exist on this list, but they've all been fulfilled. Lucky them!
                 </template>
@@ -139,7 +139,7 @@ export default {
     },
     computed: {
         itemsByPriceGroups() {
-            if (!this.list || this.list.items.length === 0) return [];
+            if (!this.list || !this.list.items ||this.list.items.length === 0) return [];
 
             const priceGroupItems = this.priceGroups
                 .map((price, index) => {
@@ -305,7 +305,10 @@ export default {
                 let list = await databases.getDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
-                    listId
+                    listId,
+                    [
+                        Query.select(["*","items.*"])
+                    ]
                 );
 
                 let loadedAsAuthor = this.auth.user && list.author === this.auth.user.$id;
@@ -318,12 +321,13 @@ export default {
             
                 this.fulfillments = [];
 
-                if (list.items.length) {
+                if (list.items && list.items.length) {
                     this.fulfillments = (await databases.listDocuments(
                         import.meta.env.VITE_APPWRITE_DB,
                         import.meta.env.VITE_APPWRITE_FULFILLMENT_COLLECTION,
                         [
-                            Query.equal("item", list.items.map((item) => item.$id))
+                            Query.equal("item", list.items.map((item) => item.$id)),
+                            Query.select(["*", "item.*"])
                         ]
                     )).documents;
                 }
@@ -357,6 +361,7 @@ export default {
                     }
                 });
             } catch (error) {
+                console.error(error)
                 this.dialogs.create({
                     actions: [
                         {

@@ -2,8 +2,7 @@ import { account, avatars } from "@/appwrite";
 import { defineStore } from "pinia";
 import { setUser as setSentryUser } from "@sentry/vue";
 
-export const useAuthStore = defineStore({
-    id: "auth",
+export const useAuthStore = defineStore("auth", {
     state: () => ({
         user: null,
         avatar: null,

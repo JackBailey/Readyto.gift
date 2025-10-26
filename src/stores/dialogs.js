@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 
-export const useDialogs = defineStore({
-    id: "dialogs",
+export const useDialogs = defineStore("dialogs", {
     state: () => ({
         dialogs: []
     }),

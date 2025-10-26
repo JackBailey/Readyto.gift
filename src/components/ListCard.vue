@@ -42,7 +42,7 @@
                     :prepend-icon="mdiInvoiceList"
                     variant="tonal"
                     rounded
-                    v-if="authStore.userPrefs.showTotalPrice && list.items.length > 0"
+                    v-if="authStore.userPrefs.showTotalPrice && list.items && list.items.length > 0"
                 >
                     {{ currencyStore.formatter(props.list.currency).format(list.items.reduce((sum, item) => sum + (item.price || 0), 0)) }}
                 </v-chip>
