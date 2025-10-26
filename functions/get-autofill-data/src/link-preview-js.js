@@ -5,6 +5,8 @@ import { CONSTANTS } from "./constants.js";
 import { fetch } from "cross-fetch";
 import getSite from "./get-site.js";
 import urlObj from "url";
+import { HttpsProxyAgent } from "https-proxy-agent";
+
 
 function throwOnLoopback(address) {
     if (CONSTANTS.REGEX_LOOPBACK.test(address)) {
@@ -410,12 +412,13 @@ function parseResponse(response, options) {
  * @param text string, text to be parsed
  * @param options ILinkPreviewOptions
  */
-export async function getLinkPreview(text, options) {
-    if (!text || typeof text !== "string") {
+export async function getLinkPreview({ url, log, error }, options) {
+    let proxyAgent = options.type === "proxy" && options.proxy ? new HttpsProxyAgent(options.proxy) : null;
+    if (!url || typeof url !== "string") {
         throw new Error("Invalid URL");
     }
 
-    const detectedUrl = text
+    const detectedUrl = url
         .replace(/\n/g, " ")
         .split(" ")
         .find((token) => CONSTANTS.REGEX_VALID_URL.test(token));
@@ -447,6 +450,10 @@ export async function getLinkPreview(text, options) {
         redirect: options?.followRedirects ?? "error",
         signal: controller.signal
     };
+
+    if (proxyAgent) {
+        fetchOptions.agent = proxyAgent;
+    }
 
     const fetchUrl = options?.proxyUrl
         ? options.proxyUrl.concat(detectedUrl)
@@ -505,7 +512,13 @@ export async function getLinkPreview(text, options) {
         data: await response.text()
     };
 
-    return parseResponse(normalizedResponse, options);
+    const parsedResponse = parseResponse(normalizedResponse, options);
+
+    if (!parsedResponse || !parsedResponse.title || parsedResponse.images.length === 0) {
+        return new Error("Could not extract link preview data");
+    }
+
+    return parsedResponse;
 }
 
 /**

@@ -22,23 +22,48 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url) => {
-    return new Promise((resolve, reject) => {
-        getLinkPreview(url, {
-            followRedirects: "follow",
-            headers: {
-                "user-agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-            }
-        })
-            .then((urlData) => {
-                resolve(urlData);
-            })
-            .catch((error) => {
-                console.error("Error:", error);
-                reject(error);
+const getPreview = async (url, { log, error }) => {
+    const requestMethods = [
+        {
+            type: "standard",
+            name: "Local Fetch"
+        }
+    ];
+
+    const proxies = process.env.APPWRITE_HTTP_PROXIES
+        ? process.env.APPWRITE_HTTP_PROXIES.split(",")
+        : [];
+
+    for (const [index, proxy] of proxies.entries()) {
+        requestMethods.push({
+            type: "proxy",
+            name: `Proxy ${index + 1}`,
+            proxy
+        });
+    }
+
+    for (const method of requestMethods) {
+        log(`Trying request method: ${method.name}`);
+
+        try {
+            const data = await getLinkPreview({ url, log, error }, {
+                followRedirects: "follow",
+                headers: {
+                    "user-agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+                },
+                proxy: method.type === "proxy" ? method.proxy : null
             });
-    });
+
+            log(`Request method succeeded: ${method.name}`);
+            return data;
+        } catch (err) {
+            error(`Request method failed: ${method.name} - ${err.message}`);
+            // try next method
+        }
+    }
+
+    throw new Error("All request methods failed");
 };
 
 const getBestImage = (url, images) => {
@@ -91,7 +116,7 @@ export default async ({ req, res, log, error }) => {
 
         const storage = new Storage(client);
 
-        const data = await getPreview(url);
+        const data = await getPreview(url, { log, error });
         const site = getSite(url);
 
         if (
@@ -145,8 +170,11 @@ export default async ({ req, res, log, error }) => {
             price: data.price
         };
 
+        log("Autofill data:", autofillData);
+
         return res.json(autofillData);
     } catch (err) {
+        console.log(err);
         error("Could not get link preview: " + err.message);
 
         return res.json({

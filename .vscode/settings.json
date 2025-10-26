@@ -1,3 +1,12 @@
 {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "editor.formatOnType": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveMode": "file",
+    "eslint.format.enable": true,
+    "files.autoSave": "onFocusChange",
+    "editor.tabSize": 4
 }
