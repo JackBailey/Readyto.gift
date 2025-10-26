@@ -172,7 +172,8 @@ export default {
             currencyStore: useCurrencyStore(),
             mdiGift,
             mdiOpenInNew,
-            mdiWeb
+            mdiWeb,
+            validation
         };
     },
     computed: {
