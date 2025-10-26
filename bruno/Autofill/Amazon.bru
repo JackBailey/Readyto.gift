@@ -1,0 +1,23 @@
+meta {
+  name: Amazon
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/api/get-autofill-data
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "itemID": "68fbe5a70022ded175ad",
+    "url": "https://www.amazon.co.uk/Apple-iPhone-14-128GB-Midnight/dp/B0BNLXKVNQ"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

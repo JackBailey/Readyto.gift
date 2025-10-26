@@ -216,6 +216,7 @@ export default {
                 const result = await functions.createExecution(
                     "get-autofill-data",
                     JSON.stringify({
+                        currency: this.currency,
                         itemID: this.itemID,
                         url: url
                     }),
@@ -451,6 +452,7 @@ export default {
         if (this.quickCreateURL) {
             this.dialogOpen = true;
             this.modifiedItem.url = this.quickCreateURL;
+            this.itemID = ID.unique();
             this.autoFill();
     
             this.$emit("unsetQuickCreateURL", "");

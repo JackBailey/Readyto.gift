@@ -2,10 +2,10 @@
 import * as cheerio from "cheerio";
 import AbortController from "abort-controller";
 import { CONSTANTS } from "./constants.js";
-import { fetch } from "cross-fetch";
+import fetch from "node-fetch";
 import getSite from "./get-site.js";
-import urlObj from "url";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import urlObj from "url";
 
 
 function throwOnLoopback(address) {
@@ -16,7 +16,7 @@ function throwOnLoopback(address) {
 
 function metaTag(doc, type, attr) {
     const nodes = doc(`meta[${attr}='${type}']`);
-    return nodes.length ? nodes : null;
+    return nodes?.length ? nodes : null;
 }
 
 function metaTagContent(doc, type, attr) {
@@ -88,7 +88,7 @@ function getImages(doc, rootUrl, imagesPropertyType) {
         });
     }
 
-    if (images.length <= 0 && !imagesPropertyType) {
+    if (images && images.length <= 0 && !imagesPropertyType) {
         src = doc("link[rel=image_src]").attr("href");
         if (src) {
             src = urlObj.resolve(rootUrl, src);
@@ -146,7 +146,7 @@ function getPrice(doc, url) {
 
         pricePatterns.forEach((pattern) => {
             const element = doc(pattern).first();
-            if (element.length) {
+            if (element && element.length) {
                 const text = element.text();
                 const priceMatch = text.match(/(\d{1,3}(,\d{3})*(\.\d{2})?)/);
                 if (priceMatch) {
@@ -252,7 +252,7 @@ function getFavicons(doc, rootUrl) {
         nodes = doc(`link[${relSelector}]`);
 
         // collect all images from icon tags
-        if (nodes.length) {
+        if (nodes && nodes.length) {
             nodes.each((_, node) => {
                 if (node.type === "tag") src = node.attribs.href;
                 if (src) {
@@ -264,7 +264,7 @@ function getFavicons(doc, rootUrl) {
     });
 
     // if no icon images, use default favicon location
-    if (images.length <= 0) {
+    if (images && images.length <= 0) {
         images.push(getDefaultFavicon(rootUrl));
     }
 
@@ -412,8 +412,7 @@ function parseResponse(response, options) {
  * @param text string, text to be parsed
  * @param options ILinkPreviewOptions
  */
-export async function getLinkPreview({ url, log, error }, options) {
-    let proxyAgent = options.type === "proxy" && options.proxy ? new HttpsProxyAgent(options.proxy) : null;
+export async function getLinkPreview({ url, log }, options) {
     if (!url || typeof url !== "string") {
         throw new Error("Invalid URL");
     }
@@ -451,8 +450,8 @@ export async function getLinkPreview({ url, log, error }, options) {
         signal: controller.signal
     };
 
-    if (proxyAgent) {
-        fetchOptions.agent = proxyAgent;
+    if (options.proxy) {
+        fetchOptions.agent = new HttpsProxyAgent(options.proxy);
     }
 
     const fetchUrl = options?.proxyUrl
@@ -514,8 +513,8 @@ export async function getLinkPreview({ url, log, error }, options) {
 
     const parsedResponse = parseResponse(normalizedResponse, options);
 
-    if (!parsedResponse || !parsedResponse.title || parsedResponse.images.length === 0) {
-        return new Error("Could not extract link preview data");
+    if (!parsedResponse || parsedResponse.title === "" || (parsedResponse.images && parsedResponse.images.length === 0)) {
+        throw new Error("Could not extract link preview data");
     }
 
     return parsedResponse;

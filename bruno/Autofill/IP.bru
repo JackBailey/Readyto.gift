@@ -1,0 +1,23 @@
+meta {
+  name: IP
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/get-autofill-data
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "itemID": "68fbe5a70022ded175ad",
+    "url": "https://icanhazip.com"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,4 +1,4 @@
-import { Client, ID, Storage } from "node-appwrite";
+import { Client, Storage } from "node-appwrite";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { InputFile } from "node-appwrite/file";
@@ -22,13 +22,15 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url, { log, error }) => {
-    const requestMethods = [
-        {
+const getPreview = async (url, country, { log, error }) => {
+    const requestMethods = [];
+
+    if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
+        requestMethods.push({
             type: "standard",
             name: "Local Fetch"
-        }
-    ];
+        });
+    }
 
     const proxies = process.env.APPWRITE_HTTP_PROXIES
         ? process.env.APPWRITE_HTTP_PROXIES.split(",")
@@ -42,16 +44,49 @@ const getPreview = async (url, { log, error }) => {
         });
     }
 
+    let proxyUsername = process.env.APPWRITE_PROXY_USERNAME;
+    const proxyCountryPrefix = process.env.APPWRITE_PROXY_COUNTRY_PREFIX;
+    const proxyPassword = process.env.APPWRITE_PROXY_PASSWORD;
+    const proxyHost = process.env.APPWRITE_PROXY_HOST;
+    const proxyAttempts = parseInt(process.env.APPWRITE_PROXY_ATTEMPTS) || 0;
+
+    if (proxyUsername && proxyPassword && proxyHost && proxyAttempts && proxyAttempts > 0) {
+        if (proxyUsername && proxyUsername.includes("{country}")) {
+            if (country) {
+                proxyUsername = proxyUsername.replace("{country}", proxyCountryPrefix + country);
+            } else {
+                proxyUsername = proxyUsername.replace("{country}", "");
+            }
+        }
+
+        for (let i = 0; i < proxyAttempts; i++) {
+            const authPart = proxyUsername && proxyPassword
+                ? `${proxyUsername}:${proxyPassword}@`
+                : "";
+            const proxyUrl = `http://${authPart}${proxyHost}`;
+
+            requestMethods.push({
+                type: "proxy",
+                name: `Rotating Proxy ${i + 1}`,
+                proxy: proxyUrl
+            });
+        }
+    }
+
+    log(`Total request methods to try: ${requestMethods.length}`);
+
     for (const method of requestMethods) {
         log(`Trying request method: ${method.name}`);
 
         try {
+            console.log({ method });
             const data = await getLinkPreview({ url, log, error }, {
                 followRedirects: "follow",
                 headers: {
                     "user-agent":
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
                 },
+                timeout: 15000,
                 proxy: method.type === "proxy" ? method.proxy : null
             });
 
@@ -63,7 +98,7 @@ const getPreview = async (url, { log, error }) => {
         }
     }
 
-    throw new Error("All request methods failed");
+    throw new Error("All request methods failed, it may be blocked.");
 };
 
 const getBestImage = (url, images) => {
@@ -95,7 +130,7 @@ const getBestImage = (url, images) => {
 
 export default async ({ req, res, log, error }) => {
     try {
-        const { url, itemID } = req.bodyJson;
+        const { url, currency, itemID } = req.bodyJson;
 
         if (!url) {
             return res.json({
@@ -109,6 +144,14 @@ export default async ({ req, res, log, error }) => {
             });
         }
 
+        const countryMap = {
+            USD: "us",
+            GBP: "gb",
+            EUR: "eu",
+            AUD: "au",
+            CAD: "ca"
+        };
+
         const client = new Client()
             .setEndpoint("https://appwrite.readyto.gift/v1") // Your API Endpoint
             .setProject("6838baa30010ce23e059") // Your project ID
@@ -116,12 +159,17 @@ export default async ({ req, res, log, error }) => {
 
         const storage = new Storage(client);
 
-        const data = await getPreview(url, { log, error });
+        let country = "";
+        if (currency && countryMap[currency]) {
+            country = countryMap[currency];
+        }
+
+        const data = await getPreview(url, country, { log, error });
         const site = getSite(url);
 
         if (
             site === "amazon" &&
-            data.images.find((img) => img.includes("/captcha/"))
+            data.images && data.images.find((img) => img.includes("/captcha/"))
         ) {
             return res.json({
                 error: "Amazon is blocking access to the image. Please try again later."
@@ -130,7 +178,7 @@ export default async ({ req, res, log, error }) => {
 
         let imageID, imageSize;
 
-        if (data.images.length) {
+        if (data.images && data.images.length) {
             const imageData = await fetch(getBestImage(data.url, data.images));
             if (!imageData.ok) {
                 throw new Error("Failed to fetch image");
@@ -160,10 +208,9 @@ export default async ({ req, res, log, error }) => {
             imageSize = result.sizeOriginal;
         }
 
-
         const autofillData = {
             title: formatTitle(data, site),
-            url: TidyURL.clean(data.url).url,
+            url: data.url ? TidyURL.clean(data.url).url : "",
             image: "",
             imageID,
             imageSize,
@@ -174,7 +221,7 @@ export default async ({ req, res, log, error }) => {
 
         return res.json(autofillData);
     } catch (err) {
-        console.log(err);
+        error(err);
         error("Could not get link preview: " + err.message);
 
         return res.json({

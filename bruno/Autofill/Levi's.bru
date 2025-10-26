@@ -1,0 +1,23 @@
+meta {
+  name: Levi's
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/api/get-autofill-data
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "itemID": "68fbe5a70022ded175ad",
+    "url": "https://www.levi.com/GB/en_GB/clothing/men/jeans/straight/555TM-relaxed-straight-jeans/p/A72230010"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
