@@ -19,7 +19,7 @@
         "dotenv": "^16.4.5",
         "material": "github:treeder/material",
         "material-symbols": "^0.31.0",
-        "pinia": "^2.1.7",
+        "pinia": "^3.0.0",
         "sass": "^1.77.6",
         "vite-plugin-vuetify": "^2.1.2",
         "vue": "^3.4.29",
