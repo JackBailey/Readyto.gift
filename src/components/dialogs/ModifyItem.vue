@@ -242,17 +242,40 @@ export default {
                             return;
                         }
 
-                        if (responseData.title) this.modifiedItem.title = responseData.title;
-                        this.modifiedItem.description = responseData.description;
-                        this.modifiedItem.url = responseData.url;
+                        const wouldOverwrite = [];
+                        if (this.modifiedItem.title && responseData.title && this.modifiedItem.title !== responseData.title) {
+                            wouldOverwrite.push("title");
+                        }
+
+                        if (this.modifiedItem.description && responseData.description && this.modifiedItem.description !== responseData.description) {
+                            wouldOverwrite.push("description");
+                        }
+
+                        if (this.modifiedItem.url && responseData.url && this.modifiedItem.url !== responseData.url) {
+                            wouldOverwrite.push("url");
+                        }
+
+                        if (this.modifiedItem.price && responseData.price && this.modifiedItem.price !== responseData.price) {
+                            wouldOverwrite.push("price");
+                        }
+
+                        let overwriteFields = true;
+
+                        if (wouldOverwrite.length > 0) {
+                            overwriteFields = confirm(
+                                `The autofill data would overwrite the following fields: ${wouldOverwrite.join(", ")}. Do you want to proceed?`
+                            );
+                        }
+
+                        if (overwriteFields) {
+                            if (responseData.title) this.modifiedItem.title = responseData.title;
+                            if (responseData.description) this.modifiedItem.description = responseData.description;
+                            if (responseData.url) this.modifiedItem.url = responseData.url;
+                            if (responseData.price) this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
+                        }
                         if (responseData.imageID) {
                             this.modifiedItem.imageFile = new File(["a".repeat(responseData.imageSize)], responseData.imageID);
                             this.modifiedItem.imageID = responseData.imageID;
-
-
-                        }
-                        if (responseData.price) {
-                            this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
                         }
                     } else {
                         this.errors = {
