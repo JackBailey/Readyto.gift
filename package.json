@@ -38,7 +38,7 @@
         "eslint-plugin-import": "^2.32.0",
         "eslint-plugin-vue": "^10.5.1",
         "globals": "^16.0.0",
-        "node-appwrite": "^14.0.0",
+        "node-appwrite": "^20.0.0",
         "prettier": "^3.2.5",
         "vite": "^5.4.21"
     }
