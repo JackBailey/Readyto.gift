@@ -19,7 +19,7 @@
         "cheerio": "^1.1.2",
         "dotenv": "^16.4.5",
         "material": "github:treeder/material",
-        "material-symbols": "^0.31.0",
+        "material-symbols": "^0.39.0",
         "pinia": "^3.0.3",
         "sass": "^1.93.2",
         "vite-plugin-vuetify": "^2.1.2",
