@@ -12,7 +12,7 @@
                 :variant="variant"
                 v-if="!item"
             >       
-                Add{{ wishlistOwner ? '' : ' Community' }} Item
+                Add{{ wishlistOwner ? '' : ' Purchased' }} Item
             </v-btn>
             <v-btn
                 v-bind="activatorProps"
@@ -24,8 +24,18 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Community')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Community')  + ' Item'">
+            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Purchased')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Purchased')  + ' Item'">
                 <v-card-text>
+                    <v-alert
+                        v-if="!wishlistOwner && !item"
+                        type="info"
+                        elevation="2"
+                        :icon="mdiAlert"
+                        class="m-4 mb-8"
+                        color="primary"
+                    >
+                        You are adding an item to someone else's wishlist. This item will be marked as purchased on their list, but it will not be shown to the wishlist owner. This should help prevent duplicate items.
+                    </v-alert>
                     <ItemFields
                         v-model:item="modifiedItem"
                         :currency="currency"
@@ -93,6 +103,7 @@ import { AppwriteException, ID } from "appwrite";
 import { databases, functions, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import { useAuthStore } from "@/stores/auth";
 export default {
     title: "ListDialog",
     props: {
@@ -126,6 +137,7 @@ export default {
     data() {
         return {
             alert: false,
+            auth: useAuthStore(),
             autofillLoading: false,
             dialogOpen: false,
             errors: {},
@@ -331,6 +343,8 @@ export default {
                     this.itemID,
                     {
                         communityList: this.wishlistOwner ? null : this.listId,
+                        contributorId: this.wishlistOwner ? null : this.auth.user.$id,
+                        contributorName: this.wishlistOwner ? null : this.auth.user.name,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
@@ -354,6 +368,7 @@ export default {
                         title: "Error"
                     };
                 }
+                console.error(e);
                 this.loading = false;
                 return;
             }

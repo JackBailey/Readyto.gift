@@ -2,130 +2,148 @@
     <v-card
         class="item"
         :data-fulfilled="
-            !!item.fulfillment && (!wishlistOwner || (wishlistOwner && spoilSurprises))
+            !!item.fulfillment && (!wishlistOwner || (wishlistOwner && spoilSurprises)) || !!item.communityList
         "
         variant="tonal"
         :data-item-id="item.$id"
     >
-        <h2>{{ item.title }}</h2>
-        <v-btn-group
-            base-color="primary"
-            divided
-            rounded="pill"
-        >
-            <FulfillItem
-                v-if="!wishlistOwner || (wishlistOwner && spoilSurprises)"
-                :item="item"
-                @fulfillItem="$emit('fulfillItem', $event)"
-                @unfulfillItem="$emit('unfulfillItem', item.$id)"
-            />
-            <v-btn
-                :append-icon="mdiOpenInNew"
-                :href="item.url"
-                target="_blank"
-                v-if="item.url && !$vuetify.display.mobile"
-                variant="outlined"
-                size="small"
+        <div class="item-header">
+            <h2>{{ item.title }}</h2>
+            <v-btn-group
+                base-color="primary"
+                divided
+                rounded="pill"
             >
-                Open Website
-            </v-btn>
-            <v-btn
-                :icon="mdiOpenInNew"
-                :href="item.url"
-                target="_blank"
-                v-if="item.url && $vuetify.display.mobile"
-                variant="outlined"
-                size="small"
-            />
-            <ModifyItem
-                variant="outlined"
-                :item="item"
-                :currency="currency"
-                @editItem="$emit('editItem', $event)"
-                v-if="wishlistOwner"
-            />
-            <MoveItem
-                variant="outlined"
-                :item="item"
-                :list="list"
-                v-if="wishlistOwner"
-                @loadList="$emit('loadList', $event)"
-                @removeItem="$emit('removeItem', $event)"
-            />
-            <DeleteItem
-                variant="outlined"
-                :item="item"
-                @removeItem="$emit('removeItem', $event)"
-                v-if="wishlistOwner"
-            />
-        </v-btn-group>
+                <FulfillItem
+                    v-if="!item.communityList &&!wishlistOwner || (wishlistOwner && spoilSurprises)"
+                    :item="item"
+                    @fulfillItem="$emit('fulfillItem', $event)"
+                    @unfulfillItem="$emit('unfulfillItem', item.$id)"
+                />
+                <v-btn
+                    :append-icon="mdiOpenInNew"
+                    :href="item.url"
+                    target="_blank"
+                    v-if="item.url && !$vuetify.display.mobile"
+                    variant="outlined"
+                    size="small"
+                >
+                    Open Website
+                </v-btn>
+                <v-btn
+                    :icon="mdiOpenInNew"
+                    :href="item.url"
+                    target="_blank"
+                    v-if="item.url && $vuetify.display.mobile"
+                    variant="outlined"
+                    size="small"
+                />
+                <ModifyItem
+                    variant="outlined"
+                    :item="item"
+                    :currency="currency"
+                    @editItem="$emit('editItem', $event)"
+                    v-if="wishlistOwner || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
+                />
+                <MoveItem
+                    variant="outlined"
+                    :item="item"
+                    :list="list"
+                    v-if="wishlistOwner"
+                    @loadList="$emit('loadList', $event)"
+                    @removeItem="$emit('removeItem', $event)"
+                />
+                <DeleteItem
+                    variant="outlined"
+                    :item="item"
+                    @removeItem="$emit('removeItem', $event)"
+                    v-if="wishlistOwner || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
+                />
+            </v-btn-group>
+        </div>
         <div class="item-content">
             <vue-markdown
                 v-if="item.description"
                 :source="item.description"
                 class="item-description"
             />
-            <div class="chips">
-                <v-chip
-                    :prepend-icon="mdiGift"
-                    v-if="item.fulfilledBy"
-                    color="primary"
-                    variant="elevated"
-                    rounded
-                >
-                    <span> Fulfilled by {{ item.fulfilledBy }} </span>
-                </v-chip>
-                <v-chip
-                    v-if="item.price && item.displayPrice"
-                    color="primary"
-                    variant="elevated"
-                    rounded
-                >
-                    <span>{{ currencyStore.formatter(this.currency).format(item.price) }}</span>
-                </v-chip>
-                <v-chip
-                    v-if="item.priority !== 'none' && item.priority"
-                    :prepend-icon="convertPriority(item.priority).icon"
-                    color="primary"
-                    variant="elevated"
-                    rounded
-                >
-                    {{ convertPriority(item.priority).text }}
-                </v-chip>
-                <v-chip
-                    :prepend-icon="mdiWeb"
-                    v-if="item.url && validation.urlRegex.test(item.url)"
-                    :href="item.url"
-                    target="_blank"
-                    rounded
-                >
-                    {{ getWebsiteHostname(item.url) }}
-                </v-chip>
+            <div
+                class="item-image"
+                v-if="imageURL"
+            >
+                <v-img
+                    :src="imageURL"
+                    alt=""
+                    height="200"
+                    width="auto"
+                    max-width="300"
+                    position="center right"
+                    v-if="!$vuetify.display.mobile"
+                />
+                <img
+                    :src="imageURL"
+                    alt=""
+                    v-else
+                />
             </div>
         </div>
-        <div
-            class="item-image"
-            v-if="imageURL"
+        <template
+            v-slot:actions
         >
-            <v-img
-                :src="imageURL"
-                alt=""
-                height="200"
-                width="auto"
-                max-width="300"
-                position="center right"
-                v-if="!$vuetify.display.mobile"
-            />
-            <img
-                :src="imageURL"
-                alt=""
-                v-else
-            />
-        </div>
+            <div class="item-footer">
+                <div class="chips">
+                    <v-chip
+                        :prepend-icon="mdiGift"
+                        v-if="item.fulfilledBy"
+                        color="primary"
+                        variant="elevated"
+                        rounded
+                    >
+                        <span> Fulfilled by {{ item.fulfilledBy }} </span>
+                    </v-chip>
+                    <v-chip
+                        v-if="item.price && item.displayPrice"
+                        color="primary"
+                        variant="elevated"
+                        rounded
+                    >
+                        <span>{{ currencyStore.formatter(this.currency).format(item.price) }}</span>
+                    </v-chip>
+                    <v-chip
+                        v-if="item.priority !== 'none' && item.priority"
+                        :prepend-icon="convertPriority(item.priority).icon"
+                        color="primary"
+                        variant="elevated"
+                        rounded
+                    >
+                        {{ convertPriority(item.priority).text }}
+                    </v-chip>
+                    <v-chip
+                        :prepend-icon="mdiWeb"
+                        v-if="item.url && validation.urlRegex.test(item.url)"
+                        :href="item.url"
+                        target="_blank"
+                        rounded
+                    >
+                        {{ getWebsiteHostname(item.url) }}
+                    </v-chip>
+                </div>
+                <v-chip
+                    :prepend-avatar="userAvatar(item.contributorName)"
+                    variant="tonal"
+                    color="primary"
+                    rounded
+                    v-if="item.communityList"
+                >
+                    Gifted by {{ item.contributorName }}
+                </v-chip>
+            </div>
+        </template>
     </v-card>
 </template>
 
 <script>
+import { avatars, storage } from "@/appwrite";
 import { mdiGift, mdiOpenInNew, mdiWeb } from "@mdi/js";
 import { convertPriority } from "@/utils";
 import DeleteItem from "@/components/dialogs/DeleteItem.vue";
@@ -133,7 +151,6 @@ import FulfillItem from "@/components/dialogs/FulfillItem.vue";
 import { ImageFormat } from "appwrite";
 import ModifyItem from "./dialogs/ModifyItem.vue";
 import MoveItem from "@/components/dialogs/MoveItem.vue";
-import { storage } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
 import validation from "@/utils/validation";
@@ -247,6 +264,14 @@ export default {
     
             const website = parts.length > 2 ? parts[parts.length - 2] : parts[0];
             return toTitleCase(website);
+        },
+        userAvatar(name) {
+            try {
+                return avatars.getInitials(name, 32, 32);
+            } catch (error) {
+                console.error(error);
+                return null;
+            }
         }
     }
 };
@@ -255,27 +280,50 @@ export default {
 <style lang="scss" scoped>
 .item {
     padding: 1rem;
-    display: grid;
-    grid-template-columns: 1fr max-content;
-    gap: 1rem;
-    justify-content: space-between;
-
-    h2 {
-        color: rgb(var(--v-theme-primary));
-        font-size: 1.8rem;
-        margin: 0;
-        align-self: center;
+    
+    .item-header {
+        display: grid;
+        grid-template-columns: 1fr max-content;
+        gap: 1rem;
+        justify-content: space-between;
+        h2 {
+            color: rgb(var(--v-theme-primary));
+            font-size: 1.8rem;
+            margin: 0;
+            align-self: center;
+        }
+    
+        .v-btn-group {
+            justify-self: end;
+            align-self: center;
+        }
     }
 
-    .v-btn-group {
-        justify-self: end;
-        align-self: center;
-    }
 
     .item-content {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr max-content;
         gap: 1rem;
+        justify-content: space-between;
+        .item-image {
+            .v-img {
+                margin-left: auto;
+            }
+            > img {
+                max-width: 100%;
+                max-height: 100%;
+                margin-left: auto;
+            }
+        }
+    }
+
+
+    .item-footer {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
 
         .chips {
             margin-top: auto;
@@ -283,17 +331,7 @@ export default {
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-    }
-
-    .item-image {
-        .v-img {
-            margin-left: auto;
-        }
-        > img {
-            max-width: 100%;
-            max-height: 100%;
-            margin-left: auto;
-        }
+    // grid-column: 100
     }
 
     &[data-fulfilled="true"] {

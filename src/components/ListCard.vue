@@ -62,7 +62,7 @@
             />
         </template>
 
-        <v-card-text v-if="props.header && (props.list.description || $vuetify.display.mobile)">
+        <v-card-text v-if="props.header && (props.list.description || $vuetify.display.mobile || !authStore.isLoggedIn)">
             <VueMarkdown
                 v-if="props.list.description"
                 :source="props.list.description"
@@ -80,8 +80,20 @@
                     v-if="props.header && $vuetify.display.mobile"
                 />
             </div>
+            <v-alert
+                v-if="!authStore.isLoggedIn"
+                type="info"
+                elevation="2"
+                :icon="mdiAlert"
+                class="m-4 mb-8"
+                color="primary"
+            >
+                <router-link
+                    style="color: inherit; font-weight: bold;"
+                    to="/dash/login"
+                >Log in</router-link> to add your own items, to avoid the list creator receiving duplicate gifts, and to manage your wish lists!
+            </v-alert>
         </v-card-text>
-
     </v-card>
 </template>
 
