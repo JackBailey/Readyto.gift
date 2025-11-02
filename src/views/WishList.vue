@@ -180,6 +180,27 @@ export default {
                     };
                 })
                 .filter((priceGroup) => priceGroup.items.length);
+            
+            const itemsAboveLargestPriceGroup = this.list.items.filter((item) => {
+                if (!this.showFulfilled && !this.wishlistOwner && item.fulfillment)
+                    return false;
+                if (item.price >= this.priceGroups[this.priceGroups.length - 1]) {
+                    return item;
+                }
+            });
+            
+            if (itemsAboveLargestPriceGroup.length) {
+                priceGroupItems.push({
+                    items: itemsAboveLargestPriceGroup,
+                    price: "above",
+                    title:
+                        this.currency
+                            .formatter(this.list.currency)
+                            .format(this.priceGroups[this.priceGroups.length - 1])
+                            .split(".")[0] +
+                        "+"
+                });
+            }
             return priceGroupItems;
         },
         listSaved() {
@@ -244,13 +265,15 @@ export default {
                 return item;
             });
 
-            this.$nextTick(() => {
-                const el = this.$el.querySelector(`[data-item-id="${data.item.$id}"]`);
-                el.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
+            if (this.showFulfilled === true) {
+                this.$nextTick(() => {
+                    const el = this.$el.querySelector(`[data-item-id="${data.item.$id}"]`);
+                    el.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center"
+                    });
                 });
-            });
+            }
         },
         unfulfillItem(itemId) {
             this.list.items = this.list.items.map((item) => {
@@ -361,7 +384,7 @@ export default {
                     }
                 });
             } catch (error) {
-                console.error(error)
+                console.error(error);
                 this.dialogs.create({
                     actions: [
                         {

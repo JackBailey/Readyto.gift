@@ -7,10 +7,13 @@
             elevation="6"
         >
             <v-toolbar-title>
-                <v-icon size="x-small">
-                    {{ mdiGift }}
-                </v-icon>
-                readyto.gift
+                <v-btn
+                    to="/dash/lists"
+                    :prepend-icon="mdiGift"
+                    color="on-primary-container"
+                >
+                    readyto.gift
+                </v-btn>
             </v-toolbar-title>
 
             <template v-slot:append>
