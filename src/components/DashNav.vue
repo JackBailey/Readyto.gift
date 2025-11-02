@@ -74,11 +74,12 @@
                             </v-list-item>
                             <v-list-item v-if="!!auth.user">
                                 <v-btn
-                                    to="/dash/recovery/start"
-                                    :prepend-icon="mdiLockReset"
+                                    to="/dash/account"
+                                    :prepend-icon="mdiCog"
+                                    class="ml-2"
                                     variant="tonal"
                                 >   
-                                    Change Password
+                                    Account Settings
                                 </v-btn>
                             </v-list-item>
                         </v-list>
@@ -134,6 +135,10 @@ import {
 } from "@mdi/js";
 import { account } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
+import { useRoute } from "vue-router";
+
+
+
 export default {
     props: {
         loading: {
@@ -153,7 +158,8 @@ export default {
             mdiGithub,
             mdiLockReset,
             mdiMenu,
-            menu: false
+            menu: false,
+            route: useRoute()
         };
     },
     methods: {
@@ -191,6 +197,11 @@ export default {
             } else {
                 this.loadingLoginLogout = false;
             }
+        }
+    },
+    watch: {
+        "$route"() {
+            this.menu = false;
         }
     }
 };

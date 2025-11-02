@@ -99,6 +99,9 @@ export const useAuthStore = defineStore("auth", {
             } catch (error) {
                 return error;
             }
+        },
+        setUser(user) {
+            this.user = user;
         }
     },
     getters: {

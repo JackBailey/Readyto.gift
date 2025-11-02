@@ -61,6 +61,14 @@ const router = createRouter({
             component: () => import("@/views/dash/recovery/CompleteRecovery.vue")
         },
         {
+            path: "/dash/account",  
+            name: "Account Settings",
+            component: () => import("@/views/dash/AccountSettings.vue"),
+            meta: {
+                requiresAuth: true
+            }
+        },
+        {
             path: "/dash/error",
             name: "error",
             component: () => import("@/views/dash/ErrorPage.vue")

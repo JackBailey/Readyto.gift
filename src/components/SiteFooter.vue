@@ -13,6 +13,7 @@
                 :prepend-icon="mdiCash"
                 slim
                 href="https://github.com/sponsors/jackbailey"
+                target="_blank"
             >
                 <v-list-item-title>Donate</v-list-item-title>
             </v-btn>
@@ -20,6 +21,7 @@
                 :icon="mdiGithub"
                 slim
                 href="https://github.com/JackBailey/Readyto.gift"
+                target="_blank"
                 class="ml-2"
                 density="compact"
                 size="large"
