@@ -28,7 +28,9 @@
             :rules="[validateUrl]"
             :error-messages="errors.url"
         />
-        <div class="image">
+        <div
+            class="image"
+        >
             <v-text-field
                 type="url"
                 label="Image"
@@ -86,6 +88,7 @@
                     value: priority[0]
                 }))
             "
+            v-if="wishlistOwner"
         />
     </v-form>
 </template>
@@ -136,6 +139,10 @@ defineProps({
         type: Object
     },
     uploadingFile: {
+        default: false,
+        type: Boolean
+    },
+    wishlistOwner: {
         default: false,
         type: Boolean
     }

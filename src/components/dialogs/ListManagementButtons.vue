@@ -12,10 +12,11 @@
             :variant="variant"
             :currency="currency"
             :quickCreateURL="quickCreateURL"
+            :wishlistOwner="wishlistOwner"
             @unsetQuickCreateURL="resetQuickCreateURL"
             @newItem="(data) => $emit('newItem', data)"
             @updateList="$emit('updateList', $event)"
-            v-if="wishlistOwner"
+            v-if="auth.isLoggedIn"
         /> 
 
         <v-btn

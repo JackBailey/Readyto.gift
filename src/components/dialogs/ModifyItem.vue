@@ -11,8 +11,8 @@
                 base-color="primary"
                 :variant="variant"
                 v-if="!item"
-            >
-                Add Item
+            >       
+                Add{{ wishlistOwner ? '' : ' Purchased' }} Item
             </v-btn>
             <v-btn
                 v-bind="activatorProps"
@@ -24,14 +24,25 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit Item' : 'Create Item'">
+            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Purchased')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Purchased')  + ' Item'">
                 <v-card-text>
+                    <v-alert
+                        v-if="!wishlistOwner && !item"
+                        type="info"
+                        elevation="2"
+                        :icon="mdiAlert"
+                        class="m-4 mb-8"
+                        color="primary"
+                    >
+                        You are adding an item to someone else's wishlist. This item will be marked as purchased on their list, but it will not be shown to the wishlist owner. This should help prevent duplicate items.
+                    </v-alert>
                     <ItemFields
                         v-model:item="modifiedItem"
                         :currency="currency"
                         :errors="errors"
                         @file-state="setFileState"
                         :uploading-file="uploadingFile"
+                        :wishlistOwner="wishlistOwner"
                     />
                     <v-alert
                         v-if="alert"
@@ -92,6 +103,7 @@ import { AppwriteException, ID } from "appwrite";
 import { databases, functions, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import { useAuthStore } from "@/stores/auth";
 export default {
     title: "ListDialog",
     props: {
@@ -113,6 +125,10 @@ export default {
         variant: {
             type: String,
             default: "elevated"
+        },
+        wishlistOwner: {
+            type: Boolean,
+            default: false
         }
     },
     components: {
@@ -121,6 +137,7 @@ export default {
     data() {
         return {
             alert: false,
+            auth: useAuthStore(),
             autofillLoading: false,
             dialogOpen: false,
             errors: {},
@@ -319,17 +336,20 @@ export default {
                     this.modifiedItem.imageID = fileUpload.$id;
                     this.modifiedItem.image = "";
                 }
-
+    
                 result = await databases.createDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
-                    ID.unique(),
+                    this.itemID,
                     {
+                        communityList: this.wishlistOwner ? null : this.listId,
+                        contributorId: this.wishlistOwner ? null : this.auth.user.$id,
+                        contributorName: this.wishlistOwner ? null : this.auth.user.name,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.listId,
+                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
@@ -348,6 +368,7 @@ export default {
                         title: "Error"
                     };
                 }
+                console.error(e);
                 this.loading = false;
                 return;
             }
@@ -357,18 +378,20 @@ export default {
             });
 
             try {
-                const updatedList = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
-                    this.listId,
-                    {
-                        itemCount: this.list.items.length
-                    }
-                );
-                
-                this.$emit("updateList", {
-                    list: updatedList
-                });
+                if (this.wishlistOwner) {
+                    const updatedList = await databases.updateDocument(
+                        import.meta.env.VITE_APPWRITE_DB,
+                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        this.listId,
+                        {
+                            itemCount: this.list.items.length
+                        }
+                    );
+                    
+                    this.$emit("updateList", {
+                        list: updatedList
+                    });
+                }
             } catch (e) {
                 if (e instanceof AppwriteException) {
                     this.alert = {
@@ -436,11 +459,12 @@ export default {
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
+                        communityList: this.wishlistOwner ? null : this.listId,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.listId,
+                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,

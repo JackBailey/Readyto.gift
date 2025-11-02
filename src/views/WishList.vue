@@ -117,6 +117,7 @@ export default {
     data() {
         return {
             auth: useAuthStore(),
+            communityItems: [],
             currency: useCurrencyStore(),
             dialogs: useDialogs(),
             fulfillments: [],
@@ -139,7 +140,13 @@ export default {
     },
     computed: {
         itemsByPriceGroups() {
-            if (!this.list || !this.list.items ||this.list.items.length === 0) return [];
+            if (!this.list) return [];
+            const items = [
+                ...this.list.items,
+                ...(!this.spoilSurprises && this.wishlistOwner ? [] : this.communityItems)
+            ];
+
+            if (!items || items.length === 0) return [];
 
             const priceGroupItems = this.priceGroups
                 .map((price, index) => {
@@ -147,10 +154,14 @@ export default {
                     const upperBound = price;
 
                     return {
-                        items: this.list.items
+                        items: items
                             .filter((item) => {
-                                if (!this.showFulfilled && !this.wishlistOwner && item.fulfillment)
-                                    return false;
+                                if (
+                                    !this.showFulfilled &&
+                                    !this.wishlistOwner && 
+                                    (item.fulfillment || item.communityList)
+                                )
+                                    return false; // skip it
                                 if (item.price >= lowerBound && item.price < upperBound) {
                                     return item;
                                 }
@@ -180,8 +191,8 @@ export default {
                     };
                 })
                 .filter((priceGroup) => priceGroup.items.length);
-            
-            const itemsAboveLargestPriceGroup = this.list.items.filter((item) => {
+
+            const itemsAboveLargestPriceGroup = items.filter((item) => {
                 if (!this.showFulfilled && !this.wishlistOwner && item.fulfillment)
                     return false;
                 if (item.price >= this.priceGroups[this.priceGroups.length - 1]) {
@@ -224,7 +235,12 @@ export default {
             this.list.$updatedAt = data.list.$updatedAt;
         },
         addItem(data) {
-            this.list.items.push(data.item);
+            if (data.item.communityList) {
+                this.communityItems.push(data.item);
+            } else {
+                this.list.items.push(data.item);
+            }
+            this.showFulfilled = true;
             this.$nextTick(() => {
                 setTimeout(() => {
                     const newItem = this.$el.querySelector(`[data-item-id="${data.item.$id}"]`);
@@ -236,26 +252,40 @@ export default {
             });
         },
         editItem(data) {
-            this.list.items = this.list.items.map((item) => {
-                if (item.$id === data.item.$id) {
-                    return data.item;
-                }
-                return item;
-            });
+            if (data.item.communityList) {
+                this.communityItems = this.communityItems.map((item) => {
+                    if (item.$id === data.item.$id) {
+                        return data.item;
+                    }
+                    return item;
+                });
+            } else {
+                this.list.items = this.list.items.map((item) => {
+                    if (item.$id === data.item.$id) {
+                        return data.item;
+                    }
+                    return item;
+                });
+            }
         },
         async removeItem(id) {
-            this.list.items = this.list.items.filter((item) => item.$id !== id);
-
-            const updatedList = await databases.updateDocument(
-                import.meta.env.VITE_APPWRITE_DB,
-                import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
-                this.list.$id,
-                {
-                    itemCount: this.list.items.length
-                }
-            );
-
-            this.updateList({ list: updatedList });
+            if (this.communityItems.find((item) => item.$id === id)) {
+                this.communityItems = this.communityItems.filter((item) => item.$id !== id);
+                return;
+            } else {
+                this.list.items = this.list.items.filter((item) => item.$id !== id);
+    
+                const updatedList = await databases.updateDocument(
+                    import.meta.env.VITE_APPWRITE_DB,
+                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    this.list.$id,
+                    {
+                        itemCount: this.list.items.length
+                    }
+                );
+    
+                this.updateList({ list: updatedList });
+            }
         },
         fulfillItem(data) {
             this.list.items = this.list.items.map((item) => {
@@ -333,6 +363,16 @@ export default {
                         Query.select(["*","items.*"])
                     ]
                 );
+
+                const communityItems = await databases.listDocuments(
+                    import.meta.env.VITE_APPWRITE_DB,
+                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    [
+                        Query.equal("communityList", list.$id)
+                    ]
+                );
+
+                this.communityItems = communityItems.documents;
 
                 let loadedAsAuthor = this.auth.user && list.author === this.auth.user.$id;
 
