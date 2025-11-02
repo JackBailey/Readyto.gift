@@ -13,7 +13,10 @@
                     />
                 </template>
                 <template v-slot:default>
-                    <v-confirm-edit v-model="formData">
+                    <v-confirm-edit
+                        v-model="formData"
+                        hide-actions
+                    >
                         <template v-slot:default="{ model: proxyModel, isPristine }">
                             <v-card
                                 class="mx-auto"
