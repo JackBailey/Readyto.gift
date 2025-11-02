@@ -11,8 +11,8 @@
                 base-color="primary"
                 :variant="variant"
                 v-if="!item"
-            >
-                Add Item
+            >       
+                Add{{ wishlistOwner ? '' : ' Community' }} Item
             </v-btn>
             <v-btn
                 v-bind="activatorProps"
@@ -24,7 +24,7 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit Item' : 'Create Item'">
+            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Community')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Community')  + ' Item'">
                 <v-card-text>
                     <ItemFields
                         v-model:item="modifiedItem"
@@ -32,6 +32,7 @@
                         :errors="errors"
                         @file-state="setFileState"
                         :uploading-file="uploadingFile"
+                        :wishlistOwner="wishlistOwner"
                     />
                     <v-alert
                         v-if="alert"
@@ -113,6 +114,10 @@ export default {
         variant: {
             type: String,
             default: "elevated"
+        },
+        wishlistOwner: {
+            type: Boolean,
+            default: false
         }
     },
     components: {
@@ -319,17 +324,18 @@ export default {
                     this.modifiedItem.imageID = fileUpload.$id;
                     this.modifiedItem.image = "";
                 }
-
+    
                 result = await databases.createDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
-                    ID.unique(),
+                    this.itemID,
                     {
+                        communityList: this.wishlistOwner ? null : this.listId,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.listId,
+                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
@@ -357,18 +363,20 @@ export default {
             });
 
             try {
-                const updatedList = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
-                    this.listId,
-                    {
-                        itemCount: this.list.items.length
-                    }
-                );
-                
-                this.$emit("updateList", {
-                    list: updatedList
-                });
+                if (this.wishlistOwner) {
+                    const updatedList = await databases.updateDocument(
+                        import.meta.env.VITE_APPWRITE_DB,
+                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        this.listId,
+                        {
+                            itemCount: this.list.items.length
+                        }
+                    );
+                    
+                    this.$emit("updateList", {
+                        list: updatedList
+                    });
+                }
             } catch (e) {
                 if (e instanceof AppwriteException) {
                     this.alert = {
@@ -436,11 +444,12 @@ export default {
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
+                        communityList: this.wishlistOwner ? null : this.listId,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.listId,
+                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
