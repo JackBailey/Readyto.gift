@@ -2,7 +2,7 @@
     <v-card
         class="item"
         :data-fulfilled="
-            !!item.fulfillment && (!wishlistOwner || (wishlistOwner && spoilSurprises)) || !!item.communityList
+            !!item.fulfillment && (!wishlistOwner || (wishlistOwner && spoilSurprises)) || (!!item.communityList && !(auth.isLoggedIn && item.contributorId === auth.user.$id))
         "
         variant="tonal"
         :data-item-id="item.$id"
@@ -135,7 +135,12 @@
                     rounded
                     v-if="item.communityList"
                 >
-                    Gifted by {{ item.contributorName }}
+                    <template v-if="auth.isLoggedIn && item.contributorId === auth.user.$id">
+                        You contributed this item
+                    </template>
+                    <template v-else>
+                        Gifted by {{ item.contributorName }}
+                    </template>
                 </v-chip>
             </div>
         </template>
