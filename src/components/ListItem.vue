@@ -15,7 +15,7 @@
                 rounded="pill"
             >
                 <FulfillItem
-                    v-if="!item.communityList &&!wishlistOwner || (wishlistOwner && spoilSurprises)"
+                    v-if="!item.communityList &&!wishlistOwner || (wishlistOwner && spoilSurprises && !item.communityList)"
                     :item="item"
                     @fulfillItem="$emit('fulfillItem', $event)"
                     @unfulfillItem="$emit('unfulfillItem', item.$id)"
@@ -43,13 +43,13 @@
                     :item="item"
                     :currency="currency"
                     @editItem="$emit('editItem', $event)"
-                    v-if="wishlistOwner || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
+                    v-if="(wishlistOwner && !item.communityList) || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
                 />
                 <MoveItem
                     variant="outlined"
                     :item="item"
                     :list="list"
-                    v-if="wishlistOwner"
+                    v-if="wishlistOwner && !item.communityList"
                     @loadList="$emit('loadList', $event)"
                     @removeItem="$emit('removeItem', $event)"
                 />
@@ -57,7 +57,7 @@
                     variant="outlined"
                     :item="item"
                     @removeItem="$emit('removeItem', $event)"
-                    v-if="wishlistOwner || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
+                    v-if="(wishlistOwner && !item.communityList) || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
                 />
             </v-btn-group>
         </div>

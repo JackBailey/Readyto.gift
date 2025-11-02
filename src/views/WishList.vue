@@ -143,7 +143,7 @@ export default {
             if (!this.list) return [];
             const items = [
                 ...this.list.items,
-                ...(this.spoilSurprises || this.wishlistOwner ? [] : this.communityItems)
+                ...(!this.spoilSurprises && this.wishlistOwner ? [] : this.communityItems)
             ];
 
             if (!items || items.length === 0) return [];
@@ -156,7 +156,6 @@ export default {
                     return {
                         items: items
                             .filter((item) => {
-                                console.log(item.communityList);
                                 if (
                                     !this.showFulfilled &&
                                     !this.wishlistOwner && 
