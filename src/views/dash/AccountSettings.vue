@@ -47,11 +47,12 @@
             <v-list width="max-content">
                 <UpdateAccountField
                     name="Password"
-                    :icon="mdiLock"
+                    :icon="mdiFormTextboxPassword"
                     v-model="personalInfo.password"
                     :save="savePassword"
                     autocomplete="new-password"
                 />
+                <TwoFactorAuthSettings />
             </v-list>
         </v-card>
     </div>
@@ -60,13 +61,14 @@
 <script setup>
 import { reactive } from "vue";
 
-import { mdiAccount, mdiEmail, mdiLock } from "@mdi/js";
+import { mdiAccount, mdiEmail, mdiFormTextboxPassword } from "@mdi/js";
 import { AppwriteException } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
 import { account } from "@/appwrite";
 
+import TwoFactorAuthSettings from "@/components/TwoFactorAuthSettings.vue";
 import UpdateAccountField from "@/components/UpdateAccountField.vue";
 
 const auth = useAuthStore();
