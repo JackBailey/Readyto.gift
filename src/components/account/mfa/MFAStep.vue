@@ -8,7 +8,6 @@
         :data-active="active"
         :data-step="step"
     >
-        <<v-stepper-vertical/>
         <v-expansion-panels :model-value="currentStep">
             <v-expansion-panel
                 elevation="0"

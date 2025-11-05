@@ -8,7 +8,7 @@
             <template v-slot:append>
                 <v-tooltip
                     :text="
-                        mfaFactorCount > 0
+                        hasAuthenticator
                             ? (auth.user.mfa ? 'Disable MFA' : 'Enable MFA')
                             : 'You need at least one MFA method enabled to use MFA.'"
                 >
@@ -18,7 +18,8 @@
                                 inset
                                 color="primary"
                                 hide-details
-                                :disabled="mfaFactorCount === 0"
+                                :disabled="!hasAuthenticator"
+                                class="ml-4"
                             />
                         </div>
                     </template>
@@ -42,7 +43,7 @@ import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 
-const mfaFactorCount = computed(() => Object.values(auth.mfaFactors).filter(factor => factor === true).length);
+const hasAuthenticator = computed(() => auth.mfaFactors.totp);
 </script>
 
 <style lang="scss">

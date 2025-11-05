@@ -63,7 +63,7 @@
                     :save="savePassword"
                     autocomplete="new-password"
                 />
-                <TwoFactorAuthSettings />
+                <MFA />
             </v-list>
         </v-card>
     </div>
@@ -79,8 +79,8 @@ import { useDialogs } from "@/stores/dialogs";
 
 import { account } from "@/appwrite";
 
-import TwoFactorAuthSettings from "@/components/account/mfa/TwoFactorAuthSettings.vue";
-import UpdateAccountField from "@/components/UpdateAccountField.vue";
+import MFA from "@/components/account/mfa/MFA.vue";
+import UpdateAccountField from "@/components/account/UpdateAccountField.vue";
 
 const auth = useAuthStore();
 const dialogs = useDialogs();

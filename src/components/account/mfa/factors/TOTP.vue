@@ -9,27 +9,27 @@
                     <v-btn
                         :icon="mdiPlusThick"
                         color="primary"
+                        variant="tonal"
                         @click="dialogOpen = true"
-                        size="x-small"
-                        v-if="!totpFactor"
+                        size="small"
                         class="ml-4"
+                        v-if="!totpFactor"
                     />
                     <v-btn-group
-                        divided
-                        v-else
                         class="ml-4"
+                        density="compact"
+                        variant="tonal"
+                        v-else
                     >
-                    
                         <v-btn
                             :prepend-icon="mdiTrashCan"
                             color="error"
-                            @click="dialogOpen = true"
+                            @click="removeTOTP"
                             size="small"
                         >
                             Remove
                         </v-btn>
                         <v-btn
-                            variant="tonal"
                             v-bind="menuOpen"
                             size="small"
                             slim
@@ -63,12 +63,11 @@
                 <template v-slot:default>
                     <v-card>
                         <v-card-title>
-                            {{ totpFactor ? 'Disable' : 'Enable' }} Two-Factor Authentication
+                            Add TOTP Authenticator
                         </v-card-title>
                         <v-card-text>
                             <div
                                 class="enable-mfa"
-                                v-if="!totpFactor"
                             >
                                 <v-timeline
                                     direction="vertical"
@@ -235,9 +234,10 @@ import { computed, reactive, shallowRef, watch } from "vue";
 import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
 import MFAStep from "@/components/account/mfa/MFAStep.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
 
 const auth = useAuthStore();
-
+const dialogs = useDialogs();
 
 const dialogOpen = shallowRef(false);
 const menuOpen = shallowRef(false);
@@ -270,6 +270,51 @@ const nextStep = () => {
     currentStep.value += 1;
 };
 
+const removeTOTP = async () => {
+    try {
+        await account.deleteMFAAuthenticator({
+            type: "totp"
+        });
+
+        const factors = await account.listMFAFactors();
+        auth.setMfaFactors(factors);
+
+        let mfaAlsoDisabled = false;
+
+        if (auth.user.mfa) {
+            await account.updateMFA({
+                mfa: false
+            });
+            mfaAlsoDisabled = true;
+        }
+
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            text: "Your TOTP authenticator has been removed." + (mfaAlsoDisabled ? " Multi-Factor Authentication has also been disabled as you have no remaining MFA factors." : ""),
+            title: "Authenticator removed"
+        });
+    } catch (error) {
+        console.error({ error });
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            text: error.message,
+            title: "There was an error removing TOTP"
+        });
+    }
+};
+
 const enableTOTP = async () => {
     try {
         try {
@@ -292,14 +337,13 @@ const enableTOTP = async () => {
             }
         }
 
-        const totpResponse = await account.updateMFAAuthenticator({
+        await account.updateMFAAuthenticator({
             otp: totpInput.value,
             type: "totp"
         });
 
-        console.log(totpResponse);
-
-        // auth.setUser(account);
+        const factors = await account.listMFAFactors();
+        auth.setMfaFactors(factors);
 
         nextStep(); // Move to recovery codes + success step
     } catch (error) {
@@ -318,7 +362,7 @@ const downloadRecoveryCodes = () => {
     link.setAttribute("download", "readyto_gift-recovery-codes.txt");
     document.body.appendChild(link);
     link.click();
-    document.removeChild(link);
+    document.body.removeChild(link);
 };
 
 watch(dialogOpen, async (nowOpen) => {
