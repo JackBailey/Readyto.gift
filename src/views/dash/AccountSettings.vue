@@ -1,6 +1,9 @@
 <template>
     <div class="page-content">
-        <v-card>
+        <v-card
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Account Settings
             </v-card-title>
@@ -11,7 +14,11 @@
             </v-card-text>
         </v-card>
 
-        <v-card class="mt-4">
+        <v-card
+            class="mt-4"
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Personal Information
             </v-card-title>
@@ -37,7 +44,11 @@
             </v-list>
         </v-card>
 
-        <v-card class="mt-4">
+        <v-card
+            class="mt-4"
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Security Settings
             </v-card-title>
@@ -68,7 +79,7 @@ import { useDialogs } from "@/stores/dialogs";
 
 import { account } from "@/appwrite";
 
-import TwoFactorAuthSettings from "@/components/TwoFactorAuthSettings.vue";
+import TwoFactorAuthSettings from "@/components/account/mfa/TwoFactorAuthSettings.vue";
 import UpdateAccountField from "@/components/UpdateAccountField.vue";
 
 const auth = useAuthStore();

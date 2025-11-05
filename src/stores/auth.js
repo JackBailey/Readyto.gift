@@ -5,6 +5,7 @@ import { setUser as setSentryUser } from "@sentry/vue";
 export const useAuthStore = defineStore("auth", {
     state: () => ({
         user: null,
+        mfaFactors: {},
         avatar: null,
         previouslyLoggedInUserID: localStorage.getItem("previouslyLoggedInUserID"),
         userPrefs: {
@@ -50,6 +51,8 @@ export const useAuthStore = defineStore("auth", {
                             email: this.user.email
                         });
                     }
+
+                    this.mfaFactors = await account.listMFAFactors();
                 } else {
                     if (import.meta.env.VITE_SENTRY_DSN) {
                         setSentryUser(null);
@@ -102,6 +105,9 @@ export const useAuthStore = defineStore("auth", {
         },
         setUser(user) {
             this.user = user;
+        },
+        setMfaFactors(factors) {
+            this.mfaFactors = factors;
         }
     },
     getters: {

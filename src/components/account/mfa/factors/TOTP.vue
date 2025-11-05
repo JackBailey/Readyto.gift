@@ -1,31 +1,74 @@
 <template>
-    <v-list-item :prepend-icon="mdiTwoFactorAuthentication">
-        <v-list-item-title>Two-Factor Authentication (2FA)</v-list-item-title>
-        <v-list-item-subtitle>
-            <span v-if="auth.user.mfa">2FA is currently enabled on your account.</span>
-            <span v-else>2FA is currently disabled on your account.</span>
-        </v-list-item-subtitle>
-        <template v-slot:append>
+    <v-list-item :prepend-icon="mdiClockCheck">
+        <v-list-item-title>
+            Time-based One-Time Password (TOTP)
+        </v-list-item-title>
+        <template #append>
             <v-dialog v-model="dialogOpen">
-                <template v-slot:activator="{ props: activatorProps }">
+                <template v-slot:activator>
                     <v-btn
-                        text
-                        class="ml-5"
-                        v-bind="activatorProps"
-                        variant="tonal"
+                        :icon="mdiPlusThick"
+                        color="primary"
+                        @click="dialogOpen = true"
+                        size="x-small"
+                        v-if="!totpFactor"
+                        class="ml-4"
+                    />
+                    <v-btn-group
+                        divided
+                        v-else
+                        class="ml-4"
                     >
-                        {{ auth.user.mfa ? 'Disable' : 'Enable' }} 2FA
-                    </v-btn>
+                    
+                        <v-btn
+                            :prepend-icon="mdiTrashCan"
+                            color="error"
+                            @click="dialogOpen = true"
+                            size="small"
+                        >
+                            Remove
+                        </v-btn>
+                        <v-btn
+                            variant="tonal"
+                            v-bind="menuOpen"
+                            size="small"
+                            slim
+                            width="2rem"
+                            min-width="0"
+                        >
+                            <v-icon :icon="mdiMenuDown" />
+                            <v-menu
+                                activator="parent"
+                                location="bottom start"
+                                transition="fade-transition"
+                                v-model="menuOpen"
+                            >
+                                <v-list
+                                    density="compact"
+                                    rounded="lg"
+                                    slim
+                                >
+                                    <v-list-item
+                                        @click="downloadRecoveryCodes"
+                                        :prepend-icon="mdiDownload"
+                                    >
+                                        Download Recovery Codes
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
+                        </v-btn>
+                        
+                    </v-btn-group>
                 </template>
                 <template v-slot:default>
                     <v-card>
                         <v-card-title>
-                            {{ auth.user.mfa ? 'Disable' : 'Enable' }} Two-Factor Authentication
+                            {{ totpFactor ? 'Disable' : 'Enable' }} Two-Factor Authentication
                         </v-card-title>
                         <v-card-text>
                             <div
                                 class="enable-mfa"
-                                v-if="!auth.user.mfa"
+                                v-if="!totpFactor"
                             >
                                 <v-timeline
                                     direction="vertical"
@@ -33,7 +76,7 @@
                                     truncate-line="both"
                                     align="start"
                                 >
-                                    <TwoFactorStep
+                                    <MFAStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldKey"
                                         :step="1"
@@ -84,8 +127,8 @@
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </TwoFactorStep>
-                                    <TwoFactorStep
+                                    </MFAStep>
+                                    <MFAStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldCheck"
                                         :step="2"
@@ -100,21 +143,21 @@
                                             </p>
                                             <v-otp-input
                                                 class="d-block"
-                                                name="Your 2FA code"
+                                                name="Your TOTP code"
                                                 v-model="totpInput"
-                                                @finish="enable2FA"
+                                                @finish="enableTOTP"
                                             />
                                             <v-btn
                                                 color="primary"
-                                                @click="enable2FA"
+                                                @click="enableTOTP"
                                                 class="mt-4"
                                                 :disabled="totpInput.length < 6"
                                             >
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </TwoFactorStep>
-                                    <TwoFactorStep
+                                    </MFAStep>
+                                    <MFAStep
                                         :currentStep="currentStep"
                                         :icon="mdiCheck"
                                         :step="3"
@@ -142,7 +185,7 @@
                                                             {{ recoveryCode }}
                                                         </li>
                                                     </ol>
-                                                    <v-btn @click="downloadRecoverycodes">
+                                                    <v-btn @click="downloadRecoveryCodes">
                                                         Download
                                                     </v-btn>
                                                 </v-card-text>
@@ -155,7 +198,7 @@
                                                 Done
                                             </v-btn>
                                         </template>
-                                    </TwoFactorStep>
+                                    </MFAStep>
                                 </v-timeline>
                             </div>
                         </v-card-text>
@@ -188,14 +231,16 @@
 
 <script setup>
 import { account, avatars } from "@/appwrite";
-import { mdiCheck, mdiContentCopy, mdiShieldCheck, mdiShieldKey, mdiTwoFactorAuthentication } from "@mdi/js";
-import { reactive, shallowRef, watch } from "vue";
-import TwoFactorStep from "./TwoFactorStep.vue";
+import { computed, reactive, shallowRef, watch } from "vue";
+import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
+import MFAStep from "@/components/account/mfa/MFAStep.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 
+
 const dialogOpen = shallowRef(false);
+const menuOpen = shallowRef(false);
 const currentStep = shallowRef(1);
 
 const totpSecret = shallowRef("");
@@ -207,6 +252,10 @@ const totpInput = shallowRef("");
 const recoveryCodes = shallowRef([]);
 
 const errors = reactive(Array(3).fill(null));
+
+const totpFactor = computed(() => {
+    return auth.mfaFactors && auth.mfaFactors.totp;
+});
 
 const copyTotpSecret = () => {
     window.navigator.clipboard.writeText(totpSecret.value);
@@ -221,7 +270,7 @@ const nextStep = () => {
     currentStep.value += 1;
 };
 
-const enable2FA = async () => {
+const enableTOTP = async () => {
     try {
         try {
             recoveryCodes.value = await account.createMFARecoveryCodes();
@@ -250,11 +299,7 @@ const enable2FA = async () => {
 
         console.log(totpResponse);
 
-        const account = await account.updateMFA({
-            mfa: true
-        });
-
-        auth.setUser(account);
+        // auth.setUser(account);
 
         nextStep(); // Move to recovery codes + success step
     } catch (error) {
@@ -265,7 +310,7 @@ const enable2FA = async () => {
     }
 };
 
-const downloadRecoverycodes = () => {
+const downloadRecoveryCodes = () => {
     const textData = recoveryCodes.value.join("\n");
     
     const link = document.createElement("a");
@@ -279,7 +324,7 @@ const downloadRecoverycodes = () => {
 watch(dialogOpen, async (nowOpen) => {
     if (nowOpen) {
         if (auth.user.mfa) {
-            // 2FA is already enabled, no need to setup
+            // TOTP is already enabled, no need to setup
             return;
         }
         try {
@@ -307,67 +352,9 @@ watch(dialogOpen, async (nowOpen) => {
     }
 });
 
+
+
 watch(totpInput, () => {
     errors[1] = null;
 });
-
 </script>
-
-<style lang="scss">
-.enable-mfa {
-    display: flex;
-}
-
-.totp-qrcode {
-    width: 12rem;
-    height: 12rem;
-    display: block;
-    max-width: 80%;
-    border-radius: 1rem;
-    background-color: white;
-    padding: 0.7rem;
-}
-
-.timeline-item-body {
-    transition: max-height 0.25s ease-in-out;
-    max-height: 0;
-    overflow: hidden;
-}
-
-.v-timeline-item[data-active="true"] .timeline-item-body {
-    max-height: 200vh;
-}
-
-.recovery-codes-container {
-    .recovery-codes {
-        padding: 0 1rem;
-        font-size: 1.2rem;
-        margin: 0;
-        // display: flex;
-        // flex-wrap: wrap;
-        // margin-top: 1rem;
-        // .recovery-code {
-        //     background-color: rgb(var(--v-theme-surface));
-        //     border-radius: 0.5rem;
-        //     padding: 0.5rem 1rem;
-        //     font-family: monospace;
-        //     margin: 0.25rem;
-        //     outline: 1px solid rgb(var(--v-theme-on-surface));
-        // }
-    }
-    // .v-btn {
-    //     margin-left: auto;
-    //     margin-top: 1rem;
-    // }
-}
-
-.v-timeline-item {
-    &[data-step="4"] {
-        .v-otp-input {
-            justify-content: flex-start;
-            width: 30rem;
-            font-weight: bold;
-        }
-    }
-}
-</style>

@@ -48,42 +48,55 @@
                         </v-list>
                         <v-divider v-if="auth.user" />
                         <v-list>
-                            <v-list-item>
-                                <v-switch
-                                    v-model="auth.newUserPrefs.darkMode"
-                                    label="Dark Mode"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
+                            <v-list-item :prepend-icon="mdiCog">
+                                Quick Settings
                             </v-list-item>
                             <v-list-item>
-                                <v-switch
-                                    v-model="auth.newUserPrefs.showTotalPrice"
-                                    label="Show Total Price"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
-                            </v-list-item>                            
-                            <v-list-item v-if="!!auth.user">
-                                <v-switch
-                                    v-model="auth.newUserPrefs.spoilSurprises"
-                                    label="Spoil Surprises"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
+                                <v-list>
+                                    <v-list-item title="Dark Mode">
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.darkMode"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>
+                                    <v-list-item title="Show Total Price">
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.showTotalPrice"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>                            
+                                    <v-list-item
+                                        v-if="!!auth.user"
+                                        title="Spoil Surprises"
+                                    >
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.spoilSurprises"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>
+                                </v-list>
                             </v-list-item>
-                            <v-list-item v-if="!!auth.user">
-                                <v-btn
-                                    to="/dash/account"
-                                    :prepend-icon="mdiCog"
-                                    class="ml-2"
-                                    variant="tonal"
-                                >   
-                                    Account Settings
-                                </v-btn>
+                            <v-list-item
+                                v-if="!!auth.user"
+                                to="/dash/account"
+                                :prepend-icon="mdiAccountCircle"
+                            >
+                                Account Settings
                             </v-list-item>
                         </v-list>
                         <v-card-actions>
