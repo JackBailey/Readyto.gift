@@ -1,6 +1,6 @@
 {
     "projectId": "6838baa30010ce23e059",
-    "projectName": "readytogift",
+    "projectName": "readyto.gift",
     "settings": {
         "services": {
             "account": true,
@@ -11,8 +11,9 @@
             "storage": true,
             "teams": false,
             "users": true,
+            "sites": true,
             "functions": true,
-            "graphql": false,
+            "graphql": true,
             "messaging": false
         },
         "auth": {
@@ -20,7 +21,7 @@
                 "jwt": false,
                 "phone": false,
                 "invites": false,
-                "anonymous": false,
+                "anonymous": true,
                 "email-otp": false,
                 "magic-url": false,
                 "email-password": true
@@ -32,19 +33,39 @@
                 "passwordHistory": 0,
                 "passwordDictionary": false,
                 "personalDataCheck": false,
-                "sessionAlerts": false,
+                "sessionAlerts": true,
                 "mockNumbers": []
             }
         }
     },
-    "databases": [
+    "functions": [
+        {
+            "$id": "get-autofill-data",
+            "execute": [
+                "users/verified"
+            ],
+            "name": "get-autofill-data",
+            "enabled": true,
+            "logging": true,
+            "runtime": "node-20.0",
+            "scopes": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 60,
+            "entrypoint": "src/main.js",
+            "commands": "npm install",
+            "specification": "s-1vcpu-512mb",
+            "path": "functions/get-autofill-data"
+        }
+    ],
+    "tablesDB": [
         {
             "$id": "wishlist",
             "name": "wishlist",
             "enabled": true
         }
     ],
-    "collections": [
+    "tables": [
         {
             "$id": "6679a593003489f76668",
             "$permissions": [
@@ -54,15 +75,16 @@
             "databaseId": "wishlist",
             "name": "lists",
             "enabled": true,
-            "documentSecurity": true,
-            "attributes": [
+            "rowSecurity": true,
+            "columns": [
                 {
                     "key": "author",
                     "type": "string",
                     "required": true,
                     "array": false,
                     "size": 20,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "title",
@@ -70,19 +92,8 @@
                     "required": true,
                     "array": false,
                     "size": 128,
-                    "default": null
-                },
-                {
-                    "key": "items",
-                    "type": "relationship",
-                    "required": false,
-                    "array": false,
-                    "relatedCollection": "6679a9ff000f53308164",
-                    "relationType": "oneToMany",
-                    "twoWay": true,
-                    "twoWayKey": "list",
-                    "onDelete": "cascade",
-                    "side": "parent"
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "description",
@@ -90,7 +101,8 @@
                     "required": false,
                     "array": false,
                     "size": 4096,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "currency",
@@ -98,7 +110,8 @@
                     "required": false,
                     "array": false,
                     "size": 3,
-                    "default": "USD"
+                    "default": "USD",
+                    "encrypt": false
                 },
                 {
                     "key": "shortUrl",
@@ -106,7 +119,8 @@
                     "required": false,
                     "array": false,
                     "size": 32,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "authorName",
@@ -114,7 +128,8 @@
                     "required": true,
                     "array": false,
                     "size": 64,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "itemCount",
@@ -122,8 +137,33 @@
                     "required": false,
                     "array": false,
                     "min": 0,
-                    "max": 9223372036854775807,
+                    "max": 999999999,
                     "default": null
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "elements": [
+                        "draft",
+                        "published",
+                        "archived"
+                    ],
+                    "format": "enum",
+                    "default": "draft"
+                },
+                {
+                    "key": "items",
+                    "type": "relationship",
+                    "required": false,
+                    "array": false,
+                    "relatedTable": "6679a9ff000f53308164",
+                    "relationType": "oneToMany",
+                    "twoWay": true,
+                    "twoWayKey": "list",
+                    "onDelete": "cascade",
+                    "side": "parent"
                 }
             ],
             "indexes": [
@@ -131,7 +171,7 @@
                     "key": "shortUrl",
                     "type": "unique",
                     "status": "available",
-                    "attributes": [
+                    "columns": [
                         "shortUrl"
                     ],
                     "orders": [
@@ -143,33 +183,22 @@
         {
             "$id": "6679a9ff000f53308164",
             "$permissions": [
-                "read(\"any\")",
-                "create(\"users/verified\")"
+                "create(\"users/verified\")",
+                "read(\"any\")"
             ],
             "databaseId": "wishlist",
             "name": "items",
             "enabled": true,
-            "documentSecurity": true,
-            "attributes": [
-                {
-                    "key": "list",
-                    "type": "relationship",
-                    "required": false,
-                    "array": false,
-                    "relatedCollection": "6679a593003489f76668",
-                    "relationType": "oneToMany",
-                    "twoWay": true,
-                    "twoWayKey": "items",
-                    "onDelete": "cascade",
-                    "side": "child"
-                },
+            "rowSecurity": true,
+            "columns": [
                 {
                     "key": "title",
                     "type": "string",
                     "required": true,
                     "array": false,
                     "size": 128,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "price",
@@ -177,7 +206,7 @@
                     "required": false,
                     "array": false,
                     "min": 0,
-                    "max": 1.7976931348623157e+308,
+                    "max": 999999999,
                     "default": null
                 },
                 {
@@ -185,8 +214,9 @@
                     "type": "string",
                     "required": false,
                     "array": false,
-                    "format": "url",
-                    "default": null
+                    "size": 2048,
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "priority",
@@ -194,15 +224,17 @@
                     "required": false,
                     "array": false,
                     "size": 32,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "image",
                     "type": "string",
                     "required": false,
                     "array": false,
-                    "format": "url",
-                    "default": null
+                    "size": 2048,
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "displayPrice",
@@ -217,7 +249,8 @@
                     "required": false,
                     "array": false,
                     "size": 4000,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
                 },
                 {
                     "key": "imageID",
@@ -225,7 +258,67 @@
                     "required": false,
                     "array": false,
                     "size": 20,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "list",
+                    "type": "relationship",
+                    "required": false,
+                    "array": false,
+                    "relatedTable": "6679a593003489f76668",
+                    "relationType": "oneToMany",
+                    "twoWay": true,
+                    "twoWayKey": "items",
+                    "onDelete": "cascade",
+                    "side": "child"
+                },
+                {
+                    "key": "quantity",
+                    "type": "integer",
+                    "required": false,
+                    "array": false,
+                    "min": 1,
+                    "max": 1024,
+                    "default": 1
+                },
+                {
+                    "key": "itemUrl",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "format": "url",
                     "default": null
+                },
+                {
+                    "key": "communityList",
+                    "type": "relationship",
+                    "required": false,
+                    "array": false,
+                    "relatedTable": "6679a593003489f76668",
+                    "relationType": "manyToOne",
+                    "twoWay": false,
+                    "twoWayKey": "69076969003056be3272",
+                    "onDelete": "cascade",
+                    "side": "parent"
+                },
+                {
+                    "key": "contributorName",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "contributorId",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 20,
+                    "default": null,
+                    "encrypt": false
                 }
             ],
             "indexes": []
@@ -241,27 +334,28 @@
             "databaseId": "wishlist",
             "name": "fulfillments",
             "enabled": true,
-            "documentSecurity": true,
-            "attributes": [
-                {
-                    "key": "item",
-                    "type": "relationship",
-                    "required": false,
-                    "array": false,
-                    "relatedCollection": "6679a9ff000f53308164",
-                    "relationType": "oneToOne",
-                    "twoWay": false,
-                    "twoWayKey": "667ea0d5000f3ef3d82e",
-                    "onDelete": "setNull",
-                    "side": "parent"
-                },
+            "rowSecurity": false,
+            "columns": [
                 {
                     "key": "name",
                     "type": "string",
                     "required": true,
                     "array": false,
                     "size": 32,
-                    "default": null
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "item",
+                    "type": "relationship",
+                    "required": false,
+                    "array": false,
+                    "relatedTable": "6679a9ff000f53308164",
+                    "relationType": "oneToOne",
+                    "twoWay": false,
+                    "twoWayKey": "667ea0d5000f3ef3d82e",
+                    "onDelete": "setNull",
+                    "side": "parent"
                 }
             ],
             "indexes": []
@@ -287,26 +381,6 @@
             "compression": "gzip",
             "encryption": true,
             "antivirus": true
-        }
-    ],
-    "functions": [
-        {
-            "$id": "get-autofill-data",
-            "name": "get-autofill-data",
-            "runtime": "node-20.0",
-            "execute": [
-                "users/verified"
-            ],
-            "events": [],
-            "scopes": [],
-            "schedule": "",
-            "timeout": 60,
-            "specification": "s-1vcpu-512mb",
-            "enabled": true,
-            "logging": true,
-            "entrypoint": "src/main.js",
-            "commands": "npm install",
-            "path": "functions/get-autofill-data"
         }
     ]
 }
