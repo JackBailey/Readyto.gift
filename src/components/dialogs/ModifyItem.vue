@@ -459,12 +459,10 @@ export default {
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
-                        communityList: this.wishlistOwner ? null : this.listId,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
