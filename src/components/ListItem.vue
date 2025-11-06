@@ -285,6 +285,9 @@ export default {
 <style lang="scss" scoped>
 .item {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     
     .item-header {
         display: grid;
@@ -336,7 +339,6 @@ export default {
             flex-wrap: wrap;
             gap: 0.5rem;
         }
-    // grid-column: 100
     }
 
     &[data-fulfilled="true"] {
@@ -344,35 +346,24 @@ export default {
     }
 
     @media screen and (max-width: 768px) {
-        .v-btn-group {
-            justify-self: start;
-        }
-        .item-image {
-            grid-column: 2;
-            grid-row: 1/4;
-            .v-img {
-                margin: 0 auto;
-                img {
-                    max-height: 100%;
-                    max-width: 10rem;
-                    margin-left: auto;
-                }
+        .item-header {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            .v-btn-group {
+                justify-self: flex-start;
             }
         }
-    }
-
-    @media screen and (max-width: 480px) {
-        grid-template-columns: 1fr;
-        .v-btn-group {
-            justify-self: center;
-        }
         .item-content {
-            grid-row: 2;
-        }
-        .item-image {
-            grid-row: 3;
-            grid-column: 1;
-            justify-self: center;
+            display: flex;
+            flex-direction: column;
+            margin-top: 1rem;
+
+            .item-image {
+                img {
+                    max-height: 100%;
+                    max-width: 100%;
+                }
+            }
         }
     }
 }
