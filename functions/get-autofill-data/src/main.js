@@ -1,9 +1,13 @@
 import { Client, Storage } from "node-appwrite";
+import fetch from "node-fetch";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { InputFile } from "node-appwrite/file";
 import mime from "mime-types";
 import { TidyURL } from "tidy-url";
+
+const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
 
 const formatTitle = (data, site) => {
     let { title, description } = data;
@@ -22,7 +26,7 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url, country, { log, error }) => {
+const getPreview = async (url, country, site, storage, itemID, { log, error }) => {
     const requestMethods = [];
 
     if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
@@ -91,6 +95,56 @@ const getPreview = async (url, country, { log, error }) => {
             });
 
             log(`Request method succeeded: ${method.name}`);
+
+            if (
+                site === "amazon" &&
+            data.images && data.images.find((img) => img.includes("/captcha/"))
+            ) {
+                throw new Error("Amazon is blocking access to the page with a CAPTCHA, please try again later.");
+            }
+
+            if (data.images && data.images.length) {
+                const bestImage = getBestImage(data.url, data.images);
+                log(`Best image selected: ${bestImage}, site: ${site}`);
+                const imageData = await fetch(bestImage, {
+                    followRedirects: "follow",
+                    headers: {
+                        "user-agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+                    },
+                    timeout: 15000,
+                    agent: method.type === "proxy" ? new HttpsProxyAgent(method.proxy) : null
+                });
+            
+                if (imageData.ok) {
+                    try {
+                    // delete original
+                        await storage.deleteFile(
+                            "66866e74001d3e2f2629",
+                            itemID
+                        );
+                    }  catch {
+                    // ignore error if file does not exist
+                    }
+    
+                    const imageBuffer = await imageData.arrayBuffer();
+
+                    log({ contenttype: imageData.headers.get("content-type") });
+
+                    const mimeType = imageData.headers.get("content-type") || "image/jpeg";
+                    const fileExt = mime.extension(mimeType) || "png";
+    
+                    const result = await storage.createFile(
+                        "66866e74001d3e2f2629",
+                        itemID,
+                        InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
+                    );
+
+                    data.imageID = result.$id;
+                    data.imageSize = result.sizeOriginal;
+                }
+            }
+
             return data;
         } catch (err) {
             error(`Request method failed: ${method.name} - ${err.message}`);
@@ -124,7 +178,28 @@ const getBestImage = (url, images) => {
             return 1;
         })[0];
     default:
-        return images[0];
+        images = images
+            .filter(url => {
+                // Exclude non-photo assets
+                const badPatterns = /(icon|logo|favicon|svg|header|account|shopping|favourites)/i;
+                return !badPatterns.test(url);
+            })
+            .map(url => {
+                // Attempt to extract width if available in URL
+                const widthMatch = url.match(/width=(\d+)/);
+                const width = widthMatch ? parseInt(widthMatch[1], 10) : 0;
+
+                // Score image based on heuristics
+                let score = 0;
+                if (url.includes("product")) score += 2;
+                if (width >= 500) score += 3;
+                else if (width >= 300) score += 1;
+                if (/\.(jpg|jpeg|png)$/i.test(url)) score += 1;
+
+                return { url, score, width };
+            })
+            .sort((a, b) => b.score - a.score);
+        return images[0]?.url;
     }
 };
 
@@ -164,56 +239,15 @@ export default async ({ req, res, log, error }) => {
             country = countryMap[currency];
         }
 
-        const data = await getPreview(url, country, { log, error });
         const site = getSite(url);
-
-        if (
-            site === "amazon" &&
-            data.images && data.images.find((img) => img.includes("/captcha/"))
-        ) {
-            return res.json({
-                error: "Amazon is blocking access to the image. Please try again later."
-            });
-        }
-
-        let imageID, imageSize;
-
-        if (data.images && data.images.length) {
-            const imageData = await fetch(getBestImage(data.url, data.images));
-            if (!imageData.ok) {
-                throw new Error("Failed to fetch image");
-            }
-            try {
-                // delete original
-                await storage.deleteFile(
-                    "66866e74001d3e2f2629",
-                    itemID
-                );
-            }  catch {
-                // ignore error if file does not exist
-            }
-    
-            const imageBuffer = await imageData.arrayBuffer();
-    
-            const mimeType = imageData.headers.get("content-type") || "image/jpeg";
-            const fileExt = mime.extension(mimeType) || "jpg";
-    
-            const result = await storage.createFile(
-                "66866e74001d3e2f2629",
-                itemID,
-                InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
-            );
-
-            imageID = result.$id;
-            imageSize = result.sizeOriginal;
-        }
+        const data = await getPreview(url, country, site, storage, itemID, { log, error });
 
         const autofillData = {
             title: formatTitle(data, site),
             url: data.url ? TidyURL.clean(data.url).url : "",
             image: "",
-            imageID,
-            imageSize,
+            imageID: data.imageID,
+            imageSize: data.imageSize,
             price: data.price
         };
 
