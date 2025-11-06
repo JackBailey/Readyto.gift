@@ -75,7 +75,7 @@
                                     truncate-line="both"
                                     align="start"
                                 >
-                                    <MFAStep
+                                    <MfaStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldKey"
                                         :step="1"
@@ -126,8 +126,8 @@
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </MFAStep>
-                                    <MFAStep
+                                    </MfaStep>
+                                    <MfaStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldCheck"
                                         :step="2"
@@ -155,8 +155,8 @@
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </MFAStep>
-                                    <MFAStep
+                                    </MfaStep>
+                                    <MfaStep
                                         :currentStep="currentStep"
                                         :icon="mdiCheck"
                                         :step="3"
@@ -197,7 +197,7 @@
                                                 Done
                                             </v-btn>
                                         </template>
-                                    </MFAStep>
+                                    </MfaStep>
                                 </v-timeline>
                             </div>
                         </v-card-text>
@@ -232,7 +232,8 @@
 import { account, avatars } from "@/appwrite";
 import { computed, reactive, shallowRef, watch } from "vue";
 import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
-import MFAStep from "@/components/account/mfa/MFAStep.vue";
+import MfaChallengeDialog from "@/components/dialogs/MfaChallenge.vue";
+import MfaStep from "@/components/account/mfa/MfaStep.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -269,6 +270,58 @@ const prevStep = () => {
 const nextStep = () => {
     currentStep.value += 1;
 };
+
+const getTotpInput = async () => {
+    return await dialogs.create({   
+        actions: [
+            {
+                action: "close",
+                color: "primary",
+                text: "Cancel"
+            }
+        ],
+        async: true,
+        component: MfaChallengeDialog,
+        events: {
+            otpEntered: async (totp) => {
+                await auth.completeMFAchallenge(totp);
+                return totp; // Return the valid TOTP code
+            }
+        },
+        fullscreen: false,
+        props: {
+            length: 6,
+            type: "number"
+        },
+        title: "Enter TOTP Code"
+    });
+};
+
+const getAndDisplayRecoveryCodes = async () => {
+    while (true) {
+        const res = await getTotpInput();
+        const totp = res?.data;
+        if (!totp) return; // cancelled
+
+        try {
+            recoveryCodes.value = await auth.getRecoveryCodes(totp);
+            break; // success
+        } catch (error) {
+            console.error({ error });
+            await dialogs.create({
+                actions: [
+                    { action: "close", color: "primary", text: "OK" }
+                ],
+                async: true,
+                fullscreen: false,
+                text: error.message || "There was an error verifying the TOTP code. Please try again.",
+                title: "TOTP verification failed"
+            });
+        }
+    }
+};
+
+getAndDisplayRecoveryCodes();
 
 const removeTOTP = async () => {
     try {
@@ -317,25 +370,7 @@ const removeTOTP = async () => {
 
 const enableTOTP = async () => {
     try {
-        try {
-            recoveryCodes.value = await account.createMFARecoveryCodes();
-        } catch (error) {
-            if (error.type === "user_recovery_codes_already_exists") {
-                const challenge = await account.createMFAChallenge({
-                    factor: "totp"
-                });
-                const challengeId = challenge.$id;
-
-                await account.updateMFAChallenge({
-                    challengeId,
-                    otp: totpInput.value
-                });
-
-                recoveryCodes.value = (await account.getMFARecoveryCodes()).recoveryCodes;
-            } else {
-                throw error;
-            }
-        }
+        recoveryCodes.value = await auth.getRecoveryCodes(totpInput.value);
 
         await account.updateMFAAuthenticator({
             otp: totpInput.value,

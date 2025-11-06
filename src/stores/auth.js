@@ -32,6 +32,33 @@ export const useAuthStore = defineStore("auth", {
         }
     }),
     actions: {
+        async completeMFAchallenge(totp) {
+            const challenge = await account.createMFAChallenge({
+                factor: "totp"
+            });
+            const challengeId = challenge.$id;
+
+            await account.updateMFAChallenge({
+                challengeId,
+                otp: totp
+            });
+        },
+        async getRecoveryCodes(totp) {
+            try {
+                return (await account.createMFARecoveryCodes()).recoveryCodes;
+            } catch (error) {
+                if (error.type === "user_recovery_codes_already_exists") {
+                    // if no totp, there should be a recent MFA challenge to complete
+                    if (totp) await this.completeMFAchallenge(totp);
+            
+                    const recoveryCodesResponse = await account.getMFARecoveryCodes();
+
+                    return recoveryCodesResponse.recoveryCodes;
+                } else {
+                    throw error;
+                }
+            }
+        },
         async init() {
             try {
                 try {

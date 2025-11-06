@@ -5,9 +5,9 @@ export const useDialogs = defineStore("dialogs", {
         dialogs: []
     }),
     actions: {
-        close(index, actionText) {
+        close(index, actionText, data = null) {
             if (this.dialogs[index].async) {
-                this.dialogs[index].resolvePromise(actionText);
+                this.dialogs[index].resolvePromise({ action: actionText, data });
             }
             this.dialogs[index].open = false;
 
@@ -15,7 +15,18 @@ export const useDialogs = defineStore("dialogs", {
                 this.dialogs.splice(index, 1);
             }, 500);
         },
+        resolve(index, data) {
+            if (this.dialogs[index].async) {
+                this.dialogs[index].resolvePromise({ data });
+                this.dialogs[index].open = false;
+
+                setTimeout(() => {
+                    this.dialogs.splice(index, 1);
+                }, 500);
+            }
+        },
         create(dialog) {
+            console.log("Creating dialog:", dialog);
             let resolvePromise;
             let promise;
 
