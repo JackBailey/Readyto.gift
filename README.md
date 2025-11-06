@@ -41,16 +41,9 @@ Install dependencies for this project:
 pnpm install
 ```
 
-> [!NOTE]  
-> It might make more sense using appwrite-cli for this, using appwrite.json. I wasn't aware of it when I made the setup script, which is now outdated.
+Push `appwrite.json\ ` to your Appwrite instance
 
-Create a new project within Appwrite, and create a new API key. Subsitute the values in the below command with your API key and Project ID. Replace the endpoint if using your own instance.
-
-```sh
-pnpm run setup --key=YOUR-API-KEY --project=YOUR-PROJECT-ID --endpoint=https://cloud.appwrite.io/v1
-```
-
-This will then go through and set up the collections you need. You then need to set up the authentication settings depending on your preferences.
+You then need to set up the authentication settings depending on your preferences.
 
 Then, move the created `output.env` file to `.env`.
 
