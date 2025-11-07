@@ -1,13 +1,11 @@
 import { Client, Storage } from "node-appwrite";
-import fetch from "node-fetch";
+import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { InputFile } from "node-appwrite/file";
 import mime from "mime-types";
 import { TidyURL } from "tidy-url";
-
-const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
 
 const formatTitle = (data, site) => {
     let { title, description } = data;
@@ -82,41 +80,39 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
     for (const method of requestMethods) {
         log(`Trying request method: ${method.name}`);
 
+        const fetchOptions = {
+            followRedirects: "follow",
+            headers: {
+                "user-agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+            },
+            timeout: 15000,
+            agent: method.type === "proxy" ? new HttpsProxyAgent(method.proxy) : null
+        };
+
         try {
             console.log({ method });
-            const data = await getLinkPreview({ url, log, error }, {
-                followRedirects: "follow",
-                headers: {
-                    "user-agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-                },
-                timeout: 15000,
-                proxy: method.type === "proxy" ? method.proxy : null
-            });
+            const data = await getLinkPreview({ url, log, error }, fetchOptions);
 
             log(`Request method succeeded: ${method.name}`);
 
             if (
                 site === "amazon" &&
-            data.images && data.images.find((img) => img.includes("/captcha/"))
+            data.images && data.images.find((img) => img.src.includes("/captcha/"))
             ) {
                 throw new Error("Amazon is blocking access to the page with a CAPTCHA, please try again later.");
             }
 
             if (data.images && data.images.length) {
-                const bestImage = getBestImage(data.url, data.images);
-                log(`Best image selected: ${bestImage}, site: ${site}`);
-                const imageData = await fetch(bestImage, {
-                    followRedirects: "follow",
-                    headers: {
-                        "user-agent":
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-                    },
-                    timeout: 15000,
-                    agent: method.type === "proxy" ? new HttpsProxyAgent(method.proxy) : null
+                const bestImage = await getBestImage({
+                    images: data.images,
+                    site,
+                    fetchOptions,
+                    log
                 });
-            
-                if (imageData.ok) {
+
+                if (bestImage) {
+                    log("Best image found:", JSON.stringify(bestImage.image, null, 2));
                     try {
                     // delete original
                         await storage.deleteFile(
@@ -127,11 +123,9 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                     // ignore error if file does not exist
                     }
     
-                    const imageBuffer = await imageData.arrayBuffer();
+                    const imageBuffer = bestImage.data;
 
-                    log({ contenttype: imageData.headers.get("content-type") });
-
-                    const mimeType = imageData.headers.get("content-type") || "image/jpeg";
+                    const mimeType = bestImage.contentType || "image/jpeg";
                     const fileExt = mime.extension(mimeType) || "png";
     
                     const result = await storage.createFile(
@@ -142,6 +136,8 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 
                     data.imageID = result.$id;
                     data.imageSize = result.sizeOriginal;
+                } else {
+                    log("No suitable image found.");
                 }
             }
 
@@ -153,54 +149,6 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
     }
 
     throw new Error("All request methods failed, it may be blocked.");
-};
-
-const getBestImage = (url, images) => {
-    const site = getSite(url);
-
-    switch (site) {
-    case "amazon":
-        return images.sort((a, b) => {
-            // Extract size information from the current image URL
-            const aMatch = /_(SX|SY|UF|SR)(\d+),?(\d+)?_/.test(a);
-            const bMatch = /_(SX|SY|UF|SR)(\d+),?(\d+)?_/.test(b);
-            
-            if (aMatch === bMatch) {
-                return 0;
-            }
-        
-            // If a has a match and b doesn't, a should come before b
-            if (aMatch) {
-                return -1;
-            }
-        
-            // If b has a match and a doesn't, b should come before a
-            return 1;
-        })[0];
-    default:
-        images = images
-            .filter(url => {
-                // Exclude non-photo assets
-                const badPatterns = /(icon|logo|favicon|svg|header|account|shopping|favourites)/i;
-                return !badPatterns.test(url);
-            })
-            .map(url => {
-                // Attempt to extract width if available in URL
-                const widthMatch = url.match(/width=(\d+)/);
-                const width = widthMatch ? parseInt(widthMatch[1], 10) : 0;
-
-                // Score image based on heuristics
-                let score = 0;
-                if (url.includes("product")) score += 2;
-                if (width >= 500) score += 3;
-                else if (width >= 300) score += 1;
-                if (/\.(jpg|jpeg|png)$/i.test(url)) score += 1;
-
-                return { url, score, width };
-            })
-            .sort((a, b) => b.score - a.score);
-        return images[0]?.url;
-    }
 };
 
 export default async ({ req, res, log, error }) => {
