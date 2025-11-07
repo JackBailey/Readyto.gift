@@ -268,10 +268,6 @@ export default {
                             wouldOverwrite.push("description");
                         }
 
-                        if (this.modifiedItem.url && responseData.url && this.modifiedItem.url !== responseData.url) {
-                            wouldOverwrite.push("url");
-                        }
-
                         if (this.modifiedItem.price && responseData.price && this.modifiedItem.price !== responseData.price) {
                             wouldOverwrite.push("price");
                         }
@@ -287,7 +283,6 @@ export default {
                         if (overwriteFields) {
                             if (responseData.title) this.modifiedItem.title = responseData.title;
                             if (responseData.description) this.modifiedItem.description = responseData.description;
-                            if (responseData.url) this.modifiedItem.url = responseData.url;
                             if (responseData.price) this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
                         }
                         if (responseData.imageID) {
