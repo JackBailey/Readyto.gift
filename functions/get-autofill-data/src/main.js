@@ -5,7 +5,12 @@ import getSite from "./get-site.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { InputFile } from "node-appwrite/file";
 import mime from "mime-types";
+import { Polar } from "@polar-sh/sdk";
 import { TidyURL } from "tidy-url";
+
+const polar = new Polar({
+    accessToken: process.env["POLAR_ACCESS_TOKEN"] ?? ""
+});
 
 const formatTitle = (data, site) => {
     let { title, description } = data;
@@ -111,7 +116,19 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                     log
                 });
 
-                if (bestImage) {
+                await polar.events.ingest({
+                    events: [{
+                        name: "autofill",
+                        externalCustomerId: itemID,
+                        metadata: {
+                            itemID,
+                            imageFound: bestImage.image ? true : false,
+                            fetchedSize: bestImage.fetchedSize || 0
+                        }
+                    }]
+                });
+
+                if (bestImage.image) {
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
                     try {
                     // delete original

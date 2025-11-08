@@ -121,7 +121,8 @@ export default async ({ images, fetchOptions, log }) => {
                     height: dimensions.height,
                     size: buffer.byteLength,
                     contentType,
-                    data: buffer
+                    data: buffer,
+                    fetchedSize
                 };
                 continue;
             }
@@ -136,5 +137,8 @@ export default async ({ images, fetchOptions, log }) => {
     log(`Total fetched images: ${fetchedImages}/${maxFetchedImages}, Total fetched size: ${fetchedSize}/${maxFetchedSize} bytes`);
 
     // No suitable image found
-    return bestImage;
+    return {
+        image: null,
+        fetchedSize
+    };
 };
