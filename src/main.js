@@ -1,44 +1,35 @@
-import "@/assets/main.scss";
+import { Client, Users } from 'node-appwrite';
 
-import { createApp } from "vue";
-import { createPinia } from "pinia";
+// This Appwrite function will be executed every time your function is triggered
+export default async ({ req, res, log, error }) => {
+  // You can use the Appwrite SDK to interact with other services
+  // For this example, we're using the Users service
+  const client = new Client()
+    .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
+    .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
+    .setKey(req.headers['x-appwrite-key'] ?? '');
+  const users = new Users(client);
 
-import App from "@/App.vue";
-import router from "@/router";
+  try {
+    const response = await users.list();
+    // Log messages and errors to the Appwrite Console
+    // These logs won't be seen by your end users
+    log(`Total users: ${response.total}`);
+  } catch(err) {
+    error("Could not list users: " + err.message);
+  }
 
-import vuetify from "../plugins/vuetify";
+  // The req object contains the request data
+  if (req.path === "/ping") {
+    // Use res object to respond with text(), json(), or binary()
+    // Don't forget to return a response!
+    return res.text("Pong");
+  }
 
-import * as Sentry from "@sentry/vue";
-
-const app = createApp(App);
-
-const pinia = createPinia();
-
-if (import.meta.env.VITE_SENTRY_DSN) {
-    Sentry.init({
-        app,
-        dsn: import.meta.env.VITE_SENTRY_DSN,
-        integrations: [
-            Sentry.browserTracingIntegration({ router }),
-            Sentry.replayIntegration()
-        ],
-        // Tracing
-        tracesSampleRate: 1.0, //  Capture 100% of the transactions
-        // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-        tracePropagationTargets: ["localhost", /^https:\/\/readyto\.gift/],
-        // Session Replay
-        replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-        replaysOnErrorSampleRate: 1.0 // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-        
-    });
-
-    pinia.use(Sentry.createSentryPiniaPlugin({
-        attachPiniaState: true
-    }));
-}
-
-app.use(pinia);
-
-app.use(router);
-app.use(vuetify);
-app.mount("#app");
+  return res.json({
+    motto: "Build like a team of hundreds_",
+    learn: "https://appwrite.io/docs",
+    connect: "https://appwrite.io/discord",
+    getInspired: "https://builtwith.appwrite.io",
+  });
+};

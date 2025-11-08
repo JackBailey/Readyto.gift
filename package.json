@@ -1,45 +1,16 @@
 {
-    "name": "readyto.gift",
-    "version": "0.0.0",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview",
-        "lint": "eslint . --fix",
-        "format": "prettier --write src/",
-        "op": "op run --no-masking --env-file=\"./1password.env\" -- pnpm",
-        "setup": "node setup"
-    },
-    "dependencies": {
-        "@sentry/vite-plugin": "^4.5.0",
-        "@sentry/vue": "^10.22.0",
-        "appwrite": "^21.2.1",
-        "cheerio": "^1.1.2",
-        "dotenv": "^16.4.5",
-        "material": "github:treeder/material",
-        "material-symbols": "^0.31.0",
-        "pinia": "^3.0.3",
-        "sass": "^1.93.2",
-        "vite-plugin-vuetify": "^2.1.2",
-        "vue": "^3.5.22",
-        "vue-markdown-render": "^2.2.1",
-        "vue-router": "^4.3.3",
-        "vuetify": "^3.10.7"
-    },
-    "devDependencies": {
-        "@eslint/js": "^9.38.0",
-        "@mdi/js": "^7.4.47",
-        "@rushstack/eslint-patch": "^1.14.1",
-        "@vitejs/plugin-vue": "^6.0.1",
-        "@vue/eslint-config-prettier": "^10.2.0",
-        "eslint": "^9.38.0",
-        "eslint-plugin-import": "^2.32.0",
-        "eslint-plugin-vue": "^10.5.1",
-        "globals": "^16.0.0",
-        "node-appwrite": "^14.0.0",
-        "prettier": "^3.2.5",
-        "vite": "^5.4.21"
-    }
+  "name": "starter-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "node-appwrite": "^14.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5"
+  }
 }
