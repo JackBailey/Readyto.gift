@@ -14,7 +14,7 @@
     "https-proxy-agent": "^7.0.6",
     "image-size": "^2.0.2",
     "mime-types": "^3.0.1",
-    "node-appwrite": "^14.0.0",
+    "node-appwrite": "^20.0.0",
     "tidy-url": "^1.18.3",
     "url": "0.11.4"
   },
