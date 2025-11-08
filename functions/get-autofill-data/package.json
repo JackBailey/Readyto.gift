@@ -8,6 +8,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@polar-sh/sdk": "^0.41.1",
     "abort-controller": "^3.0.0",
     "cheerio": "1.0.0",
     "cross-fetch": "4.1.0",

@@ -136,9 +136,8 @@ export default async ({ images, fetchOptions, log }) => {
     log(`Best image: ${bestImage ? JSON.stringify(bestImage.image) : "None found"}`);
     log(`Total fetched images: ${fetchedImages}/${maxFetchedImages}, Total fetched size: ${fetchedSize}/${maxFetchedSize} bytes`);
 
-    // No suitable image found
     return {
-        image: null,
+        image: bestImage,
         fetchedSize
     };
 };
