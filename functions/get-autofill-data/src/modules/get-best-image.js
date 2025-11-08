@@ -14,7 +14,8 @@ const isInvalidImage = url => {
         lower.includes("grey-pixel") ||
         lower.includes("pixel.gif") ||
         lower.includes("loading-4x-gray") ||
-        lower.includes("sprite")
+        lower.includes("sprite") ||
+        lower.includes("marketing")
     );
 };
 
