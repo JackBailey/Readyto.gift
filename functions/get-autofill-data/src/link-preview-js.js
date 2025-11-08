@@ -4,7 +4,6 @@ import AbortController from "abort-controller";
 import { CONSTANTS } from "./constants.js";
 import fetch from "node-fetch";
 import getSite from "./get-site.js";
-import { HttpsProxyAgent } from "https-proxy-agent";
 import urlObj from "url";
 
 
@@ -70,6 +69,7 @@ function getImages(doc, rootUrl, imagesPropertyType) {
     let nodes = null;
     let src = "";
     let dic = [];
+    const site = getSite(rootUrl);
 
     const imagePropertyType = imagesPropertyType ?? "og";
     nodes =
@@ -82,19 +82,39 @@ function getImages(doc, rootUrl, imagesPropertyType) {
                 src = node.attribs.content;
                 if (src) {
                     src = urlObj.resolve(rootUrl, src);
-                    images.push(src);
+                    images.push({
+                        src,
+                        location: "meta"
+                    });
+                    console.log({
+                        imagePropertyType, src
+                    });
                 }
             }
         });
     }
 
+    // Fallback to other methods if no images found in meta tags
     if (images && images.length <= 0 && !imagesPropertyType) {
         src = doc("link[rel=image_src]").attr("href");
         if (src) {
             src = urlObj.resolve(rootUrl, src);
-            images = [src];
+            images = [{
+                src,
+                location: "link"
+            }];
         } else {
-            nodes = doc("img");
+            nodes = [];
+            if (site === "amazon") {
+                const ppd = doc("#ppd"); // Just use the main product details section
+
+                if (ppd && ppd.length) {
+                    nodes = ppd.find("img");
+                }
+            }
+            if (!nodes || nodes.length === 0) {
+                nodes = doc("img");
+            }
 
             if (nodes?.length) {
                 dic = {};
@@ -103,9 +123,10 @@ function getImages(doc, rootUrl, imagesPropertyType) {
                     if (node.type === "tag") src = node.attribs.src;
                     if (src && !dic[src]) {
                         dic[src] = true;
-                        // width = node.attribs.width;
-                        // height = node.attribs.height;
-                        images.push(urlObj.resolve(rootUrl, src));
+                        images.push({
+                            src: urlObj.resolve(rootUrl, src),
+                            location: "img"
+                        });
                     }
                 });
             }
@@ -412,7 +433,7 @@ function parseResponse(response, options) {
  * @param text string, text to be parsed
  * @param options ILinkPreviewOptions
  */
-export async function getLinkPreview({ url, log }, options) {
+export async function getLinkPreview({ url }, fetchOptions) {
     if (!url || typeof url !== "string") {
         throw new Error("Invalid URL");
     }
@@ -428,34 +449,24 @@ export async function getLinkPreview({ url, log }, options) {
         );
     }
 
-    if (options?.followRedirects === "manual" && !options?.handleRedirects) {
+    if (fetchOptions?.followRedirects === "manual" && !fetchOptions?.handleRedirects) {
         throw new Error(
             "link-preview-js followRedirects is set to manual, but no handleRedirects function was provided"
         );
     }
 
-    if (options?.resolveDNSHost) {
-        const resolvedUrl = await options.resolveDNSHost(detectedUrl);
+    if (fetchOptions?.resolveDNSHost) {
+        const resolvedUrl = await fetchOptions.resolveDNSHost(detectedUrl);
 
         throwOnLoopback(resolvedUrl);
     }
 
-    const timeout = options?.timeout ?? 3000; // 3 second timeout default
+    const timeout = fetchOptions?.timeout ?? 3000; // 3 second timeout default
     const controller = new AbortController();
     const timeoutCounter = setTimeout(() => controller.abort(), timeout);
 
-    const fetchOptions = {
-        headers: options?.headers ?? {},
-        redirect: options?.followRedirects ?? "error",
-        signal: controller.signal
-    };
-
-    if (options.proxy) {
-        fetchOptions.agent = new HttpsProxyAgent(options.proxy);
-    }
-
-    const fetchUrl = options?.proxyUrl
-        ? options.proxyUrl.concat(detectedUrl)
+    const fetchUrl = fetchOptions?.proxyUrl
+        ? fetchOptions.proxyUrl.concat(detectedUrl)
         : detectedUrl;
 
     // Seems like fetchOptions type definition is out of date
@@ -473,16 +484,16 @@ export async function getLinkPreview({ url, log }, options) {
         response.status > 300 &&
         response.status < 309 &&
         fetchOptions.redirect === "manual" &&
-        options?.handleRedirects
+        fetchOptions?.handleRedirects
     ) {
         const forwardedUrl = response.headers.get("location") || "";
 
-        if (!options.handleRedirects(fetchUrl, forwardedUrl)) {
+        if (!fetchOptions.handleRedirects(fetchUrl, forwardedUrl)) {
             throw new Error("Could not handle redirect");
         }
 
-        if (options?.resolveDNSHost) {
-            const resolvedUrl = await options.resolveDNSHost(forwardedUrl);
+        if (fetchOptions?.resolveDNSHost) {
+            const resolvedUrl = await fetchOptions.resolveDNSHost(forwardedUrl);
 
             throwOnLoopback(resolvedUrl);
         }
@@ -504,14 +515,14 @@ export async function getLinkPreview({ url, log }, options) {
     });
 
     const normalizedResponse = {
-        url: options?.proxyUrl
-            ? response.url.replace(options.proxyUrl, "")
+        url: fetchOptions?.proxyUrl
+            ? response.url.replace(fetchOptions.proxyUrl, "")
             : response.url,
         headers,
         data: await response.text()
     };
 
-    const parsedResponse = parseResponse(normalizedResponse, options);
+    const parsedResponse = parseResponse(normalizedResponse, fetchOptions);
 
     if (!parsedResponse || parsedResponse.title === "" || (parsedResponse.images && parsedResponse.images.length === 0)) {
         throw new Error("Could not extract link preview data");

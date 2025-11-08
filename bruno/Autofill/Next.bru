@@ -1,0 +1,23 @@
+meta {
+  name: Next
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/get-autofill-data
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "itemID": "68fbe5a70022ded175ad",
+    "url": "https://www.next.co.uk/style/su663181/f70043"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

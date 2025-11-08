@@ -43,6 +43,7 @@
                         @file-state="setFileState"
                         :uploading-file="uploadingFile"
                         :wishlistOwner="wishlistOwner"
+                        :previousValues="previousValues"
                     />
                     <v-alert
                         v-if="alert"
@@ -160,6 +161,7 @@ export default {
                 title: "",
                 url: ""
             },
+            previousValues: {},
             uploadingFile: false
         };
     },
@@ -181,6 +183,8 @@ export default {
                         title: this.item.title,
                         url: this.item.url
                     };
+
+                    this.previousValues = { ...this.modifiedItem };
 
                     if (this.item.imageID) {
                         const file = await storage.getFile(
@@ -228,6 +232,9 @@ export default {
                 return;
             }
             this.autofillLoading = true;
+            this.previousValues = {
+                ...this.modifiedItem
+            };
 
             try {
                 const result = await functions.createExecution(
@@ -259,37 +266,10 @@ export default {
                             return;
                         }
 
-                        const wouldOverwrite = [];
-                        if (this.modifiedItem.title && responseData.title && this.modifiedItem.title !== responseData.title) {
-                            wouldOverwrite.push("title");
-                        }
+                        this.modifiedItem.title = responseData.title || this.modifiedItem.title;
+                        this.modifiedItem.price = responseData.price ? responseData.price.price : this.modifiedItem.price;
+                        this.modifiedItem.image = responseData.image || this.modifiedItem.image;
 
-                        if (this.modifiedItem.description && responseData.description && this.modifiedItem.description !== responseData.description) {
-                            wouldOverwrite.push("description");
-                        }
-
-                        if (this.modifiedItem.url && responseData.url && this.modifiedItem.url !== responseData.url) {
-                            wouldOverwrite.push("url");
-                        }
-
-                        if (this.modifiedItem.price && responseData.price && this.modifiedItem.price !== responseData.price) {
-                            wouldOverwrite.push("price");
-                        }
-
-                        let overwriteFields = true;
-
-                        if (wouldOverwrite.length > 0) {
-                            overwriteFields = confirm(
-                                `The autofill data would overwrite the following fields: ${wouldOverwrite.join(", ")}. Do you want to proceed?`
-                            );
-                        }
-
-                        if (overwriteFields) {
-                            if (responseData.title) this.modifiedItem.title = responseData.title;
-                            if (responseData.description) this.modifiedItem.description = responseData.description;
-                            if (responseData.url) this.modifiedItem.url = responseData.url;
-                            if (responseData.price) this.modifiedItem.price = parseFloat(responseData.price.price) || 0;
-                        }
                         if (responseData.imageID) {
                             this.modifiedItem.imageFile = new File(["a".repeat(responseData.imageSize)], responseData.imageID);
                             this.modifiedItem.imageID = responseData.imageID;
@@ -459,12 +439,10 @@ export default {
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
-                        communityList: this.wishlistOwner ? null : this.listId,
                         description: this.modifiedItem.description || null,
                         displayPrice: this.modifiedItem.displayPrice,
                         image: this.modifiedItem.image || null,
                         imageID: this.modifiedItem.imageID || null,
-                        list: this.wishlistOwner ? this.listId : null,
                         price: parseFloat(this.modifiedItem.price) || 0,
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,

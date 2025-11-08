@@ -15,9 +15,10 @@
 
         <template v-slot:default="{ isActive }">
             <v-card title="Edit List">
-                <v-card-text>
+                <v-card-text class="d-flex flex-column ga-4">
                     <ListFields
                         v-model:list="editedList"
+                        :previousValues="previousValues"
                     />
                     <v-alert
                         v-if="alert"
@@ -77,7 +78,8 @@ export default {
             listId: null,
             loading: false,
             mdiAlert,
-            mdiPencil
+            mdiPencil,
+            previousValues: {}
         };
     },
     watch: {
@@ -90,6 +92,7 @@ export default {
                     shortUrl: this.list.shortUrl,
                     title: this.list.title
                 };
+                this.previousValues = { ...this.editedList };
                 this.listId = this.list.$id;
             } else {
                 this.$emit("dialogClosed");

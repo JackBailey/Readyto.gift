@@ -1,5 +1,6 @@
 <template>
     <v-form
+        class="d-flex flex-column ga-4"
         validate-on="blur"
         @submit.prevent
     >
@@ -10,7 +11,19 @@
             counter
             :autofocus="!item.url"
             :rules="[() => !!item.title || 'Title is required']"
-        />
+            hide-details="auto"
+            :base-color="previousValues.title && previousValues.title !== item.title ? 'primary' : undefined"
+            :color="previousValues.title && previousValues.title !== item.title ? 'primary' : undefined"
+        >
+            <template #details>
+                <RevertPrompt
+                    v-if="previousValues.title && previousValues.title !== item.title"
+                    :previous-value="previousValues.title"
+                    @revert="revertValue('title')"
+                />
+            </template>
+        </v-text-field>
+
         <v-textarea
             label="Description"
             v-model.trim="item.description"
@@ -19,7 +32,18 @@
             persistent-hint
             hint="This field supports markdown!"
             class="mb-2"
-        />
+            hide-details="auto"
+            :base-color="previousValues.description && previousValues.description !== item.description ? 'primary' : undefined"
+            :color="previousValues.description && previousValues.description !== item.description ? 'primary' : undefined"
+        >
+            <template #details>
+                <RevertPrompt
+                    v-if="previousValues.description && previousValues.description !== item.description"
+                    :previous-value="previousValues.description"
+                    @revert="revertValue('description')"
+                />
+            </template>
+        </v-textarea>
         <v-text-field
             type="url"
             label="Website"
@@ -27,7 +51,18 @@
             :prepend-icon="mdiLink"
             :rules="[validateUrl]"
             :error-messages="errors.url"
-        />
+            hide-details="auto"
+            :base-color="previousValues.url && previousValues.url !== item.url ? 'primary' : undefined"
+            :color="previousValues.url && previousValues.url !== item.url ? 'primary' : undefined"
+        >
+            <template #details>
+                <RevertPrompt
+                    v-if="previousValues.url && previousValues.url !== item.url"
+                    :previous-value="previousValues.url"
+                    @revert="revertValue('url')"
+                />
+            </template>
+        </v-text-field>
         <div
             class="image"
         >
@@ -39,6 +74,7 @@
                 persistent-hint
                 hint="This should be a direct link to an image."
                 v-show="!item.imageID && !item.imageFile"
+                hide-details="auto"
             />
             <v-file-input
                 :prepend-icon="mdiImage"
@@ -72,12 +108,24 @@
             v-model="item.price"
             :prefix="currencyStore.getCurrency(currency).symbol"
             :prepend-icon="mdiCash"
-        />
+            hide-details="auto"
+            :base-color="previousValues.price && previousValues.price !== item.price ? 'primary' : undefined"
+            :color="previousValues.price && previousValues.price !== item.price ? 'primary' : undefined"
+        >
+            <template #details>
+                <RevertPrompt
+                    v-if="previousValues.price && previousValues.price !== item.price"
+                    :previous-value="currencyStore.getCurrency(currency).symbol + previousValues.price"
+                    @revert="revertValue('price')"
+                />
+            </template>
+        </v-text-field>
         <v-switch
             label="Show Price"
             v-model="item.displayPrice"
             color="primary"
             inset
+            hide-details="auto"
         />
         <v-select
             label="Priority"
@@ -89,6 +137,7 @@
                 }))
             "
             v-if="wishlistOwner"
+            hide-details="auto"
         />
     </v-form>
 </template>
@@ -97,6 +146,7 @@
 import { mdiCash, mdiFileLink, mdiImage, mdiLink, mdiUpload } from "@mdi/js";
 import { ref, useTemplateRef } from "vue";
 import { priorityMap } from "@/utils";
+import RevertPrompt from "@/components/RevertPrompt.vue";
 import { useCurrencyStore } from "@/stores/currency";
 import validation from "@/utils/validation";
 
@@ -129,12 +179,16 @@ const fileRemoved = () => {
     emit("file-state", "removed");
 };
 
-defineProps({
+const props = defineProps({
     currency: {
         required: true,
         type: String
     },
     errors: {
+        default: () => ({}),
+        type: Object
+    },
+    previousValues: {
         default: () => ({}),
         type: Object
     },
@@ -150,6 +204,12 @@ defineProps({
 
 const validateUrl = (url) => {
     return url === "" || validation.urlRegex.test(url) ? true : "Invalid URL";
+};
+
+const revertValue = (field) => {
+    if (item.value && field in item.value && field in props.previousValues) {
+        item.value[field] = props.previousValues[field];
+    }
 };
 </script>
 
@@ -171,5 +231,9 @@ const validateUrl = (url) => {
             margin-bottom: 1rem;
         }
     }
+}
+
+:deep(.v-counter) {
+    margin-left: 0.5rem;
 }
 </style>
