@@ -38,7 +38,7 @@
 <script setup>
 import { computed } from "vue";
 import { mdiShieldCheck } from "@mdi/js";
-import TOTPFactor from "./factors/TOTP.vue";
+import TOTPFactor from "./factors/totp/TOTP.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();

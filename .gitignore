@@ -32,3 +32,4 @@ coverage
 output.env
 # Sentry Config File
 .env.sentry-build-plugin
+functions/*/.appwrite

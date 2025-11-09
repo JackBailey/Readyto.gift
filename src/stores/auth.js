@@ -43,6 +43,10 @@ export const useAuthStore = defineStore("auth", {
                 otp: totp
             });
         },
+        async regenerateRecoveryCodes() {
+            const recoveryCodesResponse = await account.updateMFARecoveryCodes();
+            return recoveryCodesResponse.recoveryCodes;
+        },
         async getRecoveryCodes(totp) {
             try {
                 return (await account.createMFARecoveryCodes()).recoveryCodes;

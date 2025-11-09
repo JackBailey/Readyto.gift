@@ -25,7 +25,6 @@
 
             <v-list
                 class="mt-0"
-                width="max-content"
             >
                 <UpdateAccountField
                     name="Full Name"
@@ -55,7 +54,7 @@
             <v-card-text>
                 <p>Manage your security settings here, including changing your password.</p>
             </v-card-text>
-            <v-list width="max-content">
+            <v-list>
                 <UpdateAccountField
                     name="Password"
                     :icon="mdiFormTextboxPassword"
@@ -225,55 +224,16 @@ main {
         width: var(--section-width);
         margin: 0 auto;
         padding: 2rem 0;
+    }
 
-        .list-header {
-            padding: 1rem;
-
-            h1 {
-                word-break: break-word;
-                white-space: pre-wrap;
-            }
-
-            .mobile-list-buttons {
-                text-align: center;
-            }
-        }
-
-        .filters {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .items {
-            margin-top: 1rem;
-
-            .item-price-group {
-                h3 {
-                    font-size: 2rem;
-                    margin-top: 2rem;
-                }
-
-                hr {
-                    margin: 0.5rem 0 1rem;
-                }
-
-                .item-price-group-items {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-            }
-        }
+    .v-list {
+        max-width: 100%;
+        width: max-content;
     }
 
     @media screen and (max-width: 768px) {
-        .page-content {
-            .list-header {
-                h1 {
-                    flex-direction: column;
-                    align-items: start;
-                }
-            }
+        .v-list {
+            width: 100%;
         }
     }
 }

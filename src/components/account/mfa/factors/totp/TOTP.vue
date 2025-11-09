@@ -24,8 +24,9 @@
                         <v-btn
                             :prepend-icon="mdiTrashCan"
                             color="error"
-                            @click="removeTOTP"
+                            variant="tonal"
                             size="small"
+                            @click="removeTOTP"
                         >
                             Remove
                         </v-btn>
@@ -48,12 +49,18 @@
                                     rounded="lg"
                                     slim
                                 >
-                                    <v-list-item
-                                        @click="downloadRecoveryCodes"
-                                        :prepend-icon="mdiDownload"
-                                    >
-                                        Download Recovery Codes
-                                    </v-list-item>
+                                    <ManageRecoveryCodes
+                                        action="get"
+                                        :icon="mdiDownload"
+                                        title="Download Recovery Codes"
+                                        @closed="menuOpen = false"
+                                    />
+                                    <ManageRecoveryCodes
+                                        action="regenerate"
+                                        :icon="mdiRefresh"
+                                        title="Regenerate Recovery Codes"
+                                        @closed="menuOpen = false"
+                                    />
                                 </v-list>
                             </v-menu>
                         </v-btn>
@@ -75,7 +82,7 @@
                                     truncate-line="both"
                                     align="start"
                                 >
-                                    <MfaStep
+                                    <ExpanderStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldKey"
                                         :step="1"
@@ -126,8 +133,8 @@
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </MfaStep>
-                                    <MfaStep
+                                    </ExpanderStep>
+                                    <ExpanderStep
                                         :currentStep="currentStep"
                                         :icon="mdiShieldCheck"
                                         :step="2"
@@ -155,8 +162,8 @@
                                                 Next
                                             </v-btn>
                                         </template>
-                                    </MfaStep>
-                                    <MfaStep
+                                    </ExpanderStep>
+                                    <ExpanderStep
                                         :currentStep="currentStep"
                                         :icon="mdiCheck"
                                         :step="3"
@@ -174,20 +181,9 @@
                                                 class="recovery-codes-container mt-4"
                                                 variant="tonal"
                                             >
-                                                <v-card-text>
-                                                    <ol class="recovery-codes">
-                                                        <li
-                                                            class="recovery-code"
-                                                            v-for="recoveryCode in recoveryCodes"
-                                                            :key="recoveryCode"
-                                                        >
-                                                            {{ recoveryCode }}
-                                                        </li>
-                                                    </ol>
-                                                    <v-btn @click="downloadRecoveryCodes">
-                                                        Download
-                                                    </v-btn>
-                                                </v-card-text>
+                                                <RecoveryCodes
+                                                    :recoveryCodes="recoveryCodes"
+                                                />
                                             </v-card>
                                             <v-btn
                                                 color="primary"
@@ -197,7 +193,7 @@
                                                 Done
                                             </v-btn>
                                         </template>
-                                    </MfaStep>
+                                    </ExpanderStep>
                                 </v-timeline>
                             </div>
                         </v-card-text>
@@ -231,9 +227,13 @@
 <script setup>
 import { account, avatars } from "@/appwrite";
 import { computed, reactive, shallowRef, watch } from "vue";
-import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
-import MfaChallengeDialog from "@/components/dialogs/MfaChallenge.vue";
-import MfaStep from "@/components/account/mfa/MfaStep.vue";
+import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiRefresh, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
+import { markRaw } from "vue";
+
+import ExpanderStep from "@/components/account/ExpanderStep.vue";
+import ManageRecoveryCodes from "./ManageRecoveryCodes.vue";
+import RecoveryCodes from "./RecoveryCodes.vue";
+import RemoveTOTP from "./RemoveTOTP.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -271,101 +271,12 @@ const nextStep = () => {
     currentStep.value += 1;
 };
 
-const getTotpInput = async () => {
-    return await dialogs.create({   
-        actions: [
-            {
-                action: "close",
-                color: "primary",
-                text: "Cancel"
-            }
-        ],
-        async: true,
-        component: MfaChallengeDialog,
-        events: {
-            otpEntered: async (totp) => {
-                await auth.completeMFAchallenge(totp);
-                return totp; // Return the valid TOTP code
-            }
-        },
-        fullscreen: false,
-        props: {
-            length: 6,
-            type: "number"
-        },
-        title: "Enter TOTP Code"
-    });
-};
-
-const getAndDisplayRecoveryCodes = async () => {
-    while (true) {
-        const res = await getTotpInput();
-        const totp = res?.data;
-        if (!totp) return; // cancelled
-
-        try {
-            recoveryCodes.value = await auth.getRecoveryCodes(totp);
-            break; // success
-        } catch (error) {
-            console.error({ error });
-            await dialogs.create({
-                actions: [
-                    { action: "close", color: "primary", text: "OK" }
-                ],
-                async: true,
-                fullscreen: false,
-                text: error.message || "There was an error verifying the TOTP code. Please try again.",
-                title: "TOTP verification failed"
-            });
-        }
-    }
-};
-
-getAndDisplayRecoveryCodes();
-
 const removeTOTP = async () => {
-    try {
-        await account.deleteMFAAuthenticator({
-            type: "totp"
-        });
-
-        const factors = await account.listMFAFactors();
-        auth.setMfaFactors(factors);
-
-        let mfaAlsoDisabled = false;
-
-        if (auth.user.mfa) {
-            await account.updateMFA({
-                mfa: false
-            });
-            mfaAlsoDisabled = true;
-        }
-
-        dialogs.create({
-            actions: [
-                {
-                    action: "close",
-                    color: "primary",
-                    text: "OK"
-                }
-            ],
-            text: "Your TOTP authenticator has been removed." + (mfaAlsoDisabled ? " Multi-Factor Authentication has also been disabled as you have no remaining MFA factors." : ""),
-            title: "Authenticator removed"
-        });
-    } catch (error) {
-        console.error({ error });
-        dialogs.create({
-            actions: [
-                {
-                    action: "close",
-                    color: "primary",
-                    text: "OK"
-                }
-            ],
-            text: error.message,
-            title: "There was an error removing TOTP"
-        });
-    }
+    dialogs.create({
+        component: markRaw(RemoveTOTP),
+        fullscreen: false,
+        maxWidth: undefined
+    });
 };
 
 const enableTOTP = async () => {
@@ -387,17 +298,6 @@ const enableTOTP = async () => {
         console.log(errors);
         console.error({ error });
     }
-};
-
-const downloadRecoveryCodes = () => {
-    const textData = recoveryCodes.value.join("\n");
-    
-    const link = document.createElement("a");
-    link.setAttribute("href", "data:text/plain;charset=UTF-8," + encodeURIComponent(textData));
-    link.setAttribute("download", "readyto_gift-recovery-codes.txt");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 };
 
 watch(dialogOpen, async (nowOpen) => {
