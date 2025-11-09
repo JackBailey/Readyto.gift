@@ -49,6 +49,24 @@
                 <template v-slot:title>
                     <h1 class="mb-0">Your lists</h1>
                 </template>
+                <v-card-text v-if="polar.meters.publicLists">
+                    {{ polar.meters.publicLists.consumedUnits }} / {{ polar.meters.publicLists.creditedUnits }} lists used.
+                    <v-progress-linear
+                        :model-value="
+                            (
+                                Math.min(
+                                    polar.meters.publicLists.consumedUnits,
+                                    polar.meters.publicLists.creditedUnits
+                                )
+                                / polar.meters.publicLists.creditedUnits
+                            ) * 100
+                        "
+                        color="primary"
+                        height="8"
+                        rounded="lg"
+                        class="mt-2"
+                    />
+                </v-card-text>
                 <template v-slot:append>
                     <CreateList
                         @createList="createList"
@@ -206,6 +224,7 @@ import { Query } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 import validation from "@/utils/validation";
+import { usePolarStore } from "@/stores/polar";
 
 export default {
     components: {
@@ -223,6 +242,7 @@ export default {
             mdiSortAscending,
             mdiSortDescending,
             mdiStar,
+            polar: usePolarStore(),
             quickCreateURL: false,
             savedLists: [],
             sorting: {

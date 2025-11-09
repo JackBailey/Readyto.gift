@@ -1,6 +1,7 @@
-import { account, avatars } from "@/appwrite";
+import { account, avatars, functions } from "@/appwrite";
 import { defineStore } from "pinia";
 import { setUser as setSentryUser } from "@sentry/vue";
+import { usePolarStore } from "./polar";
 
 export const useAuthStore = defineStore("auth", {
     state: () => ({
@@ -32,6 +33,7 @@ export const useAuthStore = defineStore("auth", {
     }),
     actions: {
         async init() {
+            const polarStore = usePolarStore();
             try {
                 try {
                     this.user = await account.get();
@@ -63,6 +65,8 @@ export const useAuthStore = defineStore("auth", {
                         ...this.user.prefs
                     };
                 }
+
+                polarStore.init();
             } catch {
                 if (import.meta.env.VITE_SENTRY_DSN) {
                     setSentryUser(null);

@@ -10,17 +10,9 @@
         </div>
         <div class="footer-links">
             <v-btn
-                :prepend-icon="mdiCash"
-                slim
-                href="https://github.com/sponsors/jackbailey"
-                target="_blank"
-            >
-                <v-list-item-title>Donate</v-list-item-title>
-            </v-btn>
-            <v-btn
                 :icon="mdiGithub"
                 slim
-                href="https://github.com/JackBailey/Readyto.gift"
+                href="https://github.com/ReadytoGift/Website"
                 target="_blank"
                 class="ml-2"
                 density="compact"
@@ -31,7 +23,7 @@
 </template>
 
 <script setup>
-import { mdiCash, mdiGithub } from "@mdi/js";
+import { mdiGithub } from "@mdi/js";
 </script>
 
 <style lang="scss" scoped>

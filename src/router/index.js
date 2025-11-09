@@ -69,6 +69,14 @@ const router = createRouter({
             }
         },
         {
+            path: "/dash/upgrade",
+            name: "Upgrade",
+            component: () => import("@/views/dash/ProUpgrade.vue"),
+            meta: {
+                requiresAuth: true
+            }
+        },
+        {
             path: "/dash/error",
             name: "error",
             component: () => import("@/views/dash/ErrorPage.vue")

@@ -13,6 +13,8 @@
         "setup": "node setup"
     },
     "dependencies": {
+        "@polar-sh/checkout": "^0.1.14",
+        "@polar-sh/sdk": "^0.41.1",
         "@sentry/vite-plugin": "^4.5.0",
         "@sentry/vue": "^10.22.0",
         "appwrite": "^21.2.1",

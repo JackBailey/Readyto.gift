@@ -1,4 +1,5 @@
 import { Client, Storage } from "node-appwrite";
+import { Buffer } from "buffer";
 import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
@@ -11,6 +12,11 @@ import { TidyURL } from "tidy-url";
 const polar = new Polar({
     accessToken: process.env["POLAR_ACCESS_TOKEN"] ?? ""
 });
+
+const bandwidthCostPerGB = {
+    currency: "usd",
+    amount: 8
+};
 
 const formatTitle = (data, site) => {
     let { title, description } = data;
@@ -29,7 +35,7 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url, country, site, storage, itemID, { log, error }) => {
+const getPreview = async (url, country, site, storage, itemID, userID, { log, error }) => {
     const requestMethods = [];
 
     if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
@@ -82,6 +88,8 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 
     log(`Total request methods to try: ${requestMethods.length}`);
 
+    let totalBandwidth = 0;
+
     for (const method of requestMethods) {
         log(`Trying request method: ${method.name}`);
 
@@ -98,6 +106,7 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
         try {
             console.log({ method });
             const data = await getLinkPreview({ url, log, error }, fetchOptions);
+            totalBandwidth += parseInt(data.size) || 0;
 
             log(`Request method succeeded: ${method.name}`);
 
@@ -109,26 +118,17 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
             }
 
             if (data.images && data.images.length) {
-                const bestImage = await getBestImage({
+                const bestImageResult = await getBestImage({
                     images: data.images,
                     site,
                     fetchOptions,
                     log
                 });
 
-                await polar.events.ingest({
-                    events: [{
-                        name: "autofill",
-                        externalCustomerId: itemID,
-                        metadata: {
-                            itemID,
-                            imageFound: bestImage.image ? true : false,
-                            fetchedSize: bestImage.fetchedSize || 0
-                        }
-                    }]
-                });
+                totalBandwidth += bestImageResult.fetchedSize || 0;
 
-                if (bestImage.image) {
+                if (bestImageResult.image) {
+                    const bestImage = bestImageResult.image;
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
                     try {
                     // delete original
@@ -139,8 +139,10 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                     }  catch {
                     // ignore error if file does not exist
                     }
+
+                    log({ length: bestImage.data.byteLength });
     
-                    const imageBuffer = bestImage.data;
+                    const imageBuffer = Buffer.from(bestImage.data);
 
                     const mimeType = bestImage.contentType || "image/jpeg";
                     const fileExt = mime.extension(mimeType) || "png";
@@ -158,6 +160,29 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                 }
             }
 
+            const bandwidthGB = totalBandwidth / (1024 * 1024 * 1024);
+            const costInCents = parseFloat((bandwidthGB * bandwidthCostPerGB.amount).toFixed(12));
+
+            try {
+                await polar.events.ingest({
+                    events: [{
+                        name: "autofill",
+                        externalCustomerId: userID,
+                        metadata: {
+                            itemID,
+                            imageFound: data.imageID ? true : false,
+                            totalBandwidth,
+                            _cost: {
+                                amount: costInCents,
+                                currency: bandwidthCostPerGB.currency
+                            }
+                        }
+                    }]
+                });
+            } catch (err) {
+                error(`Polar event ingestion failed: ${err.message}`);
+            }
+
             return data;
         } catch (err) {
             error(`Request method failed: ${method.name} - ${err.message}`);
@@ -171,6 +196,7 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 export default async ({ req, res, log, error }) => {
     try {
         const { url, currency, itemID } = req.bodyJson;
+        const userID = req.headers["x-appwrite-user-id"];
 
         if (!url) {
             return res.json({
@@ -205,7 +231,7 @@ export default async ({ req, res, log, error }) => {
         }
 
         const site = getSite(url);
-        const data = await getPreview(url, country, site, storage, itemID, { log, error });
+        const data = await getPreview(url, country, site, storage, itemID, userID, { log, error });
 
         const autofillData = {
             title: formatTitle(data, site),

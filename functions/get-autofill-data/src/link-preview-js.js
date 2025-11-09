@@ -528,7 +528,10 @@ export async function getLinkPreview({ url }, fetchOptions) {
         throw new Error("Could not extract link preview data");
     }
 
-    return parsedResponse;
+    return {
+        ...parsedResponse,
+        size: response.headers.get("content-length")
+    };
 }
 
 /**
