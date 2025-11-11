@@ -5,21 +5,13 @@
         v-model="dialogOpen"
     >
         <template v-slot:activator="{ props: activatorProps }">
-            <v-list-item
-                v-bind="activatorProps"
-                :prepend-icon="mdiPencil"
-                title="Edit List"
-                link
-            />
+            <v-list-item v-bind="activatorProps" :prepend-icon="mdiPencil" title="Edit List" link />
         </template>
 
         <template v-slot:default="{ isActive }">
             <v-card title="Edit List">
                 <v-card-text class="d-flex flex-column ga-4">
-                    <ListFields
-                        v-model:list="editedList"
-                        :previousValues="previousValues"
-                    />
+                    <ListFields v-model:list="editedList" :previousValues="previousValues" />
                     <v-alert
                         v-if="alert"
                         type="error"
@@ -33,10 +25,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="primary"
                         text="Save"

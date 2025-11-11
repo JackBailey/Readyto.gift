@@ -1,20 +1,9 @@
 <template>
     <v-card title="Remove TOTP Authenticator">
         <v-card-text class="d-flex">
-            <v-timeline
-                direction="vertical"
-                side="end"
-                truncate-line="both"
-                align="start"
-            >
-                <ExpanderStep
-                    :current-step="currentStep"
-                    :step="1"
-                    :icon="mdiClockCheck"
-                >
-                    <template #title>
-                        Verify with TOTP
-                    </template>
+            <v-timeline direction="vertical" side="end" truncate-line="both" align="start">
+                <ExpanderStep :current-step="currentStep" :step="1" :icon="mdiClockCheck">
+                    <template #title> Verify with TOTP </template>
                     <template #content>
                         <v-otp-input
                             v-model="totpCode"
@@ -31,25 +20,13 @@
                         >
                             Verify
                         </v-btn>
-                        <v-alert
-                            v-if="error"
-                            class="mt-4"
-                            type="error"
-                            border="start"
-                            dense
-                        >
+                        <v-alert v-if="error" class="mt-4" type="error" border="start" dense>
                             {{ error }}
                         </v-alert>
                     </template>
                 </ExpanderStep>
-                <ExpanderStep
-                    :current-step="currentStep"
-                    :step="2"
-                    :icon="mdiCheck"
-                >
-                    <template #title>
-                        Removal Successful
-                    </template>
+                <ExpanderStep :current-step="currentStep" :step="2" :icon="mdiCheck">
+                    <template #title> Removal Successful </template>
                     <template #content>
                         <p>
                             Your TOTP authenticator has been successfully removed from your account.
@@ -59,12 +36,7 @@
             </v-timeline>
         </v-card-text>
         <v-card-actions>
-            <v-btn
-                @click="emit('close')"
-                text
-            >
-                Close
-            </v-btn>
+            <v-btn @click="emit('close')" text> Close </v-btn>
             <v-spacer />
             <v-btn
                 :disabled="currentStep !== 2"

@@ -1,15 +1,7 @@
 <template>
-    <v-dialog
-        :max-width="$vuetify.display.mobile ? '100%' : '500px'"
-        v-model="dialogOpen"
-    >
+    <v-dialog :max-width="$vuetify.display.mobile ? '100%' : '500px'" v-model="dialogOpen">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn
-                v-bind="activatorProps"
-                color="error"
-                :icon="mdiDelete"
-                :variant="variant"
-            />
+            <v-btn v-bind="activatorProps" color="error" :icon="mdiDelete" :variant="variant" />
         </template>
 
         <template v-slot:default="{ isActive }">
@@ -36,10 +28,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="error"
                         text="Delete"

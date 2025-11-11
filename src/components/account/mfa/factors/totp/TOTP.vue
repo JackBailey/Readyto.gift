@@ -1,8 +1,6 @@
 <template>
     <v-list-item :prepend-icon="mdiClockCheck">
-        <v-list-item-title>
-            Time-based One-Time Password (TOTP)
-        </v-list-item-title>
+        <v-list-item-title> Time-based One-Time Password (TOTP) </v-list-item-title>
         <template #append>
             <v-dialog v-model="dialogOpen">
                 <template v-slot:activator>
@@ -15,12 +13,7 @@
                         class="ml-4"
                         v-if="!totpFactor"
                     />
-                    <v-btn-group
-                        class="ml-4"
-                        density="compact"
-                        variant="tonal"
-                        v-else
-                    >
+                    <v-btn-group class="ml-4" density="compact" variant="tonal" v-else>
                         <v-btn
                             :prepend-icon="mdiTrashCan"
                             color="error"
@@ -30,13 +23,7 @@
                         >
                             Remove
                         </v-btn>
-                        <v-btn
-                            v-bind="menuOpen"
-                            size="small"
-                            slim
-                            width="2rem"
-                            min-width="0"
-                        >
+                        <v-btn v-bind="menuOpen" size="small" slim width="2rem" min-width="0">
                             <v-icon :icon="mdiMenuDown" />
                             <v-menu
                                 activator="parent"
@@ -44,11 +31,7 @@
                                 transition="fade-transition"
                                 v-model="menuOpen"
                             >
-                                <v-list
-                                    density="compact"
-                                    rounded="lg"
-                                    slim
-                                >
+                                <v-list density="compact" rounded="lg" slim>
                                     <ManageRecoveryCodes
                                         action="get"
                                         :icon="mdiDownload"
@@ -64,18 +47,13 @@
                                 </v-list>
                             </v-menu>
                         </v-btn>
-                        
                     </v-btn-group>
                 </template>
                 <template v-slot:default>
                     <v-card>
-                        <v-card-title>
-                            Add TOTP Authenticator
-                        </v-card-title>
+                        <v-card-title> Add TOTP Authenticator </v-card-title>
                         <v-card-text>
-                            <div
-                                class="enable-mfa"
-                            >
+                            <div class="enable-mfa">
                                 <v-timeline
                                     direction="vertical"
                                     side="end"
@@ -88,16 +66,12 @@
                                         :step="1"
                                         :error="errors[0]"
                                     >
-                                        <template #title>
-                                            Authenticator setup
-                                        </template>
+                                        <template #title> Authenticator setup </template>
                                         <template #content>
                                             <p v-if="!errors[0]">
-                                                Scan the QR code or paste the secret into your authenticator to begin.
-                                                <img
-                                                    :src="totpQrcode"
-                                                    class="totp-qrcode mt-4"
-                                                />
+                                                Scan the QR code or paste the secret into your
+                                                authenticator to begin.
+                                                <img :src="totpQrcode" class="totp-qrcode mt-4" />
                                                 <v-text-field
                                                     :value="totpSecret"
                                                     readonly=""
@@ -140,12 +114,11 @@
                                         :step="2"
                                         :error="errors[1]"
                                     >
-                                        <template #title>
-                                            Verify authenticator
-                                        </template>
+                                        <template #title> Verify authenticator </template>
                                         <template #content>
                                             <p>
-                                                Enter the 6-digit code generated by your authenticator app to verify setup.
+                                                Enter the 6-digit code generated by your
+                                                authenticator app to verify setup.
                                             </p>
                                             <v-otp-input
                                                 class="d-block"
@@ -168,22 +141,20 @@
                                         :icon="mdiCheck"
                                         :step="3"
                                     >
-                                        <template #title>
-                                            Setup complete!
-                                        </template>
+                                        <template #title> Setup complete! </template>
                                         <template #content>
                                             <p>Two factor authentication is now all set up!</p>
                                             <p>
-                                                Below are your recovery codes, which are used to recover your account if you lose access to your authenticator.<br/>
+                                                Below are your recovery codes, which are used to
+                                                recover your account if you lose access to your
+                                                authenticator.<br />
                                                 Please save these codes in a secure location.
                                             </p>
                                             <v-card
                                                 class="recovery-codes-container mt-4"
                                                 variant="tonal"
                                             >
-                                                <RecoveryCodes
-                                                    :recoveryCodes="recoveryCodes"
-                                                />
+                                                <RecoveryCodes :recoveryCodes="recoveryCodes" />
                                             </v-card>
                                             <v-btn
                                                 color="primary"
@@ -198,20 +169,10 @@
                             </div>
                         </v-card-text>
                         <v-card-actions>
-                            <v-btn
-                                @click="prevStep"
-                                color="primary"
-                                :disabled="currentStep === 1"
-                            >
+                            <v-btn @click="prevStep" color="primary" :disabled="currentStep === 1">
                                 Back
                             </v-btn>
-                            <v-btn
-                                text
-                                @click="dialogOpen = false"
-                                color="error"
-                            >
-                                Cancel
-                            </v-btn>
+                            <v-btn text @click="dialogOpen = false" color="error"> Cancel </v-btn>
                             <v-spacer />
                             <!-- <v-btn>
                                 Done
@@ -227,7 +188,18 @@
 <script setup>
 import { account, avatars } from "@/appwrite";
 import { computed, reactive, shallowRef, watch } from "vue";
-import { mdiCheck, mdiClockCheck, mdiContentCopy, mdiDownload, mdiMenuDown, mdiPlusThick, mdiRefresh, mdiShieldCheck, mdiShieldKey, mdiTrashCan } from "@mdi/js";
+import {
+    mdiCheck,
+    mdiClockCheck,
+    mdiContentCopy,
+    mdiDownload,
+    mdiMenuDown,
+    mdiPlusThick,
+    mdiRefresh,
+    mdiShieldCheck,
+    mdiShieldKey,
+    mdiTrashCan
+} from "@mdi/js";
 import { markRaw } from "vue";
 
 import ExpanderStep from "@/components/account/ExpanderStep.vue";
@@ -310,9 +282,9 @@ watch(dialogOpen, async (nowOpen) => {
             const totpResponse = await account.createMfaAuthenticator({
                 type: "totp"
             });
-            
+
             totpSecret.value = totpResponse.secret;
-    
+
             totpQrcode.value = avatars.getQR({
                 download: false,
                 margin: 0,
@@ -330,8 +302,6 @@ watch(dialogOpen, async (nowOpen) => {
         errors.fill(null);
     }
 });
-
-
 
 watch(totpInput, () => {
     errors[1] = null;

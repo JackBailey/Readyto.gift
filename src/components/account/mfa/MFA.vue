@@ -9,8 +9,11 @@
                 <v-tooltip
                     :text="
                         hasAuthenticator
-                            ? (auth.user.mfa ? 'Disable MFA' : 'Enable MFA')
-                            : 'You need at least one MFA method enabled to use MFA.'"
+                            ? auth.user.mfa
+                                ? 'Disable MFA'
+                                : 'Enable MFA'
+                            : 'You need at least one MFA method enabled to use MFA.'
+                    "
                 >
                     <template v-slot:activator="{ props }">
                         <div v-bind="props">
@@ -20,6 +23,8 @@
                                 hide-details
                                 :disabled="!hasAuthenticator"
                                 class="ml-4"
+                                :model-value="auth.user.mfa"
+                                @change="toggleMFA"
                             />
                         </div>
                     </template>
@@ -31,19 +36,53 @@
                 <TOTPFactor />
             </v-list>
         </v-list-item>
-        
     </v-list>
 </template>
 
 <script setup>
+import { account } from "@/appwrite";
 import { computed } from "vue";
 import { mdiShieldCheck } from "@mdi/js";
 import TOTPFactor from "./factors/totp/TOTP.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
 
 const auth = useAuthStore();
+const dialogs = useDialogs();
 
 const hasAuthenticator = computed(() => auth.mfaFactors.totp);
+
+const toggleMFA = async () => {
+    try {
+        await account.updateMFA({
+            mfa: !auth.user.mfa
+        });
+        auth.setMFA(!auth.user.mfa);
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            text: `Multi-Factor Authentication has been ${auth.user.mfa ? "enabled" : "disabled"}.`,
+            title: "MFA Updated"
+        });
+    } catch {
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            text: "There was an error updating your MFA settings. Please try again.",
+            title: "Error"
+        });
+    }
+};
 </script>
 
 <style lang="scss">
@@ -103,22 +142,7 @@ const hasAuthenticator = computed(() => auth.mfaFactors.totp);
         padding: 0 1rem;
         font-size: 1.2rem;
         margin: 0;
-        // display: flex;
-        // flex-wrap: wrap;
-        // margin-top: 1rem;
-        // .recovery-code {
-        //     background-color: rgb(var(--v-theme-surface));
-        //     border-radius: 0.5rem;
-        //     padding: 0.5rem 1rem;
-        //     font-family: monospace;
-        //     margin: 0.25rem;
-        //     outline: 1px solid rgb(var(--v-theme-on-surface));
-        // }
     }
-    // .v-btn {
-    //     margin-left: auto;
-    //     margin-top: 1rem;
-    // }
 }
 
 .v-timeline-item {

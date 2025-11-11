@@ -139,6 +139,11 @@ export const useAuthStore = defineStore("auth", {
         },
         setMfaFactors(factors) {
             this.mfaFactors = factors;
+        },
+        setMFA(mfa) {
+            if (this.user) {
+                this.user.mfa = mfa;
+            }
         }
     },
     getters: {

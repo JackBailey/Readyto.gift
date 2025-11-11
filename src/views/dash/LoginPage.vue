@@ -17,6 +17,19 @@
                     label="Password"
                     type="password"
                 />
+                <v-label
+                    v-if="!showTOTPField"
+                    class="mb-2 text-on-surface"
+                >
+                    Enter your TOTP code to complete login
+                </v-label>
+                <v-otp-input
+                    v-if="!showTOTPField"
+                    v-model="totpCode"
+                    label="TOTP Code"
+                    type="number"
+                    length="6"
+                />
                 <v-btn
                     type="submit"
                     color="primary"
@@ -109,7 +122,9 @@ export default {
                 password: ""
             },
             redirectPath,
-            successRedirect
+            showTOTPField: false,
+            successRedirect,
+            totpCode: ""
         };
     },
     methods: {
@@ -129,20 +144,24 @@ export default {
                     });
                 }
 
-
                 this.auth.setPreviouslyLoggedInUserID(accountResp.$id);
+
+                await this.auth.init();
+                this.$router.push(this.redirectPath);
             } catch (error) {
-                this.alert = {
-                    text: error.message,
-                    title: "Error"
-                };
+                if (error.type === "user_more_factors_required") {
+                    //
+                } else {
+                    this.alert = {
+                        text: error.message,
+                        title: "Error"
+                    };
+                }
+                    
 
                 this.loadingLogin = false;
                 return;
             }
-
-            await this.auth.init();
-            this.$router.push(this.redirectPath);
         }
     },
     mounted() {

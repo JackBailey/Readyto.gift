@@ -2,14 +2,10 @@
     <v-dialog
         :max-width="$vuetify.display.mobile ? '100%' : '500px'"
         v-model="dialogOpen"
-        scrollable 
+        scrollable
     >
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn
-                v-bind="activatorProps"
-                :icon="mdiFileDocumentArrowRight"
-                :variant="variant"
-            />
+            <v-btn v-bind="activatorProps" :icon="mdiFileDocumentArrowRight" :variant="variant" />
         </template>
 
         <template v-slot:default="{ isActive }">
@@ -22,11 +18,7 @@
                         </v-card-text>
                     </template>
                     <v-card-text>
-                        
-                        <div
-                            class="lists mt-5 loader"
-                            v-if="loading"
-                        >
+                        <div class="lists mt-5 loader" v-if="loading">
                             <v-skeleton-loader
                                 :height="50"
                                 class="mb-4 pa-4"
@@ -34,10 +26,7 @@
                                 :key="i"
                             />
                         </div>
-                        <div
-                            class="lists mt-5"
-                            v-else
-                        >
+                        <div class="lists mt-5" v-else>
                             <ListCard
                                 v-for="list in lists"
                                 :key="list.$id"
@@ -59,10 +48,7 @@
                         />
                     </v-card-text>
                     <v-card-actions>
-                        <v-btn
-                            text="Cancel"
-                            @click="isActive.value = false"
-                        />
+                        <v-btn text="Cancel" @click="isActive.value = false" />
                         <v-btn
                             color="primary"
                             text="Move"
@@ -76,17 +62,10 @@
             </template>
             <template v-else>
                 <v-card title="Item Moved">
-                    <template v-slot:title>
-                        Item Moved
-                    </template>
-                    <v-card-text>
-                        The item has been moved to the selected list.
-                    </v-card-text>
+                    <template v-slot:title> Item Moved </template>
+                    <v-card-text> The item has been moved to the selected list. </v-card-text>
                     <v-card-actions>
-                        <v-btn
-                            @click="goToList"
-                            text="View List"
-                        />
+                        <v-btn @click="goToList" text="View List" />
                         <v-btn
                             text="Close"
                             color="primary"
@@ -214,7 +193,7 @@ export default {
                         itemCount: this.list.items.length - 1
                     }
                 );
-                
+
                 await databases.updateDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,

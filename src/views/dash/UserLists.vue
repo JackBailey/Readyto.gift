@@ -11,16 +11,8 @@
             v-if="auth?.user?.emailVerification === false"
         >
             <v-card-actions>
-                <v-btn
-                    variant="outlined"
-                    @click="verifyEmail"
-                >
-                    Send Verification Email
-                </v-btn>
-                <v-dialog
-                    max-width="500"
-                    v-model="verificationDialog"
-                >
+                <v-btn variant="outlined" @click="verifyEmail"> Send Verification Email </v-btn>
+                <v-dialog max-width="500" v-model="verificationDialog">
                     <v-card>
                         <v-card-text>
                             A verification email has been sent to {{ auth.user.email }}. Please
@@ -30,21 +22,14 @@
                         <v-card-actions>
                             <v-spacer />
 
-                            <v-btn
-                                text="Close"
-                                @click="verificationDialog = false"
-                            />
+                            <v-btn text="Close" @click="verificationDialog = false" />
                         </v-card-actions>
                     </v-card>
                 </v-dialog>
             </v-card-actions>
         </v-alert>
-        <PWAPrompt/>
-        <v-card
-            color="surface"
-            variant="flat"
-            class="pa-0 mb-4"
-        >
+        <PWAPrompt />
+        <v-card color="surface" variant="flat" class="pa-0 mb-4">
             <v-card-item class="px-0">
                 <template v-slot:title>
                     <h1 class="mb-0">Your lists</h1>
@@ -58,10 +43,7 @@
             </v-card-item>
             <v-card-text class="px-0">
                 <div class="sorting">
-                    <v-btn-group
-                        variant="tonal"
-                        divided
-                    >
+                    <v-btn-group variant="tonal" divided>
                         <v-btn ref="sortTypeButton">
                             {{ auth.userPrefs.listSorting.type.name }}
                             <v-menu
@@ -82,7 +64,11 @@
                             </v-menu>
                         </v-btn>
                         <v-btn
-                            :icon="auth.newUserPrefs.listSorting.order === 'asc' ? mdiSortAscending : mdiSortDescending"
+                            :icon="
+                                auth.newUserPrefs.listSorting.order === 'asc'
+                                    ? mdiSortAscending
+                                    : mdiSortDescending
+                            "
                             @click="toggleSortDirection"
                         />
                     </v-btn-group>
@@ -95,39 +81,25 @@
                         hide-details
                         :menu-props="{
                             activator: $refs.sortTypeButton,
-                            closeOnClick: true,
+                            closeOnClick: true
                         }"
                         v-show="false"
                     />
                 </div>
-                
             </v-card-text>
         </v-card>
-        <v-card
-            variant="tonal"
-            class="mb-4"
-            v-if="quickCreateURL"
-        >
+        <v-card variant="tonal" class="mb-4" v-if="quickCreateURL">
             <v-card-text>
-                <p>
-                    Select or create a list to add the following item to:
-                </p>
+                <p>Select or create a list to add the following item to:</p>
                 <strong>URL:</strong> {{ quickCreateURL }}
             </v-card-text>
         </v-card>
-        <div
-            class="loaders"
-            v-if="loading"
-        >
+        <div class="loaders" v-if="loading">
             <v-skeleton-loader type="list-item-two-line" />
             <v-skeleton-loader type="list-item-two-line" />
             <v-skeleton-loader type="list-item-two-line" />
 
-            <v-card
-                class="pa-0 mb-4"
-                variant="flat"
-                color="surface"
-            >
+            <v-card class="pa-0 mb-4" variant="flat" color="surface">
                 <v-card-item class="px-0">
                     <template v-slot:title>
                         <h2 class="mb-0">Saved lists</h2>
@@ -151,7 +123,6 @@
                 :quickCreateURL="quickCreateURL"
                 :ownList="list.author === auth.user.$id"
             />
-
         </v-list>
         <v-card
             class="pa-0 mb-4"
@@ -168,9 +139,7 @@
                 </template>
             </v-card-item>
         </v-card>
-        <v-list
-            v-if="!loading && savedLists.length"
-        >
+        <v-list v-if="!loading && savedLists.length">
             <ListCard
                 v-for="list in savedLists"
                 :key="list.$id"
@@ -180,10 +149,7 @@
             />
         </v-list>
 
-        <div
-            class="no-items"
-            v-if="!loading && !lists?.length && !savedLists.length"
-        >
+        <div class="no-items" v-if="!loading && !lists?.length && !savedLists.length">
             <v-spacer height="20" />
             <v-alert
                 type="info"
@@ -263,10 +229,7 @@ export default {
 
             if (this.auth.userPrefs?.savedLists.length) {
                 listQuery.push(
-                    Query.or([
-                        authorQuery,
-                        Query.equal("$id", this.auth.userPrefs.savedLists)
-                    ])
+                    Query.or([authorQuery, Query.equal("$id", this.auth.userPrefs.savedLists)])
                 );
             } else {
                 listQuery.push(authorQuery);
@@ -278,12 +241,16 @@ export default {
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
                     listQuery
                 );
-    
-                this.savedLists = lists.documents.filter(list => this.auth.userPrefs.savedLists.includes(list.$id));
-                this.lists = lists.documents.filter(list => !this.auth.userPrefs.savedLists.includes(list.$id));
-    
+
+                this.savedLists = lists.documents.filter((list) =>
+                    this.auth.userPrefs.savedLists.includes(list.$id)
+                );
+                this.lists = lists.documents.filter(
+                    (list) => !this.auth.userPrefs.savedLists.includes(list.$id)
+                );
+
                 this.loading = false;
-            } catch(error) {
+            } catch (error) {
                 this.dialogs.create({
                     actions: [
                         {
@@ -296,7 +263,6 @@ export default {
                     title: "Failed to load lists"
                 });
             }
-
         },
         async setSortType(event) {
             this.auth.newUserPrefs.listSorting.type = event[0];
@@ -308,7 +274,8 @@ export default {
             }
         },
         async toggleSortDirection() {
-            this.auth.newUserPrefs.listSorting.order = this.auth.newUserPrefs.listSorting.order === "asc" ? "desc" : "asc";
+            this.auth.newUserPrefs.listSorting.order =
+                this.auth.newUserPrefs.listSorting.order === "asc" ? "desc" : "asc";
             await this.getLists();
             try {
                 await this.auth.updatePrefs(this.auth.newUserPrefs);
@@ -337,8 +304,7 @@ export default {
         if (!url) {
             if (text.match(validation.urlRegexGlobal)) {
                 this.quickCreateURL = text.match(validation.urlRegexGlobal)[0];
-            }
-            else if (title.match(validation.urlRegexGlobal)) {
+            } else if (title.match(validation.urlRegexGlobal)) {
                 this.quickCreateURL = title.match(validation.urlRegexGlobal)[0];
             }
         } else {
@@ -355,12 +321,11 @@ main {
         margin: 0 auto;
         padding: 2rem 0;
 
-        h1, h2 {
+        h1,
+        h2 {
             word-break: break-word;
             white-space: pre-wrap;
         }
     }
-
-
 }
 </style>

@@ -17,15 +17,9 @@
             @newItem="(data) => $emit('newItem', data)"
             @updateList="$emit('updateList', $event)"
             v-if="auth.isLoggedIn"
-        /> 
+        />
 
-        <v-btn
-            size="small"
-            icon
-            variant="outlined"
-            v-if="wishlistOwner"
-            v-bind="menuOpen"
-        >
+        <v-btn size="small" icon variant="outlined" v-if="wishlistOwner" v-bind="menuOpen">
             <v-icon :icon="mdiMenuDown" />
 
             <v-menu
@@ -34,21 +28,13 @@
                 transition="fade-transition"
                 v-model="menuOpen"
             >
-                <v-list
-                    density="compact"
-                    min-width="250"
-                    rounded="lg"
-                    slim
-                >
+                <v-list density="compact" min-width="250" rounded="lg" slim>
                     <EditList
                         :list="list"
                         @updateList="$emit('updateList', $event)"
                         @dialogClosed="menuOpen = false"
                     />
-                    <DeleteList
-                        :list="list"
-                        @dialogClosed="menuOpen = false"
-                    />
+                    <DeleteList :list="list" @dialogClosed="menuOpen = false" />
                 </v-list>
             </v-menu>
         </v-btn>
@@ -65,15 +51,8 @@
                     @click="quickCreate"
                     v-if="$vuetify.display.mobile"
                 />
-                <v-btn
-                    :prepend-icon="mdiClipboard"
-                    variant="outlined"
-                    @click="quickCreate"
-                    v-else
-                > 
-                    <template v-if="!$vuetify.display.mobile">
-                        Quickcreate
-                    </template>
+                <v-btn :prepend-icon="mdiClipboard" variant="outlined" @click="quickCreate" v-else>
+                    <template v-if="!$vuetify.display.mobile"> Quickcreate </template>
                 </v-btn>
             </template>
 
@@ -83,10 +62,7 @@
                         {{ quickCreateError.text }}
                     </v-card-text>
                     <v-card-actions>
-                        <v-btn
-                            text="OK"
-                            @click="isActive.value = false"
-                        />
+                        <v-btn text="OK" @click="isActive.value = false" />
                     </v-card-actions>
                 </v-card>
             </template>
@@ -99,12 +75,7 @@
             v-if="$vuetify.display.mobile && wishlistOwner"
         />
 
-        <v-btn
-            variant="outlined"
-            :prepend-icon="mdiShare"
-            @click="copyListURL"
-            v-else
-        >
+        <v-btn variant="outlined" :prepend-icon="mdiShare" @click="copyListURL" v-else>
             Share
         </v-btn>
 
@@ -193,7 +164,6 @@ let quickCreateError = ref({
 let quickcreateDialogOpen = ref(false);
 let listSaveLoading = ref(false);
 
-
 const copyListURL = async () => {
     const listURL = `${window.location.origin}/${props.list.shortUrl ? props.list.shortUrl : "list/" + props.list.$id}`;
     if (navigator.share) {
@@ -203,12 +173,11 @@ const copyListURL = async () => {
             });
 
             return;
-        }
-        catch (error) {
+        } catch (error) {
             if (error?.name === "AbortError") return;
         }
     }
-    
+
     navigator.clipboard.writeText(listURL);
     shareButtonSnackbarOpen.value = true;
 };
@@ -239,7 +208,9 @@ const saveList = async () => {
         return;
     }
     if (auth.newUserPrefs.savedLists && auth.newUserPrefs.savedLists.includes(props.list.$id)) {
-        auth.newUserPrefs.savedLists = auth.newUserPrefs.savedLists.filter((listId) => listId !== props.list.$id);
+        auth.newUserPrefs.savedLists = auth.newUserPrefs.savedLists.filter(
+            (listId) => listId !== props.list.$id
+        );
         try {
             const accountResp = await account.updatePrefs(auth.newUserPrefs);
             auth.userPrefs = accountResp.prefs;
@@ -254,7 +225,9 @@ const saveList = async () => {
                         text: "OK"
                     }
                 ],
-                text: "An error occurred while trying to unsave this list. Please try again later. " + error.message,
+                text:
+                    "An error occurred while trying to unsave this list. Please try again later. " +
+                    error.message,
                 title: "Error",
                 variant: "error"
             });
@@ -275,12 +248,14 @@ const saveList = async () => {
                         text: "OK"
                     }
                 ],
-                text: "An error occurred while trying to save this list. Please try again later. " + error.message,
+                text:
+                    "An error occurred while trying to save this list. Please try again later. " +
+                    error.message,
                 title: "Error",
                 variant: "error"
             });
         }
-    }   
+    }
 };
 
 const quickCreate = async () => {
