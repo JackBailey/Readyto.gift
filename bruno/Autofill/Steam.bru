@@ -1,0 +1,23 @@
+meta {
+  name: Steam
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:3000/api/get-autofill-data
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "itemID": "68fbe5a70022ded175ad",
+    "url": "https://store.steampowered.com/app/3274580/Anno_117_Pax_Romana/"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
