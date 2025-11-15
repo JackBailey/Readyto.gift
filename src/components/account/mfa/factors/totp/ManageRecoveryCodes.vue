@@ -1,14 +1,26 @@
 <template>
-    <v-dialog max-width="90%" :fullscreen="false" v-model="dialogOpen">
+    <v-dialog
+        max-width="90%"
+        :fullscreen="false"
+        v-model="dialogOpen"
+    >
         <template v-slot:activator="{ props: activatorProps }">
-            <v-list-item v-bind="activatorProps" :prepend-icon="icon">
+            <v-list-item
+                v-bind="activatorProps"
+                :prepend-icon="icon"
+            >
                 {{ title }}
             </v-list-item>
         </template>
         <template v-slot:default>
             <v-card :title="title">
                 <v-card-text class="d-flex">
-                    <v-timeline direction="vertical" side="end" truncate-line="both" align="start">
+                    <v-timeline
+                        direction="vertical"
+                        side="end"
+                        truncate-line="both"
+                        align="start"
+                    >
                         <ExpanderStep
                             :current-step="currentStep"
                             :step="1"
@@ -17,16 +29,28 @@
                         >
                             <template #title> Confirm Action </template>
                             <template #content>
-                                <v-alert type="warning" border="start" dense>
+                                <v-alert
+                                    type="warning"
+                                    border="start"
+                                    dense
+                                >
                                     This action will invalidate your existing recovery codes. Make
                                     sure to save your new recovery codes once generated.
                                 </v-alert>
-                                <v-btn color="primary" class="mt-4" @click="nextStep">
+                                <v-btn
+                                    color="primary"
+                                    class="mt-4"
+                                    @click="nextStep"
+                                >
                                     Continue
                                 </v-btn>
                             </template>
                         </ExpanderStep>
-                        <ExpanderStep :current-step="currentStep" :step="2" :icon="mdiClockCheck">
+                        <ExpanderStep
+                            :current-step="currentStep"
+                            :step="2"
+                            :icon="mdiClockCheck"
+                        >
                             <template #title> Verify with TOTP </template>
                             <template #content>
                                 <v-otp-input
@@ -55,7 +79,11 @@
                                 </v-alert>
                             </template>
                         </ExpanderStep>
-                        <ExpanderStep :current-step="currentStep" :step="3" :icon="mdiCheck">
+                        <ExpanderStep
+                            :current-step="currentStep"
+                            :step="3"
+                            :icon="mdiCheck"
+                        >
                             <template #title> Manage Recovery Codes </template>
                             <template #content>
                                 <RecoveryCodes :recoveryCodes="recoveryCodes" />
@@ -64,7 +92,10 @@
                     </v-timeline>
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn @click="dialogOpen = false" text> Close </v-btn>
+                    <v-btn
+                        @click="dialogOpen = false"
+                        text
+                    > Close </v-btn>
                     <v-spacer />
                     <v-btn
                         v-if="currentStep > (props.action === 'regenerate' ? 1 : 2)"

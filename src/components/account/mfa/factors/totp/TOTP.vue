@@ -11,9 +11,14 @@
                         @click="dialogOpen = true"
                         size="small"
                         class="ml-4"
-                        v-if="!totpFactor"
+                        v-show="!totpFactor"
                     />
-                    <v-btn-group class="ml-4" density="compact" variant="tonal" v-else>
+                    <v-btn-group
+                        class="ml-4"
+                        density="compact"
+                        variant="tonal"
+                        v-show="totpFactor"
+                    >
                         <v-btn
                             :prepend-icon="mdiTrashCan"
                             color="error"
@@ -23,7 +28,13 @@
                         >
                             Remove
                         </v-btn>
-                        <v-btn v-bind="menuOpen" size="small" slim width="2rem" min-width="0">
+                        <v-btn
+                            v-bind="menuOpen"
+                            size="small"
+                            slim
+                            width="2rem"
+                            min-width="0"
+                        >
                             <v-icon :icon="mdiMenuDown" />
                             <v-menu
                                 activator="parent"
@@ -31,7 +42,11 @@
                                 transition="fade-transition"
                                 v-model="menuOpen"
                             >
-                                <v-list density="compact" rounded="lg" slim>
+                                <v-list
+                                    density="compact"
+                                    rounded="lg"
+                                    slim
+                                >
                                     <ManageRecoveryCodes
                                         action="get"
                                         :icon="mdiDownload"
@@ -71,7 +86,10 @@
                                             <p v-if="!errors[0]">
                                                 Scan the QR code or paste the secret into your
                                                 authenticator to begin.
-                                                <img :src="totpQrcode" class="totp-qrcode mt-4" />
+                                                <img
+                                                    :src="totpQrcode"
+                                                    class="totp-qrcode mt-4"
+                                                />
                                                 <v-text-field
                                                     :value="totpSecret"
                                                     readonly=""
@@ -169,14 +187,19 @@
                             </div>
                         </v-card-text>
                         <v-card-actions>
-                            <v-btn @click="prevStep" color="primary" :disabled="currentStep === 1">
+                            <v-btn
+                                @click="prevStep"
+                                color="primary"
+                                :disabled="currentStep === 1"
+                            >
                                 Back
                             </v-btn>
-                            <v-btn text @click="dialogOpen = false" color="error"> Cancel </v-btn>
+                            <v-btn
+                                text
+                                @click="dialogOpen = false"
+                                color="error"
+                            > Cancel </v-btn>
                             <v-spacer />
-                            <!-- <v-btn>
-                                Done
-                            </v-btn> -->
                         </v-card-actions>
                     </v-card>
                 </template>
@@ -200,12 +223,10 @@ import {
     mdiShieldKey,
     mdiTrashCan
 } from "@mdi/js";
-import { markRaw } from "vue";
 
 import ExpanderStep from "@/components/account/ExpanderStep.vue";
 import ManageRecoveryCodes from "./ManageRecoveryCodes.vue";
 import RecoveryCodes from "./RecoveryCodes.vue";
-import RemoveTOTP from "./RemoveTOTP.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -244,11 +265,50 @@ const nextStep = () => {
 };
 
 const removeTOTP = async () => {
-    dialogs.create({
-        component: markRaw(RemoveTOTP),
-        fullscreen: false,
-        maxWidth: undefined
-    });
+    try {
+        const challengeResp = await auth.createTOTPChallengeDialog();
+        if (challengeResp.action === "success") {
+            await account.deleteMFAAuthenticator({
+                type: "totp"
+            });
+
+            await account.updateMFA({
+                mfa: false
+            });
+
+            const factors = await account.listMFAFactors();
+            auth.setMfaFactors(factors);
+            auth.setMFA(false);
+
+            await dialogs.create({
+                actions: [
+                    {
+                        action: "close",
+                        color: "primary",
+                        text: "OK"
+                    }
+                ],
+                async: true,
+                fullscreen: false,
+                maxWidth: "90%",
+                text: "Your TOTP authenticator has been successfully removed from your account.",
+                title: "TOTP Removed"
+            });
+        }
+    } catch (error) {
+        console.error({ error });
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            message: "There was an error removing your TOTP authenticator. Please try again.",
+            title: "Error"
+        });
+    }
 };
 
 const enableTOTP = async () => {

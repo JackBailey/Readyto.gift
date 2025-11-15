@@ -3,13 +3,13 @@
         v-for="(dialog, index) in dialogs.dialogs"
         :key="dialog.id"
         v-model="dialog.open"
-        :max-width="dialog.maxWidth || ($vuetify.display.mobile ? '100%' : '500px')"
+        :max-width="dialog.maxWidth || (
+            $vuetify.display.mobile ? '100%' : '500px')"
         :fullscreen="dialog.fullscreen !== undefined ? dialog.fullscreen : $vuetify.display.mobile ? true : false"
         :persistent="dialog.persistent"
         :scrim="dialog.opaque ? 'rgb(var(--v-theme-background))' : true"
         :opacity="dialog.opaque ? 1 : undefined"
         width="max-content"
-        @afterLeave="() => dialogs.close(index)"
     >
         <v-card :title="dialog.title">
             <v-card-text v-if="dialog.text">
