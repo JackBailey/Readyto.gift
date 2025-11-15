@@ -15,6 +15,8 @@
         <ListCard
             :header="true"
             :list="list"
+            :communityItems="communityItems"
+            :spoilSurprises="spoilSurprises"
             :list-saved="listSaved"
             :quickCreateURL="quickCreateURL"
             :own-list="wishlistOwner"
@@ -158,7 +160,7 @@ export default {
                             .filter((item) => {
                                 if (
                                     !this.showFulfilled &&
-                                    !this.wishlistOwner && 
+                                    !this.wishlistOwner &&
                                     (item.fulfillment || item.communityList)
                                 )
                                     return false; // skip it
@@ -199,7 +201,7 @@ export default {
                     return item;
                 }
             });
-            
+
             if (itemsAboveLargestPriceGroup.length) {
                 priceGroupItems.push({
                     items: itemsAboveLargestPriceGroup,
@@ -274,7 +276,7 @@ export default {
                 return;
             } else {
                 this.list.items = this.list.items.filter((item) => item.$id !== id);
-    
+
                 const updatedList = await databases.updateDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
@@ -283,7 +285,7 @@ export default {
                         itemCount: this.list.items.length
                     }
                 );
-    
+
                 this.updateList({ list: updatedList });
             }
         },
@@ -381,7 +383,7 @@ export default {
                 if (redirectingToLoginPage) return;
 
                 window.document.title = list.title + " - Readyto.gift";
-            
+
                 this.fulfillments = [];
 
                 if (list.items && list.items.length) {
@@ -411,7 +413,7 @@ export default {
 
                         return item;
                     });
-    
+
                 this.list = list;
                 window.addEventListener("appinstalled", () => {
                     this.pwaPromo = false;

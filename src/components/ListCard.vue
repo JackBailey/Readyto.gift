@@ -28,7 +28,7 @@
                     variant="tonal"
                     rounded
                     v-if="list.itemCount !== null"
-                >  
+                >
                     {{ list.itemCount }} items
                 </v-chip>
                 <v-chip
@@ -44,7 +44,14 @@
                     rounded
                     v-if="authStore.userPrefs.showTotalPrice && list.items && list.items.length > 0"
                 >
-                    {{ currencyStore.formatter(props.list.currency).format(list.items.reduce((sum, item) => sum + (item.price || 0), 0)) }}
+                    {{
+                        currencyStore.formatter(props.list.currency).format(
+                            list.items.reduce((sum, item) => sum + (item.price || 0), 0) +
+                                (
+                                    !ownList || (ownList && spoilSurprises) ? communityItems.reduce((sum, item) => sum + (item.price || 0), 0) : 0
+                                )
+                        )
+                    }}
                 </v-chip>
             </div>
         </template>
@@ -116,6 +123,10 @@ const props = defineProps({
         default: () => ({}),
         type: Object
     },
+    communityItems: {
+        default: () => ([]),
+        type: Array
+    },
     header: {
         default: false,
         type: Boolean
@@ -137,6 +148,10 @@ const props = defineProps({
         type: [String, Boolean]
     },
     selected: {
+        default: false,
+        type: Boolean
+    },
+    spoilSurprises: {
         default: false,
         type: Boolean
     },
