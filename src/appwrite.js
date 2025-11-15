@@ -4,6 +4,10 @@ const host = import.meta.env.VITE_APPWRITE_ENDPOINT || "https://cloud.appwrite.i
 
 const client = new Client().setEndpoint(host).setProject(import.meta.env.VITE_APPWRITE_PROJECT);
 
+if (import.meta.env.VITE_APPWRITE_DEV_KEY) {
+    client.setDevKey(import.meta.env.VITE_APPWRITE_DEV_KEY);
+}
+
 const account = new Account(client);
 
 const databases = new Databases(client);

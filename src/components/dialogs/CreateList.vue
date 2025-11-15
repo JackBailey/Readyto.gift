@@ -46,10 +46,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="primary"
                         text="Create"
@@ -135,9 +132,7 @@ export default {
                     const conflictingDocuments = await databases.listDocuments(
                         import.meta.env.VITE_APPWRITE_DB,
                         import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
-                        [
-                            Query.equal("shortUrl", this.newList.shortUrl)
-                        ]
+                        [Query.equal("shortUrl", this.newList.shortUrl)]
                     );
 
                     if (conflictingDocuments.total !== 0) {
@@ -170,7 +165,12 @@ export default {
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
                     ID.unique(),
-                    { ...this.newList, author: this.auth.user.$id, authorName: this.auth.user.name, itemCount: 0 }
+                    {
+                        ...this.newList,
+                        author: this.auth.user.$id,
+                        authorName: this.auth.user.name,
+                        itemCount: 0
+                    }
                 );
             } catch (e) {
                 if (e instanceof AppwriteException) {

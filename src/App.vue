@@ -69,7 +69,6 @@ auth.$subscribe((mutation) => {
 });
 
 onMounted(async () => {
-    await auth.init();
     await currencyStore.init();
 
     const {

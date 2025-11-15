@@ -2,7 +2,7 @@
     <v-dialog
         :max-width="$vuetify.display.mobile ? '100%' : '500px'"
         v-model="dialogOpen"
-        scrollable 
+        scrollable
     >
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
@@ -12,7 +12,7 @@
             />
         </template>
 
-        <template v-slot:default="{ isActive }">
+        <template v-slot:default="{ isActive }">s
             <template v-if="!success">
                 <v-card title="Move Item">
                     <template v-slot:title>
@@ -22,7 +22,6 @@
                         </v-card-text>
                     </template>
                     <v-card-text>
-                        
                         <div
                             class="lists mt-5 loader"
                             v-if="loading"
@@ -76,12 +75,8 @@
             </template>
             <template v-else>
                 <v-card title="Item Moved">
-                    <template v-slot:title>
-                        Item Moved
-                    </template>
-                    <v-card-text>
-                        The item has been moved to the selected list.
-                    </v-card-text>
+                    <template v-slot:title> Item Moved </template>
+                    <v-card-text> The item has been moved to the selected list. </v-card-text>
                     <v-card-actions>
                         <v-btn
                             @click="goToList"
@@ -214,7 +209,7 @@ export default {
                         itemCount: this.list.items.length - 1
                     }
                 );
-                
+
                 await databases.updateDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_LIST_COLLECTION,

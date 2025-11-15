@@ -73,6 +73,9 @@ import { account } from "@/appwrite";
 import { OAuthProvider } from "appwrite";
 import { setUser as setSentryUser } from "@sentry/vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+import { markRaw } from "vue";
+import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
 
 export default {
     data() {
@@ -84,6 +87,7 @@ export default {
         return {
             alert: false,
             auth: useAuthStore(),
+            dialogs: useDialogs(),
             loadingLogin: false,
             mdiAlert,
             mdiGithub,
@@ -109,7 +113,9 @@ export default {
                 password: ""
             },
             redirectPath,
-            successRedirect
+            showTOTPField: false,
+            successRedirect,
+            totpCode: ""
         };
     },
     methods: {
@@ -129,20 +135,30 @@ export default {
                     });
                 }
 
-
                 this.auth.setPreviouslyLoggedInUserID(accountResp.$id);
+
+                await this.auth.init();
+                this.$router.push(this.redirectPath);
             } catch (error) {
-                this.alert = {
-                    text: error.message,
-                    title: "Error"
-                };
+                if (error.type === "user_more_factors_required") {
+                    console.log("Opening TOTP dialog");
+                    const totpChallengeResp = this.auth.createTOTPChallengeDialog();
+
+                    if (totpChallengeResp.action === "success" || totpChallengeResp.action === "totp-removed") {
+                        this.$router.push(this.redirectPath);
+                    } else {
+                        this.loadingLogin = false;
+                    }
+                } else {
+                    this.alert = {
+                        text: error.message,
+                        title: "Error"
+                    };
+                }
 
                 this.loadingLogin = false;
                 return;
             }
-
-            await this.auth.init();
-            this.$router.push(this.redirectPath);
         }
     },
     mounted() {

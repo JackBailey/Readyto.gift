@@ -1,6 +1,9 @@
 <template>
     <div class="page-content">
-        <v-card>
+        <v-card
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Account Settings
             </v-card-title>
@@ -11,14 +14,17 @@
             </v-card-text>
         </v-card>
 
-        <v-card class="mt-4">
+        <v-card
+            class="mt-4"
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Personal Information
             </v-card-title>
 
             <v-list
                 class="mt-0"
-                width="max-content"
             >
                 <UpdateAccountField
                     name="Full Name"
@@ -37,21 +43,26 @@
             </v-list>
         </v-card>
 
-        <v-card class="mt-4">
+        <v-card
+            class="mt-4"
+            variant="tonal"
+            color="secondary"
+        >
             <v-card-title>
                 Security Settings
             </v-card-title>
             <v-card-text>
                 <p>Manage your security settings here, including changing your password.</p>
             </v-card-text>
-            <v-list width="max-content">
+            <v-list>
                 <UpdateAccountField
                     name="Password"
-                    :icon="mdiLock"
+                    :icon="mdiFormTextboxPassword"
                     v-model="personalInfo.password"
                     :save="savePassword"
                     autocomplete="new-password"
                 />
+                <MFA />
             </v-list>
         </v-card>
     </div>
@@ -60,14 +71,15 @@
 <script setup>
 import { reactive } from "vue";
 
-import { mdiAccount, mdiEmail, mdiLock } from "@mdi/js";
+import { mdiAccount, mdiEmail, mdiFormTextboxPassword } from "@mdi/js";
 import { AppwriteException } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
 import { account } from "@/appwrite";
 
-import UpdateAccountField from "@/components/UpdateAccountField.vue";
+import MFA from "@/components/account/mfa/MFA.vue";
+import UpdateAccountField from "@/components/account/UpdateAccountField.vue";
 
 const auth = useAuthStore();
 const dialogs = useDialogs();
@@ -212,55 +224,16 @@ main {
         width: var(--section-width);
         margin: 0 auto;
         padding: 2rem 0;
+    }
 
-        .list-header {
-            padding: 1rem;
-
-            h1 {
-                word-break: break-word;
-                white-space: pre-wrap;
-            }
-
-            .mobile-list-buttons {
-                text-align: center;
-            }
-        }
-
-        .filters {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .items {
-            margin-top: 1rem;
-
-            .item-price-group {
-                h3 {
-                    font-size: 2rem;
-                    margin-top: 2rem;
-                }
-
-                hr {
-                    margin: 0.5rem 0 1rem;
-                }
-
-                .item-price-group-items {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-            }
-        }
+    .v-list {
+        max-width: 100%;
+        width: max-content;
     }
 
     @media screen and (max-width: 768px) {
-        .page-content {
-            .list-header {
-                h1 {
-                    flex-direction: column;
-                    align-items: start;
-                }
-            }
+        .v-list {
+            width: 100%;
         }
     }
 }

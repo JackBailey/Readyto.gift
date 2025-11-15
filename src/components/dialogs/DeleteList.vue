@@ -30,10 +30,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="error"
                         text="Delete"
@@ -85,14 +82,16 @@ export default {
             this.loading = true;
             this.alert = false;
             try {
-                await Promise.all(this.list.items.map(async (item) => {
-                    if (item.imageID) {
-                        await storage.deleteFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                            item.imageID
-                        );
-                    }
-                }));
+                await Promise.all(
+                    this.list.items.map(async (item) => {
+                        if (item.imageID) {
+                            await storage.deleteFile(
+                                import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                                item.imageID
+                            );
+                        }
+                    })
+                );
 
                 await databases.deleteDocument(
                     import.meta.env.VITE_APPWRITE_DB,
@@ -101,7 +100,7 @@ export default {
                 );
 
                 this.$router.push("/dash/lists");
-    
+
                 this.dialogOpen = false;
                 this.loading = false;
             } catch (e) {

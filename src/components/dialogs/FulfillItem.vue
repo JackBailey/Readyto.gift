@@ -1,8 +1,5 @@
 <template>
-    <v-dialog
-        max-width="500px"
-        v-model="dialogOpen"
-    >
+    <v-dialog max-width="500px" v-model="dialogOpen">
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
                 v-bind="activatorProps"
@@ -14,10 +11,7 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card
-                title="Fulfill Item"
-                v-if="!item.fulfillment"
-            >
+            <v-card title="Fulfill Item" v-if="!item.fulfillment">
                 <v-card-text>
                     <v-text-field
                         label="Your name"
@@ -33,10 +27,9 @@
                     This will only be shown to other viewers of this list to help prevent
                     duplicates.<br />
                     It will
-                    <span
-                        class="text-error"
-                        style="font-weight: bold; text-decoration: underline"
-                    >not be shown</span>
+                    <span class="text-error" style="font-weight: bold; text-decoration: underline"
+                        >not be shown</span
+                    >
                     to the owner of this list.
 
                     <v-alert
@@ -51,10 +44,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="primary"
                         text="Fulfill"
@@ -64,10 +54,7 @@
                     />
                 </v-card-actions>
             </v-card>
-            <v-card
-                title="Unfulfill Item"
-                v-else
-            >
+            <v-card title="Unfulfill Item" v-else>
                 <v-card-text>
                     Are you sure you want to do this? It can be undone at any time
 
@@ -83,10 +70,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="primary"
                         text="Unfulfill"

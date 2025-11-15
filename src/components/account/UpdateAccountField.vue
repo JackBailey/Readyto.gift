@@ -10,6 +10,7 @@
                         :icon="mdiPencil"
                         variant="tonal"
                         class="ml-5"
+                        size="small"
                     />
                 </template>
                 <template v-slot:default>

@@ -35,6 +35,9 @@ importers:
       sass:
         specifier: ^1.93.2
         version: 1.93.2
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
       vite-plugin-vuetify:
         specifier: ^2.1.2
         version: 2.1.2(vite@5.4.21(sass@1.93.2))(vue@3.5.22)(vuetify@3.10.7)
@@ -2118,6 +2121,10 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
 
   vite-plugin-vuetify@2.1.2:
     resolution: {integrity: sha512-I/wd6QS+DO6lHmuGoi1UTyvvBTQ2KDzQZ9oowJQEJ6OcjWfJnscYXx2ptm6S7fJSASuZT8jGRBL3LV4oS3LpaA==}
@@ -4554,6 +4561,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  uuid@13.0.0: {}
 
   vite-plugin-vuetify@2.1.2(vite@5.4.21(sass@1.93.2))(vue@3.5.22)(vuetify@3.10.7):
     dependencies:

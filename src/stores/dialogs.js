@@ -1,21 +1,25 @@
 import { defineStore } from "pinia";
+import { v7 as uuidv7 } from "uuid";
 
 export const useDialogs = defineStore("dialogs", {
     state: () => ({
         dialogs: []
     }),
     actions: {
-        close(index, actionText) {
-            if (this.dialogs[index].async) {
-                this.dialogs[index].resolvePromise(actionText);
+        close(id, actionText, data = null) {
+            let dialog = this.dialogs.find((d) => d.id === id);
+            if (dialog.async) {
+                dialog.resolvePromise({ action: actionText, data });
             }
-            this.dialogs[index].open = false;
+
+            dialog.open = false;
 
             setTimeout(() => {
-                this.dialogs.splice(index, 1);
+                delete this.dialogs[id];
             }, 500);
         },
         create(dialog) {
+            console.log("Creating dialog:", dialog);
             let resolvePromise;
             let promise;
 
@@ -23,12 +27,11 @@ export const useDialogs = defineStore("dialogs", {
                 promise = new Promise((resolve) => {
                     resolvePromise = resolve;
                 });
-            };
+            }
 
-            this.dialogs.push({ open: true, resolvePromise, ...dialog });
+            this.dialogs.push({ open: true, resolvePromise, id: uuidv7(), ...dialog });
 
             return dialog.async ? promise : null;
         }
-        
     }
 });

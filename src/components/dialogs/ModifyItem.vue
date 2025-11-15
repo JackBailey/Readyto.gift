@@ -11,8 +11,8 @@
                 base-color="primary"
                 :variant="variant"
                 v-if="!item"
-            >       
-                Add{{ wishlistOwner ? '' : ' Purchased' }} Item
+            >
+                Add{{ wishlistOwner ? "" : " Purchased" }} Item
             </v-btn>
             <v-btn
                 v-bind="activatorProps"
@@ -24,7 +24,15 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Purchased')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Purchased')  + ' Item'">
+            <v-card
+                :title="
+                    autofillLoading
+                        ? 'Autofilling data...'
+                        : item
+                          ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                          : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                "
+            >
                 <v-card-text>
                     <v-alert
                         v-if="!wishlistOwner && !item"
@@ -34,7 +42,9 @@
                         class="m-4 mb-8"
                         color="primary"
                     >
-                        You are adding an item to someone else's wishlist. This item will be marked as purchased on their list, but it will not be shown to the wishlist owner. This should help prevent duplicate items.
+                        You are adding an item to someone else's wishlist. This item will be marked
+                        as purchased on their list, but it will not be shown to the wishlist owner.
+                        This should help prevent duplicate items.
                     </v-alert>
                     <ItemFields
                         v-model:item="modifiedItem"
@@ -57,9 +67,7 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-tooltip
-                        :open-on-hover="modifiedItem.url === ''"
-                    >
+                    <v-tooltip :open-on-hover="modifiedItem.url === ''">
                         <template v-slot:activator="{ props }">
                             <span v-bind="props">
                                 <v-btn
@@ -69,14 +77,11 @@
                                     @click="autoFill"
                                     :loading="autofillLoading"
                                     :disabled="modifiedItem.url === ''"
-                                /></span>
+                            /></span>
                         </template>
                         <span>Please enter a URL to use the auto-fill feature</span>
                     </v-tooltip>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
+                    <v-btn text="Cancel" @click="isActive.value = false" />
                     <v-btn
                         color="primary"
                         text="Save"
@@ -192,7 +197,10 @@ export default {
                             this.item.imageID
                         );
 
-                        this.modifiedItem.imageFile = new File(["a".repeat(file.sizeOriginal)], file.name);
+                        this.modifiedItem.imageFile = new File(
+                            ["a".repeat(file.sizeOriginal)],
+                            file.name
+                        );
                     }
                 } else {
                     this.itemID = ID.unique();
@@ -267,11 +275,16 @@ export default {
                         }
 
                         this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-                        this.modifiedItem.price = responseData.price ? responseData.price.price : this.modifiedItem.price;
+                        this.modifiedItem.price = responseData.price
+                            ? responseData.price.price
+                            : this.modifiedItem.price;
                         this.modifiedItem.image = responseData.image || this.modifiedItem.image;
 
                         if (responseData.imageID) {
-                            this.modifiedItem.imageFile = new File(["a".repeat(responseData.imageSize)], responseData.imageID);
+                            this.modifiedItem.imageFile = new File(
+                                ["a".repeat(responseData.imageSize)],
+                                responseData.imageID
+                            );
                             this.modifiedItem.imageID = responseData.imageID;
                         }
                     } else {
@@ -316,7 +329,7 @@ export default {
                     this.modifiedItem.imageID = fileUpload.$id;
                     this.modifiedItem.image = "";
                 }
-    
+
                 result = await databases.createDocument(
                     import.meta.env.VITE_APPWRITE_DB,
                     import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
@@ -367,7 +380,7 @@ export default {
                             itemCount: this.list.items.length
                         }
                     );
-                    
+
                     this.$emit("updateList", {
                         list: updatedList
                     });
@@ -479,7 +492,7 @@ export default {
             this.modifiedItem.url = this.quickCreateURL;
             this.itemID = ID.unique();
             this.autoFill();
-    
+
             this.$emit("unsetQuickCreateURL", "");
         }
     }
