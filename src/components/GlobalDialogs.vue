@@ -1,6 +1,6 @@
 <template>
     <v-dialog
-        v-for="(dialog, index) in dialogs.dialogs"
+        v-for="dialog in dialogs.dialogs"
         :key="dialog.id"
         v-model="dialog.open"
         :max-width="dialog.maxWidth || (
@@ -19,13 +19,13 @@
                 :is="dialog.component"
                 v-bind="dialog.props"
                 v-if="dialog.component"
-                v-on="dialogEmits[index]"
+                v-on="dialogEmits[dialog.id]"
             />
             <v-card-actions v-if="dialog.actions">
                 <v-btn
                     v-for="action in dialog.actions"
                     :key="action.text"
-                    @click="actionHandler(action, index)"
+                    @click="actionHandler(action, dialog.id)"
                     :color="action.color || 'primary'"
                     :variant="action.variant || 'text'"
                     :to="action.to"
@@ -45,27 +45,29 @@ import { useDialogs } from "@/stores/dialogs";
 const dialogs = useDialogs();
 
 const dialogEmits = computed(() => {
-    return dialogs.dialogs.map((dialog, index) => {
-        if (!dialog.emits) return {};
+    return Object.fromEntries(
+        dialogs.dialogs.map((dialog) => {
+            if (!dialog.emits) return [dialog.id, {}];
 
-        const emits = {};
-        for (const emit of dialog.emits) {
-            emits[emit] = () => {
-                dialogs.close(index, emit);
-            };
-        }
+            const emits = {};
+            for (const emit of dialog.emits) {
+                emits[emit] = () => {
+                    dialogs.close(dialog.id, emit);
+                };
+            }
 
-        return emits;
-    });
+            return [dialog.id, emits];
+        })
+    );
 });
 
-const actionHandler = (action, index) => {
+const actionHandler = (action, id) => {
     if (typeof action.action === "function") {
         action.action();
     }
 
     if (action.action === "close" || action.closeAfterAction) {
-        dialogs.close(index, action.text);
+        dialogs.close(id, action.text);
     }
 };
 

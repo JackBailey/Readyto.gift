@@ -57,7 +57,6 @@ const submit = async () => {
         await auth.completeMFAchallenge(code.value);
         emit("success");
     } catch (error) {
-        console.log({ msg: error.message, error });
         errorMessage.value = error.message || "An unknown error occurred.";
     } finally {
         code.value = "";

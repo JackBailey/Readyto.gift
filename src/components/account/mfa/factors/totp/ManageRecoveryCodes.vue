@@ -1,132 +1,20 @@
 <template>
-    <v-dialog
-        max-width="90%"
-        :fullscreen="false"
-        v-model="dialogOpen"
+    <v-list-item
+        :prepend-icon="icon"
+        @click="manageCodes"
     >
-        <template v-slot:activator="{ props: activatorProps }">
-            <v-list-item
-                v-bind="activatorProps"
-                :prepend-icon="icon"
-            >
-                {{ title }}
-            </v-list-item>
-        </template>
-        <template v-slot:default>
-            <v-card :title="title">
-                <v-card-text class="d-flex">
-                    <v-timeline
-                        direction="vertical"
-                        side="end"
-                        truncate-line="both"
-                        align="start"
-                    >
-                        <ExpanderStep
-                            :current-step="currentStep"
-                            :step="1"
-                            :icon="mdiAlert"
-                            v-if="action === 'regenerate'"
-                        >
-                            <template #title> Confirm Action </template>
-                            <template #content>
-                                <v-alert
-                                    type="warning"
-                                    border="start"
-                                    dense
-                                >
-                                    This action will invalidate your existing recovery codes. Make
-                                    sure to save your new recovery codes once generated.
-                                </v-alert>
-                                <v-btn
-                                    color="primary"
-                                    class="mt-4"
-                                    @click="nextStep"
-                                >
-                                    Continue
-                                </v-btn>
-                            </template>
-                        </ExpanderStep>
-                        <ExpanderStep
-                            :current-step="currentStep"
-                            :step="2"
-                            :icon="mdiClockCheck"
-                        >
-                            <template #title> Verify with TOTP </template>
-                            <template #content>
-                                <v-otp-input
-                                    v-model="totpCode"
-                                    length="6"
-                                    type="number"
-                                    label="Enter your authenticator code"
-                                    @finish="verifyTOTP"
-                                />
-                                <v-btn
-                                    color="primary"
-                                    class="mt-4"
-                                    :disabled="totpCode.length !== 6"
-                                    @click="verifyTOTP"
-                                >
-                                    Verify
-                                </v-btn>
-                                <v-alert
-                                    v-if="error"
-                                    class="mt-4"
-                                    type="error"
-                                    border="start"
-                                    dense
-                                >
-                                    {{ error }}
-                                </v-alert>
-                            </template>
-                        </ExpanderStep>
-                        <ExpanderStep
-                            :current-step="currentStep"
-                            :step="3"
-                            :icon="mdiCheck"
-                        >
-                            <template #title> Manage Recovery Codes </template>
-                            <template #content>
-                                <RecoveryCodes :recoveryCodes="recoveryCodes" />
-                            </template>
-                        </ExpanderStep>
-                    </v-timeline>
-                </v-card-text>
-                <v-card-actions>
-                    <v-btn
-                        @click="dialogOpen = false"
-                        text
-                    > Close </v-btn>
-                    <v-spacer />
-                    <v-btn
-                        v-if="currentStep > (props.action === 'regenerate' ? 1 : 2)"
-                        text
-                        @click="prevStep"
-                        color="error"
-                    >
-                        Back
-                    </v-btn>
-                    <v-btn
-                        :disabled="currentStep !== 3"
-                        color="primary"
-                        @click="dialogOpen = false"
-                        variant="tonal"
-                    >
-                        Done
-                    </v-btn>
-                </v-card-actions>
-            </v-card>
-        </template>
-    </v-dialog>
+        {{ title }}
+    </v-list-item>
 </template>
 
 <script setup>
-import { defineEmits, defineProps, shallowRef, watch } from "vue";
-import { mdiAlert, mdiCheck, mdiClockCheck } from "@mdi/js";
-import ExpanderStep from "@/components/account/ExpanderStep.vue";
+import { defineProps, markRaw } from "vue";
 import RecoveryCodes from "./RecoveryCodes.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
 
 const auth = useAuthStore();
+const dialogs = useDialogs();
 
 const props = defineProps({
     action: {
@@ -145,49 +33,73 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits({
-    closed: () => true,
-    opened: () => true
-});
-
-const dialogOpen = shallowRef(false);
-const currentStep = shallowRef(props.action === "regenerate" ? 1 : 2);
-const totpCode = shallowRef("");
-const recoveryCodes = shallowRef([]);
-const error = shallowRef("");
-
-const prevStep = () => {
-    currentStep.value -= 1;
-};
-
-const nextStep = () => {
-    currentStep.value += 1;
-};
-
-const verifyTOTP = async () => {
-    error.value = "";
-    try {
-        await auth.completeMFAchallenge(totpCode.value);
-        if (props.action === "regenerate") {
-            recoveryCodes.value = await auth.regenerateRecoveryCodes();
-        } else {
-            recoveryCodes.value = await auth.getRecoveryCodes();
+const manageCodes = async () => {
+    if (props.action === "regenerate") {
+        const warningDialogResp = await dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "error",
+                    text: "Cancel"
+                },
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "Continue"
+                }
+            ],
+            async: true,
+            text: "Regenerating your recovery codes will invalidate your existing codes. Are you sure you want to continue?",
+            title: "Regenerate Recovery Codes"
+        });
+        if (warningDialogResp.action === "Cancel") {
+            return;
         }
-        nextStep();
-    } catch {
-        error.value = "Invalid TOTP code. Please try again.";
     }
-};
 
-watch(dialogOpen, async (nowOpen) => {
-    if (nowOpen) {
-        emit("opened");
-        currentStep.value = props.action === "regenerate" ? 1 : 2;
-        totpCode.value = "";
-        recoveryCodes.value = [];
-        error.value = "";
-    } else {
-        emit("closed");
+    const totpChallengeResp = await auth.createTOTPChallengeDialog();
+
+    if (totpChallengeResp.action === "cancel") {
+        return;
     }
-});
+
+    let recoveryCodes = [];
+
+    if (props.action === "regenerate") {
+        recoveryCodes = await auth.regenerateRecoveryCodes();
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            component: markRaw(RecoveryCodes),
+            props: {
+                recoveryCodes: recoveryCodes
+            },
+            text: "Your recovery codes have been regenerated successfully. Make sure to store them in a safe place.",
+            title: "Recovery Codes Regenerated"
+        });
+    } else {
+        recoveryCodes = await auth.getRecoveryCodes();
+        dialogs.create({
+            actions: [
+                {
+                    action: "close",
+                    color: "primary",
+                    text: "OK"
+                }
+            ],
+            component: markRaw(RecoveryCodes),
+            props: {
+                recoveryCodes: recoveryCodes
+            },
+            text: "Your recovery codes have been retrieved successfully. Make sure to store them in a safe place.",
+            title: "Recovery Codes Retrieved"
+        });
+    }
+
+};
 </script>
