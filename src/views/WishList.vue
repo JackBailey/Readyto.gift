@@ -133,7 +133,7 @@ export default {
                 title: "",
                 url: ""
             },
-            priceGroups: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
+            priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
             quickCreateURL: this.$route.query.quickcreateurl,
             showFulfilled: localStorage.getItem("showFulfilled") !== "false",
@@ -155,6 +155,22 @@ export default {
                     const lowerBound = index === 0 ? 0 : this.priceGroups[index - 1];
                     const upperBound = price;
 
+                    const title = price === 0 ? "Flexible Gifts" : this.currency
+                        .formatter(this.list.currency)
+                        .format(lowerBound)
+                        .split(".")[0] +
+                        " - " +
+                        this.currency
+                            .formatter(this.list.currency)
+                            .format(upperBound)
+                            .split(".")[0];
+
+                    console.log({
+                        lowerBound,
+                        upperBound,
+                        title
+                    });
+
                     return {
                         items: items
                             .filter((item) => {
@@ -164,7 +180,7 @@ export default {
                                     (item.fulfillment || item.communityList)
                                 )
                                     return false; // skip it
-                                if (item.price >= lowerBound && item.price < upperBound) {
+                                if ((item.price >= lowerBound && item.price < upperBound && item.price !== 0) || (item.price === 0 && upperBound === 0)) {
                                     return item;
                                 }
                             })
@@ -180,16 +196,7 @@ export default {
                                 return a.title.localeCompare(b.title);
                             }),
                         price,
-                        title:
-                            this.currency
-                                .formatter(this.list.currency)
-                                .format(lowerBound)
-                                .split(".")[0] +
-                            " - " +
-                            this.currency
-                                .formatter(this.list.currency)
-                                .format(upperBound)
-                                .split(".")[0]
+                        title
                     };
                 })
                 .filter((priceGroup) => priceGroup.items.length);
