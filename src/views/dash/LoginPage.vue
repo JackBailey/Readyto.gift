@@ -144,7 +144,7 @@ export default {
                     console.log("Opening TOTP dialog");
                     const totpChallengeResp = this.auth.createTOTPChallengeDialog();
 
-                    if (totpChallengeResp.action === "success") {
+                    if (totpChallengeResp.action === "success" || totpChallengeResp.action === "totp-removed") {
                         this.$router.push(this.redirectPath);
                     } else {
                         this.loadingLogin = false;

@@ -59,7 +59,7 @@ const manageCodes = async () => {
 
     const totpChallengeResp = await auth.createTOTPChallengeDialog();
 
-    if (totpChallengeResp.action === "cancel") {
+    if (totpChallengeResp.action === "cancel" || totpChallengeResp.action === "totp-removed") {
         return;
     }
 

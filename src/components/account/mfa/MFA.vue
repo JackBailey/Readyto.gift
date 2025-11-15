@@ -14,6 +14,7 @@
                                 : 'Enable MFA'
                             : 'You need at least one MFA method enabled to use MFA.'
                     "
+                    v-if="auth.user"
                 >
                     <template v-slot:activator="{ props }">
                         <div v-bind="props">

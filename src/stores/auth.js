@@ -41,22 +41,22 @@ export const useAuthStore = defineStore("auth", {
                 async: true,
                 component: markRaw(TotpChallenge),
                 emits: [
-                    "cancel", "success"
+                    "cancel", "success", "totp-removed"
                 ],
                 fullscreen: false,
-                maxWidth: "100%",
+                maxWidth: "80%",
                 title: "Multi-Factor Authentication"
             });
         },
-        async completeMFAchallenge(totp) {
+        async completeMFAchallenge(code, factor = "totp") {
             const challenge = await account.createMFAChallenge({
-                factor: "totp"
+                factor
             });
             const challengeId = challenge.$id;
 
             await account.updateMFAChallenge({
                 challengeId,
-                otp: totp
+                otp: code
             });
         },
         async regenerateRecoveryCodes() {
@@ -89,7 +89,7 @@ export const useAuthStore = defineStore("auth", {
                         break;
 
                     case "user_more_factors_required":
-                        if ((await this.createTOTPChallengeDialog()).action === "success") {
+                        if ((await this.createTOTPChallengeDialog()).action !== "cancel" ) {
                             this.user = await account.get();
                             break;
                         } else {
@@ -97,7 +97,6 @@ export const useAuthStore = defineStore("auth", {
                             this.user = null;
                             break;
                         }
-                        // if cancelled, fall through to logout
                     default:
                         throw error;
                     }

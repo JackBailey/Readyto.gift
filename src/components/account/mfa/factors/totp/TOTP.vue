@@ -186,7 +186,7 @@
                                 </v-timeline>
                             </div>
                         </v-card-text>
-                        <v-card-actions>
+                        <v-card-actions v-if="currentStep !== 3">
                             <v-btn
                                 @click="prevStep"
                                 color="primary"
