@@ -17,19 +17,6 @@
                     label="Password"
                     type="password"
                 />
-                <v-label
-                    v-if="!showTOTPField"
-                    class="mb-2 text-on-surface"
-                >
-                    Enter your TOTP code to complete login
-                </v-label>
-                <v-otp-input
-                    v-if="!showTOTPField"
-                    v-model="totpCode"
-                    label="TOTP Code"
-                    type="number"
-                    length="6"
-                />
                 <v-btn
                     type="submit"
                     color="primary"
@@ -86,6 +73,9 @@ import { account } from "@/appwrite";
 import { OAuthProvider } from "appwrite";
 import { setUser as setSentryUser } from "@sentry/vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+import { markRaw } from "vue";
+import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
 
 export default {
     data() {
@@ -97,6 +87,7 @@ export default {
         return {
             alert: false,
             auth: useAuthStore(),
+            dialogs: useDialogs(),
             loadingLogin: false,
             mdiAlert,
             mdiGithub,
@@ -150,14 +141,20 @@ export default {
                 this.$router.push(this.redirectPath);
             } catch (error) {
                 if (error.type === "user_more_factors_required") {
-                    //
+                    console.log("Opening TOTP dialog");
+                    const totpChallengeResp = this.auth.createTOTPChallengeDialog();
+
+                    if (totpChallengeResp.action === "success") {
+                        this.$router.push(this.redirectPath);
+                    } else {
+                        this.loadingLogin = false;
+                    }
                 } else {
                     this.alert = {
                         text: error.message,
                         title: "Error"
                     };
                 }
-                    
 
                 this.loadingLogin = false;
                 return;

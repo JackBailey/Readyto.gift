@@ -34,12 +34,11 @@ export const useDialogs = defineStore("dialogs", {
                 promise = new Promise((resolve) => {
                     resolvePromise = resolve;
                 });
-            };
+            }
 
             this.dialogs.push({ open: true, resolvePromise, ...dialog });
 
             return dialog.async ? promise : null;
         }
-        
     }
 });

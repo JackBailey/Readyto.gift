@@ -1,6 +1,9 @@
 import { account, avatars } from "@/appwrite";
 import { defineStore } from "pinia";
+import { markRaw } from "vue";
 import { setUser as setSentryUser } from "@sentry/vue";
+import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
+import { useDialogs } from "./dialogs";
 
 export const useAuthStore = defineStore("auth", {
     state: () => ({
@@ -32,6 +35,19 @@ export const useAuthStore = defineStore("auth", {
         }
     }),
     actions: {
+        async createTOTPChallengeDialog() {
+            const dialogs = useDialogs();
+            return await dialogs.create({
+                async: true,
+                component: markRaw(TotpChallenge),
+                emits: [
+                    "cancel", "success"
+                ],
+                fullscreen: false,
+                maxWidth: "100%",
+                title: "Multi-Factor Authentication"
+            });
+        },
         async completeMFAchallenge(totp) {
             const challenge = await account.createMFAChallenge({
                 factor: "totp"
@@ -54,7 +70,7 @@ export const useAuthStore = defineStore("auth", {
                 if (error.type === "user_recovery_codes_already_exists") {
                     // if no totp, there should be a recent MFA challenge to complete
                     if (totp) await this.completeMFAchallenge(totp);
-            
+
                     const recoveryCodesResponse = await account.getMFARecoveryCodes();
 
                     return recoveryCodesResponse.recoveryCodes;
@@ -68,7 +84,21 @@ export const useAuthStore = defineStore("auth", {
                 try {
                     this.user = await account.get();
                 } catch (error) {
-                    if (error.type !== "general_unauthorized_scope") {
+                    switch (error.type) {
+                    case "general_unauthorized_scope":
+                        break;
+
+                    case "user_more_factors_required":
+                        if ((await this.createTOTPChallengeDialog()).action === "success") {
+                            this.user = await account.get();
+                            break;
+                        } else {
+                            await account.deleteSession("current");
+                            this.user = null;
+                            break;
+                        }
+                        // if cancelled, fall through to logout
+                    default:
                         throw error;
                     }
                 }

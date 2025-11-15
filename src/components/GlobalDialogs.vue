@@ -8,6 +8,8 @@
         :persistent="dialog.persistent"
         :scrim="dialog.opaque ? 'rgb(var(--v-theme-background))' : true"
         :opacity="dialog.opaque ? 1 : undefined"
+        width="max-content"
+        @afterLeave="() => dialogs.close(index)"
     >
         <v-card :title="dialog.title">
             <v-card-text v-if="dialog.text">
@@ -15,9 +17,9 @@
             </v-card-text>
             <component
                 :is="dialog.component"
-                v-bind="{ ...dialog.props, errorMessage: dialog.error || dialog.props?.errorMessage || '' }"
+                v-bind="dialog.props"
                 v-if="dialog.component"
-                @close="dialogs.close(index)"
+                v-on="dialogEmits[index]"
             />
             <v-card-actions v-if="dialog.actions">
                 <v-btn
@@ -37,9 +39,25 @@
 
 
 <script setup>
+import { computed } from "vue";
 import { useDialogs } from "@/stores/dialogs";
 
 const dialogs = useDialogs();
+
+const dialogEmits = computed(() => {
+    return dialogs.dialogs.map((dialog, index) => {
+        if (!dialog.emits) return {};
+
+        const emits = {};
+        for (const emit of dialog.emits) {
+            emits[emit] = () => {
+                dialogs.close(index, emit);
+            };
+        }
+
+        return emits;
+    });
+});
 
 const actionHandler = (action, index) => {
     if (typeof action.action === "function") {
