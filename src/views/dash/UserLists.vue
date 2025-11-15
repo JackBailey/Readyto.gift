@@ -11,8 +11,14 @@
             v-if="auth?.user?.emailVerification === false"
         >
             <v-card-actions>
-                <v-btn variant="outlined" @click="verifyEmail"> Send Verification Email </v-btn>
-                <v-dialog max-width="500" v-model="verificationDialog">
+                <v-btn
+                    variant="outlined"
+                    @click="verifyEmail"
+                > Send Verification Email </v-btn>
+                <v-dialog
+                    max-width="500"
+                    v-model="verificationDialog"
+                >
                     <v-card>
                         <v-card-text>
                             A verification email has been sent to {{ auth.user.email }}. Please
@@ -22,14 +28,21 @@
                         <v-card-actions>
                             <v-spacer />
 
-                            <v-btn text="Close" @click="verificationDialog = false" />
+                            <v-btn
+                                text="Close"
+                                @click="verificationDialog = false"
+                            />
                         </v-card-actions>
                     </v-card>
                 </v-dialog>
             </v-card-actions>
         </v-alert>
         <PWAPrompt />
-        <v-card color="surface" variant="flat" class="pa-0 mb-4">
+        <v-card
+            color="surface"
+            variant="flat"
+            class="pa-0 mb-4"
+        >
             <v-card-item class="px-0">
                 <template v-slot:title>
                     <h1 class="mb-0">Your lists</h1>
@@ -41,11 +54,17 @@
                     />
                 </template>
             </v-card-item>
-            <v-card-text class="px-0">
+            <v-card-text
+                class="px-0"
+                v-if="auth.userPrefs.listSorting"
+            >
                 <div class="sorting">
-                    <v-btn-group variant="tonal" divided>
+                    <v-btn-group
+                        variant="tonal"
+                        divided
+                    >
                         <v-btn ref="sortTypeButton">
-                            {{ auth.userPrefs.listSorting.type.name }}
+                            {{ auth?.userPrefs?.listSorting.type.name }}
                             <v-menu
                                 activator="parent"
                                 location="bottom start"
@@ -65,7 +84,7 @@
                         </v-btn>
                         <v-btn
                             :icon="
-                                auth.newUserPrefs.listSorting.order === 'asc'
+                                auth?.newUserPrefs?.listSorting.order === 'asc'
                                     ? mdiSortAscending
                                     : mdiSortDescending
                             "
@@ -88,18 +107,29 @@
                 </div>
             </v-card-text>
         </v-card>
-        <v-card variant="tonal" class="mb-4" v-if="quickCreateURL">
+        <v-card
+            variant="tonal"
+            class="mb-4"
+            v-if="quickCreateURL"
+        >
             <v-card-text>
                 <p>Select or create a list to add the following item to:</p>
                 <strong>URL:</strong> {{ quickCreateURL }}
             </v-card-text>
         </v-card>
-        <div class="loaders" v-if="loading">
+        <div
+            class="loaders"
+            v-if="loading"
+        >
             <v-skeleton-loader type="list-item-two-line" />
             <v-skeleton-loader type="list-item-two-line" />
             <v-skeleton-loader type="list-item-two-line" />
 
-            <v-card class="pa-0 mb-4" variant="flat" color="surface">
+            <v-card
+                class="pa-0 mb-4"
+                variant="flat"
+                color="surface"
+            >
                 <v-card-item class="px-0">
                     <template v-slot:title>
                         <h2 class="mb-0">Saved lists</h2>
@@ -149,7 +179,10 @@
             />
         </v-list>
 
-        <div class="no-items" v-if="!loading && !lists?.length && !savedLists.length">
+        <div
+            class="no-items"
+            v-if="!loading && !lists?.length && !savedLists.length"
+        >
             <v-spacer height="20" />
             <v-alert
                 type="info"

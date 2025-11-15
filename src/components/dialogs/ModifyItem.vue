@@ -29,8 +29,8 @@
                     autofillLoading
                         ? 'Autofilling data...'
                         : item
-                          ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
-                          : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                            ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                            : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
                 "
             >
                 <v-card-text>
@@ -77,11 +77,14 @@
                                     @click="autoFill"
                                     :loading="autofillLoading"
                                     :disabled="modifiedItem.url === ''"
-                            /></span>
+                                /></span>
                         </template>
                         <span>Please enter a URL to use the auto-fill feature</span>
                     </v-tooltip>
-                    <v-btn text="Cancel" @click="isActive.value = false" />
+                    <v-btn
+                        text="Cancel"
+                        @click="isActive.value = false"
+                    />
                     <v-btn
                         color="primary"
                         text="Save"
@@ -279,6 +282,7 @@ export default {
                             ? responseData.price.price
                             : this.modifiedItem.price;
                         this.modifiedItem.image = responseData.image || this.modifiedItem.image;
+                        this.modifiedItem.url = responseData.url || this.modifiedItem.url;
 
                         if (responseData.imageID) {
                             this.modifiedItem.imageFile = new File(
