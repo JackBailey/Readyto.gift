@@ -60,8 +60,17 @@ export const useAuthStore = defineStore("auth", {
             });
         },
         async regenerateRecoveryCodes() {
-            const recoveryCodesResponse = await account.updateMFARecoveryCodes();
-            return recoveryCodesResponse.recoveryCodes;
+            try {
+                return (await account.createMFARecoveryCodes()).recoveryCodes;
+            } catch (error) {
+                if (error.type === "user_recovery_codes_already_exists") {
+                    const recoveryCodesResponse = await account.updateMFARecoveryCodes();
+
+                    return recoveryCodesResponse.recoveryCodes;
+                } else {
+                    throw error;
+                }
+            }
         },
         async getRecoveryCodes(totp) {
             try {

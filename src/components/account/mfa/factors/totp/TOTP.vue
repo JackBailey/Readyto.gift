@@ -313,7 +313,7 @@ const removeTOTP = async () => {
 
 const enableTOTP = async () => {
     try {
-        recoveryCodes.value = await auth.getRecoveryCodes(totpInput.value);
+        recoveryCodes.value = await auth.regenerateRecoveryCodes(totpInput.value);
 
         await account.updateMFAAuthenticator({
             otp: totpInput.value,
