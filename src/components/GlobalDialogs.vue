@@ -9,7 +9,6 @@
         :persistent="dialog.persistent"
         :scrim="dialog.opaque ? 'rgb(var(--v-theme-background))' : true"
         :opacity="dialog.opaque ? 1 : undefined"
-        width="max-content"
     >
         <v-card :title="dialog.title">
             <v-card-text v-if="dialog.text">

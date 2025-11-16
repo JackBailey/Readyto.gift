@@ -122,12 +122,12 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                     }  catch {
                     // ignore error if file does not exist
                     }
-    
+
                     const imageBuffer = bestImage.data;
 
                     const mimeType = bestImage.contentType || "image/jpeg";
                     const fileExt = mime.extension(mimeType) || "png";
-    
+
                     const result = await storage.createFile(
                         "66866e74001d3e2f2629",
                         itemID,
@@ -196,6 +196,7 @@ export default async ({ req, res, log, error }) => {
             image: "",
             imageID: data.imageID,
             imageSize: data.imageSize,
+            images: data.images,
             price: data.price
         };
 

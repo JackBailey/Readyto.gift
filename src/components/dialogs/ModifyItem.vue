@@ -111,8 +111,12 @@
 import { AppwriteException, ID } from "appwrite";
 import { databases, functions, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
+import ImageSelector from "./ImageSelector.vue";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import { markRaw } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+
 export default {
     title: "ListDialog",
     props: {
@@ -149,6 +153,7 @@ export default {
             auth: useAuthStore(),
             autofillLoading: false,
             dialogOpen: false,
+            dialogs: useDialogs(),
             errors: {},
             fileState: false,
             itemID: null,
@@ -259,8 +264,16 @@ export default {
                 );
 
                 if (result.status === "completed") {
+
                     const responseData = JSON.parse(result.responseBody);
                     if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
+                        const resp = await this.dialogs.create({
+                            async: true,
+                            component: markRaw(ImageSelector),
+                            props: {
+                                images: responseData.images
+                            }
+                        });
                         if (!responseData.title && !responseData.image && !responseData.price) {
                             this.errors = {
                                 url: "Unable to autofill data."
