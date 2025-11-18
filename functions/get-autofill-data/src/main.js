@@ -134,6 +134,7 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                         InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
                     );
 
+                    data.image = bestImage.image;
                     data.imageID = result.$id;
                     data.imageSize = result.sizeOriginal;
                 } else {

@@ -18,16 +18,17 @@
                 model-value
                 no-click-animation
                 persistent
-            >
-                <v-chip
-                    :text="`${ currentImageIndex + 1 } / ${images.length }`"
-                    color="#eee"
-                    size="small"
-                    variant="flat"
-                    rounded="pill"
-                />
-            </v-overlay>
+            />
         </v-carousel>
+        <v-chip
+            :text="`${ currentImageIndex + 1 } / ${images.length }`"
+            color="primary"
+            size="small"
+            variant="flat"
+            rounded="pill"
+            elevation="14"
+            align="center"
+        />
     </v-card-text>
     <v-card-actions>
         <v-btn
@@ -40,7 +41,9 @@
             text
             color="primary"
             variant="tonal"
-        >Select</v-btn>
+        >
+            Select
+        </v-btn>
     </v-card-actions>
 </template>
 
