@@ -43,6 +43,7 @@
                     :item="item"
                     :currency="currency"
                     @editItem="$emit('editItem', $event)"
+                    :wishlistOwner="wishlistOwner"
                     v-if="(wishlistOwner && !item.communityList) || (auth.isLoggedIn && item.contributorId === auth.user.$id)"
                 />
                 <MoveItem
@@ -233,7 +234,7 @@ export default {
         }
     },
     methods: {
-        getWebsiteHostname(url) {            
+        getWebsiteHostname(url) {
             const toTitleCase = (str) => {
                 return str.replace(
                     /\w\S*/g,
@@ -259,14 +260,14 @@ export default {
 
             const { hostname } = new URL(url);
             const parts = hostname.split(".");
-    
+
             // Handle domains with public suffixes
             for (let i = 0; i < publicSuffixes.length; i++) {
                 if (hostname.endsWith(publicSuffixes[i])) {
                     return toTitleCase(parts[parts.length - 3]);  // Get the part before the suffix
                 }
             }
-    
+
             const website = parts.length > 2 ? parts[parts.length - 2] : parts[0];
             return toTitleCase(website);
         },
@@ -288,7 +289,7 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    
+
     .item-header {
         display: grid;
         grid-template-columns: 1fr max-content;
@@ -300,7 +301,7 @@ export default {
             margin: 0;
             align-self: center;
         }
-    
+
         .v-btn-group {
             justify-self: end;
             align-self: center;
