@@ -69,7 +69,7 @@ const active = computed(() => props.currentStep === props.step);
 </script>
 
 <style lang="scss" scoped>
-/* .v-expansion-panel-title {
+.v-expansion-panel-title {
     cursor: text;
 }
 .v-expansion-panel-title__overlay  {
@@ -79,10 +79,12 @@ const active = computed(() => props.currentStep === props.step);
     padding: 0 !important;
 }
 
-.v-timeline-item[data-completed="true"] .v-timeline-divider__after,
-.v-timeline-item[data-completed="true"] .v-timeline-divider__before,
-.v-timeline-item[data-active="true"] .v-timeline-divider__before {
-    background-color: rgb(var(--v-theme-primary)) !important;
-} */
+:deep(.v-timeline) {
+    .v-timeline-item[data-completed="true"] .v-timeline-divider__after,
+    .v-timeline-item[data-completed="true"] .v-timeline-divider__before,
+    .v-timeline-item[data-active="true"] .v-timeline-divider__before {
+        background-color: rgb(var(--v-theme-primary)) !important;
+    }
+}
 
 </style>

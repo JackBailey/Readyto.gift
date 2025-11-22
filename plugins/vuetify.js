@@ -3,6 +3,8 @@ import "vuetify/styles";
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
 import { createVuetify } from "vuetify";
 import { md3 } from "vuetify/blueprints";
+import { VStepperVertical, VStepperVerticalActions, VStepperVerticalItem } from "vuetify/labs/VStepperVertical";
+
 
 const lightTheme = {
     dark: false,
@@ -140,5 +142,8 @@ export default createVuetify({
             light: lightTheme,
             dark: darkTheme
         }
+    },
+    components: {
+        VStepperVertical, VStepperVerticalActions, VStepperVerticalItem
     }
 });

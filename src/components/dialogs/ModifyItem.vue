@@ -67,10 +67,11 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <StartAutofill
+                    <AutofillButton
                         :url="modifiedItem.url"
                         :currency="currency"
                         :itemID="itemID"
+                        :automaticStart="!!quickCreateURL"
                     />
                     <v-btn
                         text="Cancel"
@@ -103,7 +104,7 @@ import { AppwriteException, ID } from "appwrite";
 import { client, databases, functions, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
-import StartAutofill from "@/components/dialogs/autofill/StartAutofill.vue";
+import AutofillButton from "@/components/dialogs/autofill/AutofillButton.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -135,8 +136,8 @@ export default {
         }
     },
     components: {
-        ItemFields,
-        StartAutofill
+        AutofillButton,
+        ItemFields
     },
     data() {
         return {
@@ -211,7 +212,6 @@ export default {
                 this.dialogOpen = true;
                 this.modifiedItem.url = newURL;
                 this.itemID = ID.unique();
-                this.autoFill();
 
                 this.$emit("unsetQuickCreateURL", "");
             }
@@ -228,112 +228,6 @@ export default {
                 this.modifiedItem.imageFile = null;
                 this.modifiedItem.imageID = null;
             }
-        },
-        async autoFill() {
-            this.errors = {};
-            const url = this.modifiedItem.url;
-            if (!url) {
-                this.errors = {
-                    url: "Please enter a URL to use the auto-fill feature."
-                };
-                return;
-            }
-            this.autofillLoading = true;
-            this.previousValues = {
-                ...this.modifiedItem
-            };
-
-            try {
-                const result = await functions.createExecution(
-                    "get-autofill-data",
-                    JSON.stringify({
-                        currency: this.currency,
-                        itemID: this.itemID,
-                        url: url
-                    }),
-                    true
-                );
-
-
-                if (result.status !== "failed") {
-                    const executionID = result.$id;
-                    client.subscribe([
-                        `executions.${executionID}`,
-                        `databases.wishlist.collections.autofills.documents.${executionID}`
-                    ], (response) => {
-                        if (response.channels.includes("rows")) {
-                            console.log({
-                                attempt: response.payload.attempt,
-                                attemptStatus: response.payload.attemptStatus,
-                                outputData: response.payload.outputData,
-                                status: response.payload.status
-                            });
-                        } else if (response.channels.includes("executions")) {
-                            console.log("Execution updated");
-                        }
-                    });
-                } else {
-                    this.errors = {
-                        url: "Unable to autofill data. Internal function error."
-                    };
-                }
-
-                // if (result.status === "completed") {
-
-                //     const responseData = JSON.parse(result.responseBody);
-                //     if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
-                //         const resp = await this.dialogs.create({
-                //             async: true,
-                //             component: markRaw(ImageSelector),
-                //             props: {
-                //                 images: responseData.images
-                //             }
-                //         });
-                //         if (!responseData.title && !responseData.image && !responseData.price) {
-                //             this.errors = {
-                //                 url: "Unable to autofill data."
-                //             };
-                //             this.autofillLoading = false;
-                //             return;
-                //         }
-
-                //         if (responseData.title === "Access Denied") {
-                //             this.errors = {
-                //                 url: "Access Denied. Please input data manually."
-                //             };
-                //             this.autofillLoading = false;
-                //             return;
-                //         }
-
-                //         this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-                //         this.modifiedItem.price = responseData.price
-                //             ? responseData.price.price
-                //             : this.modifiedItem.price;
-                //         this.modifiedItem.image = responseData.image || this.modifiedItem.image;
-                //         this.modifiedItem.url = responseData.url || this.modifiedItem.url;
-
-                //         if (responseData.imageID) {
-                //             this.modifiedItem.imageFile = new File(
-                //                 ["a".repeat(responseData.imageSize)],
-                //                 responseData.imageID
-                //             );
-                //             this.modifiedItem.imageID = responseData.imageID;
-                //         }
-                //     } else {
-                //         this.errors = {
-                //             url: responseData.error
-                //         };
-                //     }
-                // } else {
-                //     this.errors = {
-                //         url: "Unable to autofill data." + result.errors
-                //     };
-                // }
-            } catch (e) {
-                console.error("Error:", e);
-            }
-
-            this.autofillLoading = false;
         },
         async createItem() {
             let result;
@@ -523,7 +417,6 @@ export default {
             this.dialogOpen = true;
             this.modifiedItem.url = this.quickCreateURL;
             this.itemID = ID.unique();
-            this.autoFill();
 
             this.$emit("unsetQuickCreateURL", "");
         }

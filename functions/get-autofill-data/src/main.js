@@ -160,7 +160,7 @@ const getPreview = async ({ url, country, site, storage, itemID, executionID, da
                         InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
                     );
 
-                    data.image = bestImage.image;
+                    data.bestImage = bestImage.image;
                     data.imageID = result.$id;
                     data.imageSize = result.sizeOriginal;
                 } else {
@@ -182,6 +182,10 @@ const getPreview = async ({ url, country, site, storage, itemID, executionID, da
             // try next method
         }
     }
+
+    await updateStatus({
+        status: "failed"
+    });
 
     throw new Error("All request methods failed, it may be blocked.");
 };
@@ -244,6 +248,7 @@ export default async ({ req, res, log, error }) => {
             title: formatTitle(data, site),
             url: data.url ? TidyURL.clean(data.url).url : "",
             image: "",
+            bestImage: data.bestImage || null,
             imageID: data.imageID,
             imageSize: data.imageSize,
             images: data.images,
