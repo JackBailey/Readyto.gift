@@ -24,18 +24,8 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async ({ url, country, site, storage, itemID, executionID, databases, log, error }) => {
+const getRequestMethods = ({ country }) => {
     const requestMethods = [];
-
-    const updateStatus = (data) => {
-        console.log({ databases });
-        return databases.updateDocument(
-            "wishlist",
-            "autofills",
-            executionID,
-            data
-        );
-    };
 
     if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
         requestMethods.push({
@@ -85,6 +75,19 @@ const getPreview = async ({ url, country, site, storage, itemID, executionID, da
         }
     }
 
+    return requestMethods;
+};
+
+const getPreview = async ({ url, requestMethods, site, storage, itemID, executionID, databases, log, error }) => {
+    const updateStatus = (data) => {
+        return databases.updateDocument(
+            "wishlist",
+            "autofills",
+            executionID,
+            data
+        );
+    };
+
     log(`Total request methods to try: ${requestMethods.length}`);
 
     for (const [index, method] of requestMethods.entries()) {
@@ -107,7 +110,6 @@ const getPreview = async ({ url, country, site, storage, itemID, executionID, da
         };
 
         try {
-            console.log({ method });
             const data = await getLinkPreview({ url, log, error }, fetchOptions);
 
             await updateStatus({
@@ -191,31 +193,9 @@ const getPreview = async ({ url, country, site, storage, itemID, executionID, da
 };
 
 export default async ({ req, res, log, error }) => {
-    log({ req: req });
     try {
-        let functionStartTime = new Date();
-        const { url, currency, itemID } = req.bodyJson;
-        const userID = req.headers["x-appwrite-user-id"];
-
-        if (!url) {
-            return res.json({
-                error: "No URL provided"
-            });
-        }
-
-        if (!itemID) {
-            return res.json({
-                error: "No item ID provided"
-            });
-        }
-
-        const countryMap = {
-            USD: "us",
-            GBP: "gb",
-            EUR: "eu",
-            AUD: "au",
-            CAD: "ca"
-        };
+        let executionRowExists = false;
+        let executionID = null;
 
         const client = new Client()
             .setEndpoint("https://appwrite.readyto.gift/v1") // Your API Endpoint
@@ -224,52 +204,93 @@ export default async ({ req, res, log, error }) => {
 
         const storage = new Storage(client);
         const databases = new Databases(client);
+        try {
+            let functionStartTime = new Date();
+            const { url, currency, itemID } = req.bodyJson;
+            const userID = req.headers["x-appwrite-user-id"];
 
-        const executionID = req.headers["x-appwrite-execution-id"] || `dev-${ID.unique()}`;
+            if (!url) {
+                return res.json({
+                    error: "No URL provided"
+                });
+            }
 
-        await databases.createDocument("wishlist", "autofills", executionID, {
-            attempt: 0,
-            status: "processing",
-            autofillURL: url
-        }, [
-            Permission.write(Role.user(userID)),
-            Permission.read(Role.user(userID))
-        ]);
+            if (!itemID) {
+                return res.json({
+                    error: "No item ID provided"
+                });
+            }
 
-        let country = "";
-        if (currency && countryMap[currency]) {
-            country = countryMap[currency];
+            const countryMap = {
+                USD: "us",
+                GBP: "gb",
+                EUR: "eu",
+                AUD: "au",
+                CAD: "ca"
+            };
+
+            executionID = req.headers["x-appwrite-execution-id"] || `dev-${ID.unique()}`;
+
+            let country = "";
+            if (currency && countryMap[currency]) {
+                country = countryMap[currency];
+            }
+
+            const site = getSite(url);
+
+            const requestMethods = getRequestMethods({ country });
+
+            await databases.createDocument("wishlist", "autofills", executionID, {
+                attempt: 0,
+                totalAttempts: requestMethods.length,
+                status: "processing",
+                autofillURL: url
+            }, [
+                Permission.write(Role.user(userID)),
+                Permission.read(Role.user(userID))
+            ]);
+
+            executionRowExists = true;
+
+            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error });
+
+            const autofillData = {
+                title: formatTitle(data, site),
+                url: data.url ? TidyURL.clean(data.url).url : "",
+                image: "",
+                bestImage: data.bestImage || null,
+                imageID: data.imageID,
+                imageSize: data.imageSize,
+                images: data.images,
+                price: data.price
+            };
+
+            await databases.updateDocument("wishlist", "autofills", executionID, {
+                status: "completed",
+                executionTime: new Date().getTime() - functionStartTime.getTime(),
+                outputData: JSON.stringify(autofillData)
+            });
+
+            return res.json(autofillData, 200);
+        } catch (err) {
+            error(err.message);
+
+            if (executionRowExists) {
+                await databases.updateDocument("wishlist", "autofills", executionID, {
+                    status: "failed",
+                    outputData: err.message
+                });
+            }
+
+            return res.json({
+                error: err.message
+            }, 500);
         }
-
-        const site = getSite(url);
-        const data = await getPreview({ url, country, site, storage, itemID, executionID, databases, log, error });
-
-        const autofillData = {
-            title: formatTitle(data, site),
-            url: data.url ? TidyURL.clean(data.url).url : "",
-            image: "",
-            bestImage: data.bestImage || null,
-            imageID: data.imageID,
-            imageSize: data.imageSize,
-            images: data.images,
-            price: data.price
-        };
-
-        await databases.updateDocument("wishlist", "autofills", executionID, {
-            status: "completed",
-            executionTime: new Date().getTime() - functionStartTime.getTime(),
-            outputData: JSON.stringify(autofillData)
-        });
-
-        log("Autofill data:", autofillData);
-
-        return res.json(autofillData);
     } catch (err) {
-        error(err);
-        error("Could not get link preview: " + err.message);
+        error(err.message);
 
         return res.json({
             error: err.message
-        });
+        }, 500);
     }
 };

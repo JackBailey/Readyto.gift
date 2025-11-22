@@ -327,8 +327,6 @@ const enableTOTP = async () => {
     } catch (error) {
         console.log({ error });
         errors[1] = error.message;
-        console.log(errors);
-        console.error({ error });
     }
 };
 

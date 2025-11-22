@@ -86,9 +86,6 @@ function getImages(doc, rootUrl, imagesPropertyType) {
                         src,
                         location: "meta"
                     });
-                    console.log({
-                        imagePropertyType, src
-                    });
                 }
             }
         });

@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-timeline
-            direction="horizontal"
+            :direction="$vuetify.display.mobile ? 'vertical' : 'horizontal'"
             truncate-line="both"
             side="end"
             align="center"
@@ -44,10 +44,10 @@
 
 
 <script setup>
-import { computed, defineProps, onMounted, shallowRef } from "vue";
+import { client, databases, functions } from "@/appwrite";
+import { computed, defineProps, onMounted, onUnmounted, shallowRef } from "vue";
 import { mdiCheck, mdiFileDocument, mdiFileDocumentCheck, mdiImage, mdiImageCheck, mdiLoading, mdiWeb, mdiWebCheck } from "@mdi/js";
 import { useDialogs } from "@/stores/dialogs";
-import { client, functions } from "@/appwrite";
 
 const dialogs = useDialogs();
 
@@ -56,6 +56,8 @@ const currentAttempt = shallowRef(0);
 const attemptStatus = shallowRef("");
 const outputData = shallowRef(null);
 const status = shallowRef("");
+
+const autofillSubscription = shallowRef(null);
 
 const currentStep = computed(() => {
     if (attemptStatus.value) {
@@ -111,10 +113,13 @@ const props = defineProps({
     }
 });
 
+let pollingFallback = null;
+
 const emit = defineEmits(["cancel", "complete", "attempt-update", "attempt-max-update"]);
 
 const autofill = async () => {
     try {
+        pollingFallback = null;
         const result = await functions.createExecution(
             "get-autofill-data",
             JSON.stringify({
@@ -125,12 +130,53 @@ const autofill = async () => {
             true
         );
 
+        const executionID = result.$id;
+
         if (result.status !== "failed") {
-            const executionID = result.$id;
-            client.subscribe([
-                `executions.${executionID}`,
-                `databases.wishlist.collections.autofills.documents.${executionID}`
+            // Fall back to manual polling incase socket fails, or completes before socket connects
+            pollingFallback = setInterval(async () => {
+                try {
+                    const pollResult = await databases.getDocument(
+                        import.meta.env.VITE_APPWRITE_DB,
+                        "autofills",
+                        executionID
+                    );
+
+                    switch (pollResult.status) {
+                    case "failed":
+                        clearInterval(pollingFallback);
+                        emit("cancel");
+                        dialogs.create({
+                            actions: [
+                                {
+                                    action: "close",
+                                    color: "primary",
+                                    text: "OK"
+                                }
+                            ],
+                            fullscreen: false,
+                            text: "All autofill attempts have failed. Please try again later or fill in the details manually.",
+                            title: "Autofill Error",
+                            type: "error"
+                        });
+                        break;
+                    case "completed":
+                        clearInterval(pollingFallback);
+                        setTimeout(() => {
+                            emit("complete", pollResult.outputData);
+                        }, 500);
+                        break;
+                    }
+                } catch (err) {
+                    if (err.message === "AppwriteException: Document with the requested ID could not be found.") throw err;
+                }
+            }, 5000);
+
+            autofillSubscription.value = client.subscribe([
+                "executions",
+                `databases.wishlist.collections.autofills.documents.${executionID}` // try without, then with just
             ], (response) => {
+                clearInterval(pollingFallback); // Clear the recheck timeout on receiving an update
                 if (response.channels.includes("rows")) {
 
                     currentAttempt.value = response.payload.attempt;
@@ -152,6 +198,7 @@ const autofill = async () => {
                                     text: "OK"
                                 }
                             ],
+                            fullscreen: false,
                             text: "All autofill attempts have failed. Please try again later or fill in the details manually.",
                             title: "Autofill Error",
                             type: "error"
@@ -164,14 +211,36 @@ const autofill = async () => {
                         }, 500);
                     }
                 } else if (response.channels.includes("executions")) {
-                    console.log("Execution updated");
+                    if (response.payload.status === "completed") {
+                        // Just in case the DB update is delayed
+                        setTimeout(() => {
+                            emit("complete", outputData.value);
+                        }, 500);
+                    } else {
+                        if (response.payload.status === "failed") {
+                            emit("cancel");
+                            dialogs.create({
+                                actions: [
+                                    {
+                                        action: "close",
+                                        color: "primary",
+                                        text: "OK"
+                                    }
+                                ],
+                                fullscreen: false,
+                                text: response.payload.errors,
+                                title: "Autofill Error",
+                                type: "error"
+                            });
+                        }
+                    }
                 }
             });
         } else {
             throw new Error("Autofill function execution failed to start.");
         }
     } catch (error) {
-        console.log({
+        console.error({
             error
         });
         emit("cancel");
@@ -183,6 +252,7 @@ const autofill = async () => {
                     text: "OK"
                 }
             ],
+            fullscreen: false,
             text: `An error occurred during autofill: ${error.message || error}`,
             title: "Autofill Error",
             type: "error"
@@ -192,6 +262,15 @@ const autofill = async () => {
 
 onMounted(() => {
     autofill();
+});
+
+onUnmounted(() => {
+    if (autofillSubscription.value) {
+        autofillSubscription.value(); // Unsubscribe from the subscription
+    }
+    if (pollingFallback) {
+        clearInterval(pollingFallback);
+    }
 });
 
 </script>

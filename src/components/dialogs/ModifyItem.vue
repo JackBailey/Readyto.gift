@@ -26,11 +26,9 @@
         <template v-slot:default="{ isActive }">
             <v-card
                 :title="
-                    autofillLoading
-                        ? 'Autofilling data...'
-                        : item
-                            ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
-                            : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                    item
+                        ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                        : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
                 "
             >
                 <v-card-text>
@@ -72,6 +70,7 @@
                         :currency="currency"
                         :itemID="itemID"
                         :automaticStart="!!quickCreateURL"
+                        @autofill-complete="autofillComplete"
                     />
                     <v-btn
                         text="Cancel"
@@ -101,10 +100,11 @@
 
 <script>
 import { AppwriteException, ID } from "appwrite";
-import { client, databases, functions, storage } from "@/appwrite";
+import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
-import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
 import AutofillButton from "@/components/dialogs/autofill/AutofillButton.vue";
+import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import mime from "mime-types";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -143,7 +143,6 @@ export default {
         return {
             alert: false,
             auth: useAuthStore(),
-            autofillLoading: false,
             dialogOpen: false,
             dialogs: useDialogs(),
             errors: {},
@@ -221,10 +220,14 @@ export default {
         async setFileState(value) {
             this.fileState = value;
             if (value === "removed") {
-                await storage.deleteFile(
-                    import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                    this.modifiedItem.imageID
-                );
+                try {
+                    await storage.deleteFile(
+                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        this.modifiedItem.imageID
+                    );
+                } catch (e) {
+                    console.error("Failed to delete file:", e);
+                }
                 this.modifiedItem.imageFile = null;
                 this.modifiedItem.imageID = null;
             }
@@ -243,11 +246,14 @@ export default {
                 return;
             }
             try {
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
                 if (this.modifiedItem.imageFile && !this.modifiedItem.imageID) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
                         import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                        this.itemID,
+                        ID.unique(),
                         this.modifiedItem.imageFile
                     );
 
@@ -347,14 +353,24 @@ export default {
             this.loading = true;
 
             try {
-                if (["removed", "replaced"].includes(this.fileState)) {
-                    if (this.modifiedItem.imageID) {
-                        await storage.deleteFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                            this.modifiedItem.imageID
-                        );
+                // Upload hotlinked image if present (manually added)
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
 
-                        this.modifiedItem.imageID = null;
+                if (["removed", "replaced"].includes(this.fileState)) {
+                    try {
+                        if (this.modifiedItem.imageID) {
+                            await storage.deleteFile(
+                                import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                                this.modifiedItem.imageID
+                            );
+
+                            this.modifiedItem.imageID = null;
+                        }
+
+                    } catch (e) {
+                        console.error("Failed to delete file:", e);
                     }
                 }
 
@@ -410,6 +426,45 @@ export default {
 
             this.dialogOpen = false;
             this.loading = false;
+        },
+        async downloadRemoteImage(imageURL) {
+            try {
+                const imageResponse = await fetch(imageURL);
+
+                let imageBlob = await imageResponse.blob();
+
+                let fileExt = mime.extension(imageBlob.type) || "png";
+
+                if (fileExt === "webp") {
+                    // Leave webp as is, due to https://github.com/appwrite/appwrite/issues/10699
+                    return;
+                }
+
+                const imageFile = new File(
+                    [imageBlob], `image.${fileExt}`,
+                    { type: imageBlob.type }
+                );
+                this.fileState = this.modifiedItem.imageID ? "replaced" : "added";
+                this.modifiedItem.imageFile = imageFile;
+                this.modifiedItem.image = "";
+            } catch (error) {
+                // Will just be hotlinked instead
+                console.error("Failed to download remote image:", error);
+            }
+        },
+        async autofillComplete(responseData) {
+            this.previousValues = { ...this.modifiedItem };
+
+            this.modifiedItem.title = responseData.title || this.modifiedItem.title;
+            this.modifiedItem.price = responseData.price
+                ? responseData.price.price
+                : this.modifiedItem.price;
+
+            if (responseData.image) {
+                this.modifiedItem.image = responseData.image;
+            }
+
+            this.modifiedItem.url = responseData.url || this.modifiedItem.url;
         }
     },
     mounted() {
