@@ -165,12 +165,6 @@ export default {
                             .format(upperBound)
                             .split(".")[0];
 
-                    console.log({
-                        lowerBound,
-                        upperBound,
-                        title
-                    });
-
                     return {
                         items: items
                             .filter((item) => {

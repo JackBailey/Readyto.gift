@@ -26,11 +26,9 @@
         <template v-slot:default="{ isActive }">
             <v-card
                 :title="
-                    autofillLoading
-                        ? 'Autofilling data...'
-                        : item
-                            ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
-                            : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                    item
+                        ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                        : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
                 "
             >
                 <v-card-text>
@@ -67,20 +65,13 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-tooltip :open-on-hover="modifiedItem.url === ''">
-                        <template v-slot:activator="{ props }">
-                            <span v-bind="props">
-                                <v-btn
-                                    text="Auto-fill"
-                                    :prepend-icon="mdiRobot"
-                                    variant="tonal"
-                                    @click="autoFill"
-                                    :loading="autofillLoading"
-                                    :disabled="modifiedItem.url === ''"
-                                /></span>
-                        </template>
-                        <span>Please enter a URL to use the auto-fill feature</span>
-                    </v-tooltip>
+                    <AutofillButton
+                        :url="modifiedItem.url"
+                        :currency="currency"
+                        :itemID="itemID"
+                        :automaticStart="!!quickCreateURL"
+                        @autofill-complete="autofillComplete"
+                    />
                     <v-btn
                         text="Cancel"
                         @click="isActive.value = false"
@@ -109,10 +100,14 @@
 
 <script>
 import { AppwriteException, ID } from "appwrite";
-import { databases, functions, storage } from "@/appwrite";
+import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
+import AutofillButton from "@/components/dialogs/autofill/AutofillButton.vue";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import mime from "mime-types";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+
 export default {
     title: "ListDialog",
     props: {
@@ -141,14 +136,15 @@ export default {
         }
     },
     components: {
+        AutofillButton,
         ItemFields
     },
     data() {
         return {
             alert: false,
             auth: useAuthStore(),
-            autofillLoading: false,
             dialogOpen: false,
+            dialogs: useDialogs(),
             errors: {},
             fileState: false,
             itemID: null,
@@ -215,7 +211,6 @@ export default {
                 this.dialogOpen = true;
                 this.modifiedItem.url = newURL;
                 this.itemID = ID.unique();
-                this.autoFill();
 
                 this.$emit("unsetQuickCreateURL", "");
             }
@@ -225,87 +220,17 @@ export default {
         async setFileState(value) {
             this.fileState = value;
             if (value === "removed") {
-                await storage.deleteFile(
-                    import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                    this.modifiedItem.imageID
-                );
+                try {
+                    await storage.deleteFile(
+                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        this.modifiedItem.imageID
+                    );
+                } catch (e) {
+                    console.error("Failed to delete file:", e);
+                }
                 this.modifiedItem.imageFile = null;
                 this.modifiedItem.imageID = null;
             }
-        },
-        async autoFill() {
-            this.errors = {};
-            const url = this.modifiedItem.url;
-            if (!url) {
-                this.errors = {
-                    url: "Please enter a URL to use the auto-fill feature."
-                };
-                return;
-            }
-            this.autofillLoading = true;
-            this.previousValues = {
-                ...this.modifiedItem
-            };
-
-            try {
-                const result = await functions.createExecution(
-                    "get-autofill-data",
-                    JSON.stringify({
-                        currency: this.currency,
-                        itemID: this.itemID,
-                        url: url
-                    }),
-                    false
-                );
-
-                if (result.status === "completed") {
-                    const responseData = JSON.parse(result.responseBody);
-                    if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
-                        if (!responseData.title && !responseData.image && !responseData.price) {
-                            this.errors = {
-                                url: "Unable to autofill data."
-                            };
-                            this.autofillLoading = false;
-                            return;
-                        }
-
-                        if (responseData.title === "Access Denied") {
-                            this.errors = {
-                                url: "Access Denied. Please input data manually."
-                            };
-                            this.autofillLoading = false;
-                            return;
-                        }
-
-                        this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-                        this.modifiedItem.price = responseData.price
-                            ? responseData.price.price
-                            : this.modifiedItem.price;
-                        this.modifiedItem.image = responseData.image || this.modifiedItem.image;
-                        this.modifiedItem.url = responseData.url || this.modifiedItem.url;
-
-                        if (responseData.imageID) {
-                            this.modifiedItem.imageFile = new File(
-                                ["a".repeat(responseData.imageSize)],
-                                responseData.imageID
-                            );
-                            this.modifiedItem.imageID = responseData.imageID;
-                        }
-                    } else {
-                        this.errors = {
-                            url: responseData.error
-                        };
-                    }
-                } else {
-                    this.errors = {
-                        url: "Unable to autofill data." + result.errors
-                    };
-                }
-            } catch (e) {
-                console.error("Error:", e);
-            }
-
-            this.autofillLoading = false;
         },
         async createItem() {
             let result;
@@ -321,11 +246,14 @@ export default {
                 return;
             }
             try {
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
                 if (this.modifiedItem.imageFile && !this.modifiedItem.imageID) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
                         import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                        this.itemID,
+                        ID.unique(),
                         this.modifiedItem.imageFile
                     );
 
@@ -425,14 +353,24 @@ export default {
             this.loading = true;
 
             try {
-                if (["removed", "replaced"].includes(this.fileState)) {
-                    if (this.modifiedItem.imageID) {
-                        await storage.deleteFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                            this.modifiedItem.imageID
-                        );
+                // Upload hotlinked image if present (manually added)
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
 
-                        this.modifiedItem.imageID = null;
+                if (["removed", "replaced"].includes(this.fileState)) {
+                    try {
+                        if (this.modifiedItem.imageID) {
+                            await storage.deleteFile(
+                                import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                                this.modifiedItem.imageID
+                            );
+
+                            this.modifiedItem.imageID = null;
+                        }
+
+                    } catch (e) {
+                        console.error("Failed to delete file:", e);
                     }
                 }
 
@@ -488,6 +426,45 @@ export default {
 
             this.dialogOpen = false;
             this.loading = false;
+        },
+        async downloadRemoteImage(imageURL) {
+            try {
+                const imageResponse = await fetch(imageURL);
+
+                let imageBlob = await imageResponse.blob();
+
+                let fileExt = mime.extension(imageBlob.type) || "png";
+
+                if (fileExt === "webp") {
+                    // Leave webp as is, due to https://github.com/appwrite/appwrite/issues/10699
+                    return;
+                }
+
+                const imageFile = new File(
+                    [imageBlob], `image.${fileExt}`,
+                    { type: imageBlob.type }
+                );
+                this.fileState = this.modifiedItem.imageID ? "replaced" : "added";
+                this.modifiedItem.imageFile = imageFile;
+                this.modifiedItem.image = "";
+            } catch (error) {
+                // Will just be hotlinked instead
+                console.error("Failed to download remote image:", error);
+            }
+        },
+        async autofillComplete(responseData) {
+            this.previousValues = { ...this.modifiedItem };
+
+            this.modifiedItem.title = responseData.title || this.modifiedItem.title;
+            this.modifiedItem.price = responseData.price
+                ? responseData.price.price
+                : this.modifiedItem.price;
+
+            if (responseData.image) {
+                this.modifiedItem.image = responseData.image;
+            }
+
+            this.modifiedItem.url = responseData.url || this.modifiedItem.url;
         }
     },
     mounted() {
@@ -495,7 +472,6 @@ export default {
             this.dialogOpen = true;
             this.modifiedItem.url = this.quickCreateURL;
             this.itemID = ID.unique();
-            this.autoFill();
 
             this.$emit("unsetQuickCreateURL", "");
         }
