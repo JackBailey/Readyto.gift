@@ -68,8 +68,8 @@ const completed = computed(() => props.currentStep > props.step);
 const active = computed(() => props.currentStep === props.step);
 </script>
 
-<style lang="scss">
-.v-expansion-panel-title {
+<style lang="scss" scoped>
+/* .v-expansion-panel-title {
     cursor: text;
 }
 .v-expansion-panel-title__overlay  {
@@ -83,6 +83,6 @@ const active = computed(() => props.currentStep === props.step);
 .v-timeline-item[data-completed="true"] .v-timeline-divider__before,
 .v-timeline-item[data-active="true"] .v-timeline-divider__before {
     background-color: rgb(var(--v-theme-primary)) !important;
-}
+} */
 
 </style>

@@ -128,13 +128,13 @@ const toggleMFA = async () => {
     padding: 0.7rem;
 }
 
-.timeline-item-body {
+/* .timeline-item-body {
     transition: max-height 0.25s ease-in-out;
     max-height: 0;
     overflow: hidden;
-}
+} */
 
-.v-timeline-item[data-active="true"] .timeline-item-body {
+/* .v-timeline-item[data-active="true"] .timeline-item-body {
     max-height: 200vh;
 }
 
@@ -154,5 +154,5 @@ const toggleMFA = async () => {
             font-weight: bold;
         }
     }
-}
+} */
 </style>

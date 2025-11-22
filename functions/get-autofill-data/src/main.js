@@ -1,4 +1,4 @@
-import { Client, Storage } from "node-appwrite";
+import { Client, Databases, ID, Permission, Role, Storage } from "node-appwrite";
 import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
@@ -24,8 +24,18 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url, country, site, storage, itemID, { log, error }) => {
+const getPreview = async ({ url, country, site, storage, itemID, executionID, databases, log, error }) => {
     const requestMethods = [];
+
+    const updateStatus = (data) => {
+        console.log({ databases });
+        return databases.updateDocument(
+            "wishlist",
+            "autofills",
+            executionID,
+            data
+        );
+    };
 
     if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
         requestMethods.push({
@@ -77,8 +87,14 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 
     log(`Total request methods to try: ${requestMethods.length}`);
 
-    for (const method of requestMethods) {
+    for (const [index, method] of requestMethods.entries()) {
         log(`Trying request method: ${method.name}`);
+
+        await updateStatus({
+            attempt: index + 1,
+            attemptStatus: "starting",
+            totalAttempts: requestMethods.length
+        });
 
         const fetchOptions = {
             followRedirects: "follow",
@@ -94,6 +110,10 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
             console.log({ method });
             const data = await getLinkPreview({ url, log, error }, fetchOptions);
 
+            await updateStatus({
+                attemptStatus: "processing"
+            });
+
             log(`Request method succeeded: ${method.name}`);
 
             if (
@@ -104,6 +124,9 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
             }
 
             if (data.images && data.images.length) {
+                await updateStatus({
+                    attemptStatus: "finding-best-image"
+                });
                 const bestImage = await getBestImage({
                     images: data.images,
                     site,
@@ -113,6 +136,9 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 
                 if (bestImage) {
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
+                    await updateStatus({
+                        attemptStatus: "processing-best-image"
+                    });
                     try {
                     // delete original
                         await storage.deleteFile(
@@ -142,8 +168,16 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
                 }
             }
 
+            await updateStatus({
+                attempt: index + 1,
+                attemptStatus: "completed"
+            });
+
             return data;
         } catch (err) {
+            await updateStatus({
+                attemptStatus: "failed"
+            });
             error(`Request method failed: ${method.name} - ${err.message}`);
             // try next method
         }
@@ -153,8 +187,11 @@ const getPreview = async (url, country, site, storage, itemID, { log, error }) =
 };
 
 export default async ({ req, res, log, error }) => {
+    log({ req: req });
     try {
+        let functionStartTime = new Date();
         const { url, currency, itemID } = req.bodyJson;
+        const userID = req.headers["x-appwrite-user-id"];
 
         if (!url) {
             return res.json({
@@ -182,6 +219,18 @@ export default async ({ req, res, log, error }) => {
             .setJWT(req.headers["x-appwrite-user-jwt"]);
 
         const storage = new Storage(client);
+        const databases = new Databases(client);
+
+        const executionID = req.headers["x-appwrite-execution-id"] || `dev-${ID.unique()}`;
+
+        await databases.createDocument("wishlist", "autofills", executionID, {
+            attempt: 0,
+            status: "processing",
+            autofillURL: url
+        }, [
+            Permission.write(Role.user(userID)),
+            Permission.read(Role.user(userID))
+        ]);
 
         let country = "";
         if (currency && countryMap[currency]) {
@@ -189,7 +238,7 @@ export default async ({ req, res, log, error }) => {
         }
 
         const site = getSite(url);
-        const data = await getPreview(url, country, site, storage, itemID, { log, error });
+        const data = await getPreview({ url, country, site, storage, itemID, executionID, databases, log, error });
 
         const autofillData = {
             title: formatTitle(data, site),
@@ -200,6 +249,12 @@ export default async ({ req, res, log, error }) => {
             images: data.images,
             price: data.price
         };
+
+        await databases.updateDocument("wishlist", "autofills", executionID, {
+            status: "completed",
+            executionTime: new Date().getTime() - functionStartTime.getTime(),
+            outputData: JSON.stringify(autofillData)
+        });
 
         log("Autofill data:", autofillData);
 

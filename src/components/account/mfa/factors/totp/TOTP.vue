@@ -224,7 +224,7 @@ import {
     mdiTrashCan
 } from "@mdi/js";
 
-import ExpanderStep from "@/components/account/ExpanderStep.vue";
+import ExpanderStep from "@/components/ExpanderStep.vue";
 import ManageRecoveryCodes from "./ManageRecoveryCodes.vue";
 import RecoveryCodes from "./RecoveryCodes.vue";
 import { useAuthStore } from "@/stores/auth";

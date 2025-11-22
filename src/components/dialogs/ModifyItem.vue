@@ -67,20 +67,11 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-tooltip :open-on-hover="modifiedItem.url === ''">
-                        <template v-slot:activator="{ props }">
-                            <span v-bind="props">
-                                <v-btn
-                                    text="Auto-fill"
-                                    :prepend-icon="mdiRobot"
-                                    variant="tonal"
-                                    @click="autoFill"
-                                    :loading="autofillLoading"
-                                    :disabled="modifiedItem.url === ''"
-                                /></span>
-                        </template>
-                        <span>Please enter a URL to use the auto-fill feature</span>
-                    </v-tooltip>
+                    <StartAutofill
+                        :url="modifiedItem.url"
+                        :currency="currency"
+                        :itemID="itemID"
+                    />
                     <v-btn
                         text="Cancel"
                         @click="isActive.value = false"
@@ -109,11 +100,10 @@
 
 <script>
 import { AppwriteException, ID } from "appwrite";
-import { databases, functions, storage } from "@/appwrite";
+import { client, databases, functions, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
-import ImageSelector from "./ImageSelector.vue";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
-import { markRaw } from "vue";
+import StartAutofill from "@/components/dialogs/autofill/StartAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -145,7 +135,8 @@ export default {
         }
     },
     components: {
-        ItemFields
+        ItemFields,
+        StartAutofill
     },
     data() {
         return {
@@ -260,60 +251,84 @@ export default {
                         itemID: this.itemID,
                         url: url
                     }),
-                    false
+                    true
                 );
 
-                if (result.status === "completed") {
 
-                    const responseData = JSON.parse(result.responseBody);
-                    if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
-                        const resp = await this.dialogs.create({
-                            async: true,
-                            component: markRaw(ImageSelector),
-                            props: {
-                                images: responseData.images
-                            }
-                        });
-                        if (!responseData.title && !responseData.image && !responseData.price) {
-                            this.errors = {
-                                url: "Unable to autofill data."
-                            };
-                            this.autofillLoading = false;
-                            return;
+                if (result.status !== "failed") {
+                    const executionID = result.$id;
+                    client.subscribe([
+                        `executions.${executionID}`,
+                        `databases.wishlist.collections.autofills.documents.${executionID}`
+                    ], (response) => {
+                        if (response.channels.includes("rows")) {
+                            console.log({
+                                attempt: response.payload.attempt,
+                                attemptStatus: response.payload.attemptStatus,
+                                outputData: response.payload.outputData,
+                                status: response.payload.status
+                            });
+                        } else if (response.channels.includes("executions")) {
+                            console.log("Execution updated");
                         }
-
-                        if (responseData.title === "Access Denied") {
-                            this.errors = {
-                                url: "Access Denied. Please input data manually."
-                            };
-                            this.autofillLoading = false;
-                            return;
-                        }
-
-                        this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-                        this.modifiedItem.price = responseData.price
-                            ? responseData.price.price
-                            : this.modifiedItem.price;
-                        this.modifiedItem.image = responseData.image || this.modifiedItem.image;
-                        this.modifiedItem.url = responseData.url || this.modifiedItem.url;
-
-                        if (responseData.imageID) {
-                            this.modifiedItem.imageFile = new File(
-                                ["a".repeat(responseData.imageSize)],
-                                responseData.imageID
-                            );
-                            this.modifiedItem.imageID = responseData.imageID;
-                        }
-                    } else {
-                        this.errors = {
-                            url: responseData.error
-                        };
-                    }
+                    });
                 } else {
                     this.errors = {
-                        url: "Unable to autofill data." + result.errors
+                        url: "Unable to autofill data. Internal function error."
                     };
                 }
+
+                // if (result.status === "completed") {
+
+                //     const responseData = JSON.parse(result.responseBody);
+                //     if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
+                //         const resp = await this.dialogs.create({
+                //             async: true,
+                //             component: markRaw(ImageSelector),
+                //             props: {
+                //                 images: responseData.images
+                //             }
+                //         });
+                //         if (!responseData.title && !responseData.image && !responseData.price) {
+                //             this.errors = {
+                //                 url: "Unable to autofill data."
+                //             };
+                //             this.autofillLoading = false;
+                //             return;
+                //         }
+
+                //         if (responseData.title === "Access Denied") {
+                //             this.errors = {
+                //                 url: "Access Denied. Please input data manually."
+                //             };
+                //             this.autofillLoading = false;
+                //             return;
+                //         }
+
+                //         this.modifiedItem.title = responseData.title || this.modifiedItem.title;
+                //         this.modifiedItem.price = responseData.price
+                //             ? responseData.price.price
+                //             : this.modifiedItem.price;
+                //         this.modifiedItem.image = responseData.image || this.modifiedItem.image;
+                //         this.modifiedItem.url = responseData.url || this.modifiedItem.url;
+
+                //         if (responseData.imageID) {
+                //             this.modifiedItem.imageFile = new File(
+                //                 ["a".repeat(responseData.imageSize)],
+                //                 responseData.imageID
+                //             );
+                //             this.modifiedItem.imageID = responseData.imageID;
+                //         }
+                //     } else {
+                //         this.errors = {
+                //             url: responseData.error
+                //         };
+                //     }
+                // } else {
+                //     this.errors = {
+                //         url: "Unable to autofill data." + result.errors
+                //     };
+                // }
             } catch (e) {
                 console.error("Error:", e);
             }
