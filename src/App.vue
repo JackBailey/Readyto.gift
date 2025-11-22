@@ -64,7 +64,7 @@ const setThemeColor = () => {
 setThemeColor();
 
 auth.$subscribe((mutation) => {
-    if (mutation.events.key !== "userPrefs") return;
+    if (mutation?.events.key !== "userPrefs") return;
     setThemeColor();
 });
 
