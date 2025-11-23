@@ -1,5 +1,16 @@
 <template>
-    <div>
+    <v-card-title>
+        Processing Autofill
+        <v-chip
+            rounded="pill"
+            color="primary"
+            v-if="totalAttempts > 0"
+            class="ml-4"
+        >
+            Attempt {{ currentAttempt }} of {{ totalAttempts }}
+        </v-chip>
+    </v-card-title>
+    <v-card-text>
         <v-timeline
             :direction="$vuetify.display.mobile ? 'vertical' : 'horizontal'"
             truncate-line="both"
@@ -39,7 +50,7 @@
                 </div>
             </v-timeline-item>
         </v-timeline>
-    </div>
+    </v-card-text>
 </template>
 
 
@@ -47,9 +58,6 @@
 import { client, databases, functions } from "@/appwrite";
 import { computed, defineProps, onMounted, onUnmounted, shallowRef } from "vue";
 import { mdiCheck, mdiFileDocument, mdiFileDocumentCheck, mdiImage, mdiImageCheck, mdiLoading, mdiWeb, mdiWebCheck } from "@mdi/js";
-import { useDialogs } from "@/stores/dialogs";
-
-const dialogs = useDialogs();
 
 const totalAttempts = shallowRef(0);
 const currentAttempt = shallowRef(0);
@@ -115,7 +123,7 @@ const props = defineProps({
 
 let pollingFallback = null;
 
-const emit = defineEmits(["cancel", "complete", "attempt-update", "attempt-max-update"]);
+const emit = defineEmits(["complete", "error"]);
 
 const autofill = async () => {
     try {
@@ -145,20 +153,7 @@ const autofill = async () => {
                     switch (pollResult.status) {
                     case "failed":
                         clearInterval(pollingFallback);
-                        emit("cancel");
-                        dialogs.create({
-                            actions: [
-                                {
-                                    action: "close",
-                                    color: "primary",
-                                    text: "OK"
-                                }
-                            ],
-                            fullscreen: false,
-                            text: "All autofill attempts have failed. Please try again later or fill in the details manually.",
-                            title: "Autofill Error",
-                            type: "error"
-                        });
+                        emit("error", "All autofill attempts have failed. Please try again later or fill in the details manually.");
                         break;
                     case "completed":
                         clearInterval(pollingFallback);
@@ -185,27 +180,12 @@ const autofill = async () => {
                     outputData.value = response.payload.outputData;
                     status.value = response.payload.status;
 
-                    emit("attempt-update", currentAttempt.value);
-                    emit("attempt-max-update", totalAttempts.value);
-
                     if (status.value === "failed") {
-                        emit("cancel");
-                        dialogs.create({
-                            actions: [
-                                {
-                                    action: "close",
-                                    color: "primary",
-                                    text: "OK"
-                                }
-                            ],
-                            fullscreen: false,
-                            text: "All autofill attempts have failed. Please try again later or fill in the details manually.",
-                            title: "Autofill Error",
-                            type: "error"
-                        });
+                        emit("error", "All autofill attempts have failed. Please try again later or fill in the details manually.");
                     }
 
                     if (status.value === "completed") {
+                        autofillSubscription.value(); // Unsubscribe from the subscription
                         setTimeout(() => {
                             emit("complete", outputData.value);
                         }, 500);
@@ -218,20 +198,7 @@ const autofill = async () => {
                         }, 500);
                     } else {
                         if (response.payload.status === "failed") {
-                            emit("cancel");
-                            dialogs.create({
-                                actions: [
-                                    {
-                                        action: "close",
-                                        color: "primary",
-                                        text: "OK"
-                                    }
-                                ],
-                                fullscreen: false,
-                                text: response.payload.errors,
-                                title: "Autofill Error",
-                                type: "error"
-                            });
+                            emit("error", "All autofill attempts have failed. Please try again later or fill in the details manually.");
                         }
                     }
                 }
@@ -243,20 +210,7 @@ const autofill = async () => {
         console.error({
             error
         });
-        emit("cancel");
-        dialogs.create({
-            actions: [
-                {
-                    action: "close",
-                    color: "primary",
-                    text: "OK"
-                }
-            ],
-            fullscreen: false,
-            text: `An error occurred during autofill: ${error.message || error}`,
-            title: "Autofill Error",
-            type: "error"
-        });
+        emit("error", "All autofill attempts have failed. Please try again later or fill in the details manually.");
     }
 };
 

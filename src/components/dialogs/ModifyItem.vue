@@ -65,13 +65,20 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <AutofillButton
-                        :url="modifiedItem.url"
-                        :currency="currency"
-                        :itemID="itemID"
-                        :automaticStart="!!quickCreateURL"
-                        @autofill-complete="autofillComplete"
-                    />
+                    <v-tooltip :open-on-hover="!modifiedItem.url">
+                        <template v-slot:activator="{ tooltipProps }">
+                            <span v-bind="tooltipProps">
+                                <v-btn
+                                    text="Auto-fill"
+                                    :prepend-icon="mdiRobot"
+                                    variant="tonal"
+                                    :disabled="!modifiedItem.url"
+                                    @click="autofill"
+                                />
+                            </span>
+                        </template>
+                        <span>Please enter a URL to use the auto-fill feature</span>
+                    </v-tooltip>
                     <v-btn
                         text="Cancel"
                         @click="isActive.value = false"
@@ -102,9 +109,11 @@
 import { AppwriteException, ID } from "appwrite";
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
-import AutofillButton from "@/components/dialogs/autofill/AutofillButton.vue";
+import ImageSelector from "@/components/dialogs/ImageSelector.vue";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import { markRaw } from "vue";
 import mime from "mime-types";
+import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
@@ -136,7 +145,6 @@ export default {
         }
     },
     components: {
-        AutofillButton,
         ItemFields
     },
     data() {
@@ -204,19 +212,123 @@ export default {
                 } else {
                     this.itemID = ID.unique();
                 }
+            } else {
+                this.previousValues = {};
+                this.modifiedItem = {
+                    description: "",
+                    displayPrice: true,
+                    image: null,
+                    imageFile: null,
+                    imageID: null,
+                    price: "",
+                    priority: "none",
+                    title: "",
+                    url: ""
+                };
             }
         },
-        quickCreateURL(newURL) {
+        async quickCreateURL(newURL) {
             if (newURL) {
-                this.dialogOpen = true;
+                this.dialogOpen = false;
                 this.modifiedItem.url = newURL;
                 this.itemID = ID.unique();
-
                 this.$emit("unsetQuickCreateURL", "");
+
+                await this.autofill();
+
+                this.dialogOpen = true;
             }
         }
     },
     methods: {
+        async autofill() {
+            this.previousValues = { ...this.modifiedItem };
+
+            const resp = await this.dialogs.create({
+                async: true,
+                component: markRaw(ProcessingAutofill),
+                emits: [
+                    "complete", "error"
+                ],
+                fullscreen: false,
+                maxWidth: "90%",
+                props: {
+                    currency: this.currency,
+                    itemID: this.itemID,
+                    url: this.modifiedItem.url
+                }
+            });
+
+            console.log(resp.action);
+
+            if (resp.action === "closed") {
+                return;
+            }
+
+            if (resp.action === "error") {
+                this.alert = {
+                    text: resp.data || "An unknown error occurred during auto-fill.",
+                    title: "Error"
+                };
+                return;
+            }
+
+            const autofillData = JSON.parse(resp.data);
+            if (!autofillData) {
+                this.alert = {
+                    text: "No data was returned from the auto-fill process.",
+                    title: "Error"
+                };
+                return;
+            }
+
+            if (autofillData.images.length > 1) {
+                const images = autofillData.images.map((image) => {
+                    image.best = image.src === autofillData.bestImage.src;
+                    return image;
+                }).sort((a, b) => {
+                    if (a.best && !b.best) {
+                        return -1;
+                    }
+                    if (!a.best && b.best) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                const imageSelectorResp = await this.dialogs.create({
+                    async: true,
+                    component: markRaw(ImageSelector),
+                    emits: [
+                        "select-image"
+                    ],
+                    fullscreen: false,
+                    props: {
+                        images: images
+                    }
+                });
+                if (imageSelectorResp.action === "select-image") {
+                    this.modifiedItem.image = images[0].src;
+                    this.modifiedItem.imageFile = null;
+                    this.modifiedItem.imageID = null;
+                } else {
+                    // User cancelled image selection
+                    this.modifiedItem.image = this.previousValues.image;
+                    this.modifiedItem.imageFile = null;
+                    this.modifiedItem.imageID = null;
+                }
+            } else if (autofillData.images.length === 1) {
+                this.modifiedItem.image = autofillData.images[0].src;
+                this.modifiedItem.imageFile = null;
+                this.modifiedItem.imageID = null;
+            }
+
+            this.modifiedItem.title = autofillData.title || this.modifiedItem.title;
+            this.modifiedItem.price = autofillData.price
+                ? autofillData.price.price
+                : this.modifiedItem.price;
+
+            this.modifiedItem.url = autofillData.url || this.modifiedItem.url;
+        },
         async setFileState(value) {
             this.fileState = value;
             if (value === "removed") {
@@ -451,29 +563,17 @@ export default {
                 // Will just be hotlinked instead
                 console.error("Failed to download remote image:", error);
             }
-        },
-        async autofillComplete(responseData) {
-            this.previousValues = { ...this.modifiedItem };
-
-            this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-            this.modifiedItem.price = responseData.price
-                ? responseData.price.price
-                : this.modifiedItem.price;
-
-            if (responseData.image) {
-                this.modifiedItem.image = responseData.image;
-            }
-
-            this.modifiedItem.url = responseData.url || this.modifiedItem.url;
         }
     },
-    mounted() {
+    async mounted() {
         if (this.quickCreateURL) {
-            this.dialogOpen = true;
+            this.dialogOpen = false;
             this.modifiedItem.url = this.quickCreateURL;
             this.itemID = ID.unique();
-
             this.$emit("unsetQuickCreateURL", "");
+            await this.autofill();
+
+            this.dialogOpen = true;
         }
     }
 };

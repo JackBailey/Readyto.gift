@@ -8,6 +8,7 @@ export const useDialogs = defineStore("dialogs", {
     actions: {
         close(id, actionText, data = null) {
             let dialog = this.dialogs.find((d) => d.id === id);
+            if (!dialog) return;
             if (dialog.async) {
                 dialog.resolvePromise({ action: actionText, data });
             }
@@ -19,7 +20,6 @@ export const useDialogs = defineStore("dialogs", {
             }, 500);
         },
         create(dialog) {
-            console.log("Creating dialog:", dialog);
             let resolvePromise;
             let promise;
 
