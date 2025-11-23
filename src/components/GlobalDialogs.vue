@@ -9,6 +9,7 @@
         :persistent="dialog.persistent"
         :scrim="dialog.opaque ? 'rgb(var(--v-theme-background))' : true"
         :opacity="dialog.opaque ? 1 : undefined"
+        @after-leave="handleAfterLeave(dialog.id)"
     >
         <v-card :title="dialog.title">
             <v-card-text v-if="dialog.text">
@@ -50,8 +51,8 @@ const dialogEmits = computed(() => {
 
             const emits = {};
             for (const emit of dialog.emits) {
-                emits[emit] = () => {
-                    dialogs.close(dialog.id, emit);
+                emits[emit] = (emitData) => {
+                    dialogs.close(dialog.id, emit, emitData);
                 };
             }
 
@@ -59,6 +60,10 @@ const dialogEmits = computed(() => {
         })
     );
 });
+
+const handleAfterLeave = (id) => {
+    dialogs.close(id, "closed");
+};
 
 const actionHandler = (action, id) => {
     if (typeof action.action === "function") {

@@ -1,4 +1,10 @@
 <template>
+    <v-card-title>
+        Select Image
+    </v-card-title>
+    <v-card-subtitle>
+        Please select the image you would like to use for this item.
+    </v-card-subtitle>
     <v-card-text
         width="500px"
         class="text-center"
@@ -58,6 +64,15 @@
             class="mt-4"
         />
     </v-card-text>
+    <v-card-actions>
+        <v-spacer />
+        <v-btn
+            text="Select"
+            color="primary"
+            @click="$emit('select-image', currentImageIndex)"
+            variant="tonal"
+        />
+    </v-card-actions>
 </template>
 
 <script setup>
@@ -103,7 +118,6 @@ onMounted(() => {
 
     mainSlider.value.splide.on("move", (newIndex) => {
         currentImageIndex.value = newIndex;
-        emit("select-image", newIndex);
     });
 });
 

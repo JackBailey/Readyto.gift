@@ -138,33 +138,8 @@ const getPreview = async ({ url, requestMethods, site, storage, itemID, executio
 
                 if (bestImage) {
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
-                    await updateStatus({
-                        attemptStatus: "processing-best-image"
-                    });
-                    try {
-                    // delete original
-                        await storage.deleteFile(
-                            "66866e74001d3e2f2629",
-                            itemID
-                        );
-                    }  catch {
-                    // ignore error if file does not exist
-                    }
-
-                    const imageBuffer = bestImage.data;
-
-                    const mimeType = bestImage.contentType || "image/jpeg";
-                    const fileExt = mime.extension(mimeType) || "png";
-
-                    const result = await storage.createFile(
-                        "66866e74001d3e2f2629",
-                        itemID,
-                        InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
-                    );
 
                     data.bestImage = bestImage.image;
-                    data.imageID = result.$id;
-                    data.imageSize = result.sizeOriginal;
                 } else {
                     log("No suitable image found.");
                 }
