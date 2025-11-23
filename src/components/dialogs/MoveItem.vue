@@ -156,7 +156,8 @@ export default {
                     [
                         Query.equal("author", this.auth.user.$id),
                         Query.orderDesc("$updatedAt"),
-                        Query.notEqual("$id", this.list.$id)
+                        Query.notEqual("$id", this.list.$id),
+                        Query.select(["*","items.*"])
                     ]
                 );
 
@@ -191,6 +192,7 @@ export default {
         },
         async moveToList() {
             this.loadingMove = true;
+
             try {
                 await databases.updateDocument(
                     import.meta.env.VITE_APPWRITE_DB,
