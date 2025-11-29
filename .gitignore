@@ -36,3 +36,4 @@ functions/*/.appwrite
 
 /vue
 /.astro
+*.zip

@@ -41,9 +41,7 @@
     "functions": [
         {
             "$id": "get-autofill-data",
-            "execute": [
-                "users/verified"
-            ],
+            "execute": ["users/verified"],
             "name": "get-autofill-data",
             "enabled": true,
             "logging": true,
@@ -60,7 +58,7 @@
         {
             "$id": "690f7bea000456345084",
             "execute": [],
-            "name": "polar-list-events",
+            "name": "list-events",
             "enabled": true,
             "logging": true,
             "runtime": "node-20.0",
@@ -69,17 +67,22 @@
                 "databases.read",
                 "columns.read",
                 "attributes.read",
-                "documents.read"
+                "documents.read",
+                "tables.read",
+                "collections.read",
+                "collections.write",
+                "rows.write",
+                "documents.write",
+                "files.read",
+                "files.write"
             ],
-            "events": [
-                "databases.wishlist.tables.6679a593003489f76668.rows.*"
-            ],
+            "events": ["databases.wishlist.tables.6679a593003489f76668.rows.*"],
             "schedule": "",
             "timeout": 15,
             "entrypoint": "src/main.js",
             "commands": "npm install",
-            "specification": "s-0.5vcpu-512mb",
-            "path": "functions/polar-list-events"
+            "specification": "s-1vcpu-512mb",
+            "path": "functions/list-events"
         },
         {
             "$id": "690f81f1000991425e22",
@@ -88,10 +91,7 @@
             "enabled": true,
             "logging": true,
             "runtime": "node-20.0",
-            "scopes": [
-                "users.read",
-                "avatars.read"
-            ],
+            "scopes": ["users.read", "avatars.read"],
             "events": [
                 "users.*.update.name",
                 "users.*.update.email",
@@ -107,16 +107,12 @@
         },
         {
             "$id": "690fc8f4002cff45eddc",
-            "execute": [
-                "users"
-            ],
+            "execute": ["users"],
             "name": "get-polar-customer-data",
             "enabled": true,
             "logging": true,
             "runtime": "node-20.0",
-            "scopes": [
-                "users.read"
-            ],
+            "scopes": ["users.read"],
             "events": [],
             "schedule": "",
             "timeout": 15,
@@ -127,16 +123,12 @@
         },
         {
             "$id": "690fc8f4002cff45eddd",
-            "execute": [
-                "users"
-            ],
+            "execute": ["users"],
             "name": "get-polar-checkout",
             "enabled": true,
             "logging": true,
             "runtime": "node-20.0",
-            "scopes": [
-                "users.read"
-            ],
+            "scopes": ["users.read"],
             "events": [],
             "schedule": "",
             "timeout": 15,
@@ -156,10 +148,7 @@
     "tables": [
         {
             "$id": "6679a593003489f76668",
-            "$permissions": [
-                "read(\"any\")",
-                "create(\"users/verified\")"
-            ],
+            "$permissions": ["read(\"any\")", "create(\"users/verified\")"],
             "databaseId": "wishlist",
             "name": "lists",
             "enabled": true,
@@ -229,19 +218,6 @@
                     "default": null
                 },
                 {
-                    "key": "status",
-                    "type": "string",
-                    "required": false,
-                    "array": false,
-                    "elements": [
-                        "draft",
-                        "published",
-                        "archived"
-                    ],
-                    "format": "enum",
-                    "default": "draft"
-                },
-                {
                     "key": "items",
                     "type": "relationship",
                     "required": false,
@@ -252,6 +228,13 @@
                     "twoWayKey": "list",
                     "onDelete": "cascade",
                     "side": "parent"
+                },
+                {
+                    "key": "private",
+                    "type": "boolean",
+                    "required": false,
+                    "array": false,
+                    "default": false
                 }
             ],
             "indexes": [
@@ -259,21 +242,14 @@
                     "key": "shortUrl",
                     "type": "unique",
                     "status": "available",
-                    "columns": [
-                        "shortUrl"
-                    ],
-                    "orders": [
-                        "ASC"
-                    ]
+                    "columns": ["shortUrl"],
+                    "orders": ["ASC"]
                 }
             ]
         },
         {
             "$id": "6679a9ff000f53308164",
-            "$permissions": [
-                "create(\"users/verified\")",
-                "read(\"any\")"
-            ],
+            "$permissions": ["create(\"users/verified\")", "read(\"any\")"],
             "databaseId": "wishlist",
             "name": "items",
             "enabled": true,
@@ -447,25 +423,90 @@
                 }
             ],
             "indexes": []
+        },
+        {
+            "$id": "autofills",
+            "$permissions": ["create(\"users/verified\")"],
+            "databaseId": "wishlist",
+            "name": "autofills",
+            "enabled": true,
+            "rowSecurity": true,
+            "columns": [
+                {
+                    "key": "attempt",
+                    "type": "integer",
+                    "required": true,
+                    "array": false,
+                    "min": 0,
+                    "max": 100,
+                    "default": null
+                },
+                {
+                    "key": "attemptStatus",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 128,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "status",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "elements": ["processing", "failed", "completed"],
+                    "format": "enum",
+                    "default": "processing"
+                },
+                {
+                    "key": "autofillURL",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "format": "url",
+                    "default": null
+                },
+                {
+                    "key": "executionTime",
+                    "type": "double",
+                    "required": false,
+                    "array": false,
+                    "min": -1.7976931348623157e308,
+                    "max": 1.7976931348623157e308,
+                    "default": null
+                },
+                {
+                    "key": "outputData",
+                    "type": "string",
+                    "required": false,
+                    "array": false,
+                    "size": 10240,
+                    "default": null,
+                    "encrypt": false
+                },
+                {
+                    "key": "totalAttempts",
+                    "type": "integer",
+                    "required": false,
+                    "array": false,
+                    "min": 0,
+                    "max": 9223372036854775807,
+                    "default": null
+                }
+            ],
+            "indexes": []
         }
     ],
     "buckets": [
         {
             "$id": "66866e74001d3e2f2629",
-            "$permissions": [
-                "create(\"users/verified\")",
-                "read(\"any\")"
-            ],
+            "$permissions": ["create(\"users/verified\")", "read(\"any\")"],
             "fileSecurity": true,
             "name": "images",
             "enabled": true,
             "maximumFileSize": 20000000,
-            "allowedFileExtensions": [
-                "jpg",
-                "png",
-                "jpeg",
-                "webp"
-            ],
+            "allowedFileExtensions": ["jpg", "png", "jpeg", "webp"],
             "compression": "gzip",
             "encryption": true,
             "antivirus": true

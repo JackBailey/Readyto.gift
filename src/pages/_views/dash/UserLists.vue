@@ -163,60 +163,112 @@
             <v-skeleton-loader type="list-item-two-line" />
         </div>
 
-        <v-list v-else-if="!loading && lists?.length">
-            <ListCard
-                v-for="list in lists"
-                :key="list.$id"
-                :list="list"
-                :quickCreateURL="quickCreateURL"
-                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
-            />
-        </v-list>
-        <v-card
-            class="pa-0 mb-4"
-            variant="flat"
-            color="surface"
-            v-if="!loading && savedLists.length"
-        >
-            <v-card-item class="px-0">
-                <template v-slot:title>
-                    <h2 class="mb-0">Saved lists</h2>
-                </template>
-                <template v-slot:prepend>
-                    <v-icon>{{ mdiStar }}</v-icon>
-                </template>
-            </v-card-item>
-        </v-card>
-        <v-list v-if="!loading && savedLists.length">
-            <ListCard
-                v-for="list in savedLists"
-                :key="list.$id"
-                :list="list"
-                :quickCreateURL="quickCreateURL"
-                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
-            />
-        </v-list>
 
-        <div
-            class="no-items"
-            v-if="!loading && !lists?.length && !savedLists.length"
+        <v-sheet
+            elevation="4"
+            v-else-if="!loading"
         >
-            <v-spacer height="20" />
-            <v-alert
-                type="info"
-                :icon="mdiInformation"
-                elevation="2"
-                class="mt-5"
-                text="No lists currently exist. Add some!"
-            />
-        </div>
+            <v-tabs
+                color="primary"
+                v-model="tab"
+            >
+                <v-tab
+                    value="public"
+                    :prepend-icon="mdiEarth"
+                >
+                    Public {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+                <v-tab
+                    value="private"
+                    :prepend-icon="mdiLock"
+                >
+                    Private {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+                <v-tab
+                    value="saved"
+                    :prepend-icon="mdiStar"
+                    :disabled="!!quickCreateURL"
+                >
+                    Saved {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+            </v-tabs>
+
+            <v-divider/>
+
+            <v-tabs-window v-model="tab">
+                <v-tabs-window-item
+                    value="public"
+                >
+                    <v-list>
+                        <ListCard
+                            v-for="list in publicLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                    </v-list>
+                    <v-alert
+                        v-if="publicLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        There are no public lists available. Create a new list and make it
+                        public to share it with others!
+                    </v-alert>
+
+                </v-tabs-window-item>
+                <v-tabs-window-item value="private">
+                    <v-list>
+                        <ListCard
+                            v-for="list in privateLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                    </v-list>
+                    <v-alert
+                        v-if="privateLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        You have no private lists. Create one to keep it hidden from
+                        others!
+                    </v-alert>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="saved">
+                    <v-list>
+                        <ListCard
+                            v-for="list in savedLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                    </v-list>
+                    <v-alert
+                        v-if="savedLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        You have no saved lists. Save lists to access them quickly from
+                        here!
+                    </v-alert>
+                </v-tabs-window-item>
+            </v-tabs-window>
+        </v-sheet>
     </div>
 </template>
 
 <script>
 import { account, databases } from "@/appwrite";
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { mdiInformation, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
+import { mdiEarth, mdiInformation, mdiLock, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
+import { clientRouter } from "@/pages/_clientRouter";
 import CreateList from "@/components/dialogs/CreateList.vue";
 import ListCard from "@/components/ListCard.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
@@ -238,7 +290,9 @@ export default {
             dialogs: useDialogs(),
             lists: [],
             loading: true,
+            mdiEarth,
             mdiInformation,
+            mdiLock,
             mdiSortAscending,
             mdiSortDescending,
             mdiStar,
@@ -253,8 +307,17 @@ export default {
                     { name: "Item Count", value: "itemCount" }
                 ]
             },
+            tab: "public",
             verificationDialog: false
         };
+    },
+    computed: {
+        privateLists() {
+            return this.lists.filter((list) => list.private);
+        },
+        publicLists() {
+            return this.lists.filter((list) => !list.private);
+        }
     },
     methods: {
         createList(data) {
@@ -262,7 +325,9 @@ export default {
             if (this.quickCreateURL) {
                 query.quickcreateurl = this.quickCreateURL;
             }
-            window.location.href = `/list/${data.list.$id}?` + new URLSearchParams(query).toString();
+            clientRouter.push({
+                path: `/list/${data.list.$id}?` + new URLSearchParams(query).toString()
+            });
         },
         async getLists() {
             this.loading = true;

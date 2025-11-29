@@ -103,11 +103,12 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_FULFILLMENT_COLLECTION, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
+import { clientRouter } from "@/pages/_clientRouter";
 import { databases } from "@/appwrite";
 import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import { mdiInformation  } from "@mdi/js";
-import NotFound from "@/pages/404/_NotFound.vue";
+import NotFound from "@/pages/_views/NotFound.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
 import { Query } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
@@ -121,15 +122,10 @@ export default {
         NotFound,
         PWAPrompt
     },
-    props: {
-        listID: {
-            type: String,
-            required: true
-        }
-    },
     data() {
-        const query = new URLSearchParams(window.location.search);
-        const quickCreateURL = query.get("quickcreateurl") || this.quickCreateURL || "";
+        const route = clientRouter.currentRoute.value;
+        const { quickcreateurl: quickCreateURL } = route.query;
+        const { listId } = route.params;
         return {
             auth: useAuthStore(),
             communityItems: [],
@@ -137,6 +133,7 @@ export default {
             dialogs: useDialogs(),
             fulfillments: [],
             list: false,
+            listID: listId,
             mdiInformation,
             newItem: {
                 description: "",
@@ -250,6 +247,7 @@ export default {
             this.list.shortUrl = data.list.shortUrl;
             this.list.itemCount = data.list.itemCount;
             this.list.$updatedAt = data.list.$updatedAt;
+            this.list.private = data.list.private;
         },
         addItem(data) {
             if (data.item.communityList) {
@@ -352,10 +350,15 @@ export default {
                             variant: "text"
                         },
                         {
+                            action: async () => {
+                                await clientRouter.push({
+                                    path: "/dash/login",
+                                    query: { redirect: encodeURIComponent(clientRouter.currentRoute.value.fullPath) }
+                                });
+                            },
                             closeAfterAction: true,
                             color: "primary",
                             text: "Log In",
-                            to: "/dash/login?redirect=" + encodeURIComponent(window.location.href),
                             variant: "elevated"
                         }
                     ],

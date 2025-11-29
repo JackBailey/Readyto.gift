@@ -19,6 +19,7 @@
 <script>
 import { mdiAlert, mdiInformation } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
@@ -35,9 +36,9 @@ export default {
             this.loadingVerification = true;
             this.alert = false;
 
-            const { userId, secret } = Object.fromEntries(
-                new URLSearchParams(window.location.search)
-            );
+            const route = clientRouter.currentRoute.value;
+
+            const { userId, secret } = route.query;
 
             if (!userId || !secret) {
                 this.alert = {
@@ -61,7 +62,7 @@ export default {
                 await this.auth.init();
 
                 setTimeout(() => {
-                    window.location.href = "/dash/lists";
+                    clientRouter.push("/dash/lists");
                 }, 2000);
             } catch (error) {
                 this.alert = {

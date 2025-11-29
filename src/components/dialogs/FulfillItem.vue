@@ -101,11 +101,11 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_FULFILLMENT_COLLECTION } from "astro:env/client";
 import { AppwriteException, ID } from "appwrite";
 import { mdiAlert, mdiGift, mdiGiftOff } from "@mdi/js";
 import { databases } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
-import { APPWRITE_DB, APPWRITE_FULFILLMENT_COLLECTION } from "astro:env/client";
 
 export default {
     title: "ListDialog",
