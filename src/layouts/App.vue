@@ -2,11 +2,7 @@
     <v-app :theme="auth.userPrefs.darkMode ? 'dark' : 'light'">
         <DashNav :loading="loading" />
         <v-main>
-            <slot
-                v-if="
-                    requiresAuth === false || (requiresAuth === true && auth.isLoggedIn)
-                "
-            ></slot>
+            <slot v-if="!loading"></slot>
             <div class="loading-placeholder"></div>
             <SiteFooter />
         </v-main>
