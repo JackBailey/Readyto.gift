@@ -169,6 +169,7 @@
                 <v-tab
                     value="saved"
                     :prepend-icon="mdiStar"
+                    :disabled="!!quickCreateURL"
                 >
                     Saved {{ $vuetify.display.mobile ? '' : 'Lists' }}
                 </v-tab>
@@ -249,6 +250,7 @@
 import { account, databases } from "@/appwrite";
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { mdiEarth, mdiInformation, mdiLock, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
+import { clientRouter } from "@/pages/_clientRouter";
 import CreateList from "@/components/dialogs/CreateList.vue";
 import ListCard from "@/components/ListCard.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
@@ -303,7 +305,9 @@ export default {
             if (this.quickCreateURL) {
                 query.quickcreateurl = this.quickCreateURL;
             }
-            window.location.href = `/list/${data.list.$id}?` + new URLSearchParams(query).toString();
+            clientRouter.push({
+                path: `/list/${data.list.$id}?` + new URLSearchParams(query).toString()
+            });
         },
         async getLists() {
             this.loading = true;

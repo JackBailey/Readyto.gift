@@ -59,10 +59,10 @@
         </div>
         <p>
             Don't have an account?
-            <a :href="`/dash/register?redirect=${redirectPath}`">Register here</a>
+            <router-link :to="`/dash/register?redirect=${redirectPath}`">Register here</router-link>
         </p>
         <p v-if="methods.includes('password')">
-            <a href="/dash/recovery/start">Forgot your password?</a>
+            <router-link :to="`/dash/recovery/start?redirect=${redirectPath}`">Forgot your password?</router-link>
         </p>
     </div>
 </template>
@@ -71,6 +71,7 @@
 import { LOGIN_METHODS, SENTRY_DSN } from "astro:env/client";
 import { mdiAlert, mdiGithub } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { OAuthProvider } from "appwrite";
 import { setUser as setSentryUser } from "@sentry/vue";
 import { useAuthStore } from "@/stores/auth";
@@ -78,10 +79,9 @@ import { useDialogs } from "@/stores/dialogs";
 
 export default {
     data() {
-        const { redirect } = Object.fromEntries(
-            new URLSearchParams(window.location.search)
-        );
-        const redirectPath = window.location.search.includes("redirect")
+        const route = clientRouter.currentRoute.value;
+        const { redirect } = route.query;
+        const redirectPath = redirect
             ? decodeURIComponent(redirect)
             : "/dash/lists";
         const errorRedirect = window.location.origin + "/dash/error";
@@ -140,14 +140,14 @@ export default {
                 this.auth.setPreviouslyLoggedInUserID(accountResp.$id);
 
                 await this.auth.init();
-                window.location.href = this.redirectPath;
+                clientRouter.push(this.redirectPath);
             } catch (error) {
                 if (error.type === "user_more_factors_required") {
                     console.log("Opening TOTP dialog");
                     const totpChallengeResp = this.auth.createTOTPChallengeDialog();
 
                     if (totpChallengeResp.action === "success" || totpChallengeResp.action === "totp-removed") {
-                        window.location.href = this.redirectPath;
+                        clientRouter.push(this.redirectPath);
                     } else {
                         this.loadingLogin = false;
                     }

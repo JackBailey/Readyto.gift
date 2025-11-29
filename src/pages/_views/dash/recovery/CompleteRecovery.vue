@@ -32,16 +32,13 @@
                 class="mt-4"
             />
         </div>
-        <p>
-            Already have an account?
-            <a href="/dash/login">Login here</a>
-        </p>
     </div>
 </template>
 
 <script>
 import { mdiAlert, mdiInformation } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
@@ -99,7 +96,9 @@ export default {
                 this.loadingRecovery = false;
 
                 setTimeout(() => {
-                    window.location.href = "/dash/login";
+                    clientRouter.push({
+                        path: "/dash/login"
+                    });
                 }, 2000);
             } catch (error) {
                 this.alert = {
@@ -113,9 +112,8 @@ export default {
         }
     },
     mounted() {
-        const { userId, secret } = Object.fromEntries(
-            new URLSearchParams(window.location.search)
-        );
+        const route = clientRouter.currentRoute.value;
+        const { userId, secret } = route.query;
 
         this.recoveryDetails.userId = userId;
         this.recoveryDetails.secret = secret;

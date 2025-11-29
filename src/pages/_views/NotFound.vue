@@ -20,8 +20,10 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
+import { clientRouter } from "@/pages/_clientRouter";
 import { databases } from "@/appwrite";
 import { Query } from "appwrite";
+
 export default {
     data() {
         return {
@@ -30,16 +32,6 @@ export default {
     },
     async mounted() {
         const path = window.location.pathname.slice(1);
-        
-        const redirectMap = {
-            "": "/dash/lists",
-            "/dash": "/dash/lists"
-        };
-
-        if (redirectMap[path]) {
-            window.location.href = redirectMap[path] + window.location.search;
-            return;
-        }
 
         if (path) {
             try {
@@ -52,7 +44,7 @@ export default {
                 );
 
                 if (document.total !== 0) {
-                    window.location.href = `/list/${document.documents[0].$id}`;
+                    clientRouter.push(`/list/${document.documents[0].$id}`);
                 } else {
                     this.notFound = true;
                 }
@@ -61,7 +53,7 @@ export default {
                 this.error = error.code;
             }
         } else {
-            window.location.href = "/dash/lists";
+            clientRouter.push("/dash/lists");
         }
     }
 };

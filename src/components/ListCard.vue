@@ -1,6 +1,6 @@
 <template>
     <v-card
-        :href=" props.header || props.type === 'selectable' ? undefined : `/list/${props.list.$id}${quickCreateURL && ownList ? `?quickcreateurl=${props.quickCreateURL}` : ''}`"
+        :to=" props.header || props.type === 'selectable' ? undefined : `/list/${props.list.$id}${quickCreateURL && ownList ? `?quickcreateurl=${props.quickCreateURL}` : ''}`"
         :title="props.list.title"
         variant="tonal"
         :color="props.selected ? 'primary' : 'default'"
@@ -154,10 +154,10 @@
                 class="m-4 mb-8"
                 color="primary"
             >
-                <a
+                <router-link
                     style="color: inherit; font-weight: bold;"
-                    href="/dash/login"
-                >Log in</a> to add your own items, to avoid the list creator receiving duplicate gifts, and to manage your wish lists!
+                    to="/dash/login"
+                >Log in</router-link> to add your own items, to avoid the list creator receiving duplicate gifts, and to manage your wish lists!
             </v-alert>
         </v-card-text>
     </v-card>

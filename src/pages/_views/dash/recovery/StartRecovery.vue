@@ -29,7 +29,7 @@
             />
             <p>
                 Remember your login?
-                <a href="/dash/login">Login here</a>
+                <router-link :to="`/dash/login?redirect=${redirectPath}`">Login here</router-link>
             </p>
         </div>
     </div>
@@ -38,11 +38,17 @@
 <script>
 import { mdiAlert, mdiGithub } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { LOGIN_METHODS } from "astro:env/client";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
     data() {
+        const route = clientRouter.currentRoute.value;
+        const { redirect } = route.query;
+        const redirectPath = redirect
+            ? decodeURIComponent(redirect)
+            : "/dash/lists";
         return {
             alert: false,
             auth: useAuthStore(),
@@ -54,7 +60,8 @@ export default {
                 : [],
             recoveryDetails: {
                 email: ""
-            }
+            },
+            redirectPath
         };
     },
     methods: {

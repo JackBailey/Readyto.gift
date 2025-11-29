@@ -43,7 +43,7 @@
         </div>
         <p>
             Already have an account?
-            <a :href="`/dash/login?redirect=${redirectPath}`">Login here</a>
+            <router-link :to="`/dash/login?redirect=${redirectPath}`">Login here</router-link>
         </p>
     </div>
 </template>
@@ -51,14 +51,15 @@
 <script>
 import { mdiAlert, mdiInformation } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { ID } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
     data() {
-        const { redirect } = Object.fromEntries(
-            new URLSearchParams(window.location.search)
-        );
+        const route = clientRouter.currentRoute.value;
+        const { redirect } = route.query;
+
         const redirectPath = redirect
             ? redirect
             : "/dash/lists";
@@ -133,7 +134,10 @@ export default {
                     this.loadingRegistration = false;
 
                     setTimeout(() => {
-                        window.location.href = `/dash/login?redirect=${this.redirectPath}`;
+                        clientRouter.push({
+                            path: "/dash/login",
+                            query: { redirect: this.redirectPath }
+                        });
                     }, 2000);
                 }
             } catch (error) {

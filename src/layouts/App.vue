@@ -2,7 +2,7 @@
     <v-app :theme="auth.userPrefs.darkMode ? 'dark' : 'light'">
         <DashNav :loading="loading" />
         <v-main>
-            <slot v-if="!loading"></slot>
+            <router-view v-if="!loading"/>
             <div class="loading-placeholder"></div>
             <SiteFooter />
         </v-main>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import { defineProps, onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { UMAMI_DOMAINS, UMAMI_ID, UMAMI_URL } from "astro:env/client";
 import DashNav from "@/components/DashNav.vue";
 import GlobalDialogs from "@/components/GlobalDialogs.vue";
@@ -20,14 +20,6 @@ import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
 import { usePWA } from "@/stores/pwa";
 import { useTheme } from "vuetify";
-
-const props = defineProps({
-    requiresAuth: {
-        default: true,
-        type: Boolean
-    }
-});
-
 
 const auth = useAuthStore();
 const currencyStore = useCurrencyStore();
@@ -76,14 +68,9 @@ onMounted(async () => {
         document.head.appendChild(script);
     }
 
-    await auth.init();
     await currencyStore.init();
 
-    if (props.requiresAuth && !auth.user) {
-        window.location.href = "/dash/login?redirect=" + encodeURIComponent(window.location.pathname + window.location.search);
-    } else {
-        loading.value = false;
-    }
+    loading.value = false;
 });
 </script>
 

@@ -8,7 +8,7 @@
         >
             <v-toolbar-title>
                 <v-btn
-                    href="/dash/lists"
+                    to="/dash/lists"
                     :prepend-icon="mdiGift"
                     color="on-primary-container"
                 >
@@ -18,7 +18,7 @@
 
             <template v-slot:append>
                 <v-btn
-                    href="/dash/lists"
+                    to="/dash/lists"
                     v-if="auth.user"
                     :prepend-icon="mdiFormatListBulleted"
                     color="on-primary-container"
@@ -93,7 +93,7 @@
                             </v-list-item>
                             <v-list-item
                                 v-if="!!auth.user"
-                                href="/dash/settings"
+                                to="/dash/settings"
                                 :prepend-icon="mdiAccountCircle"
                             >
                                 Account Settings
@@ -150,9 +150,8 @@ import {
     mdiMenu
 } from "@mdi/js";
 import { account } from "@/appwrite";
+import { clientRouter } from "@/pages/_clientRouter";
 import { useAuthStore } from "@/stores/auth";
-
-
 
 export default {
     props: {
@@ -193,7 +192,10 @@ export default {
             this.loadingLoginLogout = true;
             this.menu = false;
             const currentPath = window.location.pathname + window.location.search;
-            window.location.href = `/dash/login?redirect=${encodeURIComponent(currentPath)}`;
+            clientRouter.push({
+                path: "/dash/login",
+                query: { redirect: encodeURIComponent(currentPath) }
+            });
             this.loadingLoginLogout = false;
         },
         async logout() {
@@ -210,6 +212,11 @@ export default {
                 this.loadingLoginLogout = false;
             }
         }
+    },
+    mounted() {
+        clientRouter.afterEach(() => {
+            this.menu = false;
+        });
     }
 };
 </script>
