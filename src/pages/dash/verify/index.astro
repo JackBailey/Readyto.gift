@@ -1,0 +1,13 @@
+---
+import VerifyPage from "./_VerifyPage.vue";
+import "vuetify/styles";
+import VueLayout from "@/layouts/Vue.astro";
+import Layout from "@/layouts/Layout.astro";
+---
+<Layout>
+    <VueLayout>
+        <VerifyPage
+            client:only
+        />
+    </VueLayout>
+</Layout>

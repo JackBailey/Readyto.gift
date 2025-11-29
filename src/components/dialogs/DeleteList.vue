@@ -1,53 +1,65 @@
 <template>
-    <v-dialog
-        :max-width="$vuetify.display.mobile ? '100%' : '500px'"
-        :fullscreen="$vuetify.display.mobile ? true : false"
-        v-model="dialogOpen"
-    >
-        <template v-slot:activator="{ props: activatorProps }">
-            <v-list-item
-                v-bind="activatorProps"
-                :prepend-icon="mdiDelete"
-                title="Delete List"
-                link
-                base-color="error"
-            />
-        </template>
+    <div>
+        <v-dialog
+            :max-width="$vuetify.display.mobile ? '100%' : '500px'"
+            :fullscreen="$vuetify.display.mobile ? true : false"
+            v-model="dialogOpen"
+            key="delete-list-dialog"
+        >
+            <template v-slot:activator="{ props: activatorProps }">
+                <v-list-item
+                    v-bind="activatorProps"
+                    :prepend-icon="mdiDelete"
+                    title="Delete List"
+                    link
+                    base-color="error"
+                    v-if="!$vuetify.display.mobile"
+                />
+                <v-btn
+                    v-bind="activatorProps"
+                    :icon="mdiDelete"
+                    title="Delete List"
+                    color="error"
+                    v-else
+                />
+            </template>
 
-        <template v-slot:default="{ isActive }">
-            <v-card title="Delete List">
-                <v-card-text>
-                    Are you sure you want to delete this list?
-                    <v-alert
-                        v-if="alert"
-                        type="error"
-                        border="start"
-                        elevation="2"
-                        :icon="mdiAlert"
-                        :title="alert.title"
-                        :text="alert.text"
-                        class="mt-4"
-                    />
-                </v-card-text>
-                <v-card-actions>
-                    <v-btn
-                        text="Cancel"
-                        @click="isActive.value = false"
-                    />
-                    <v-btn
-                        color="error"
-                        text="Delete"
-                        @click="deleteList"
-                        variant="elevated"
-                        :loading="loading"
-                    />
-                </v-card-actions>
-            </v-card>
-        </template>
-    </v-dialog>
+            <template v-slot:default="{ isActive }">
+                <v-card title="Delete List">
+                    <v-card-text>
+                        Are you sure you want to delete this list?
+                        <v-alert
+                            v-if="alert"
+                            type="error"
+                            border="start"
+                            elevation="2"
+                            :icon="mdiAlert"
+                            :title="alert.title"
+                            :text="alert.text"
+                            class="mt-4"
+                        />
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn
+                            text="Cancel"
+                            @click="isActive.value = false"
+                        />
+                        <v-btn
+                            color="error"
+                            text="Delete"
+                            @click="deleteList"
+                            variant="elevated"
+                            :loading="loading"
+                        />
+                    </v-card-actions>
+                </v-card>
+            </template>
+        </v-dialog>
+    </div>
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
@@ -85,23 +97,25 @@ export default {
             this.loading = true;
             this.alert = false;
             try {
-                await Promise.all(this.list.items.map(async (item) => {
-                    if (item.imageID) {
-                        await storage.deleteFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                            item.imageID
-                        );
-                    }
-                }));
+                await Promise.all(
+                    this.list.items.map(async (item) => {
+                        if (item.imageID) {
+                            await storage.deleteFile(
+                                APPWRITE_IMAGE_BUCKET,
+                                item.imageID
+                            );
+                        }
+                    })
+                );
 
                 await databases.deleteDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.list.$id
                 );
 
-                this.$router.push("/dash/lists");
-    
+                window.location.href = "/dash/lists";
+
                 this.dialogOpen = false;
                 this.loading = false;
             } catch (e) {

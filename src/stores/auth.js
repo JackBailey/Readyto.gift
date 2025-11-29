@@ -1,11 +1,16 @@
 import { account, avatars, functions } from "@/appwrite";
 import { defineStore } from "pinia";
+import { markRaw } from "vue";
+import { SENTRY_DSN } from "astro:env/client";
 import { setUser as setSentryUser } from "@sentry/vue";
+import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
+import { useDialogs } from "./dialogs";
 import { usePolarStore } from "./polar";
 
 export const useAuthStore = defineStore("auth", {
     state: () => ({
         user: null,
+        mfaFactors: {},
         avatar: null,
         previouslyLoggedInUserID: localStorage.getItem("previouslyLoggedInUserID"),
         userPrefs: {
@@ -32,28 +37,96 @@ export const useAuthStore = defineStore("auth", {
         }
     }),
     actions: {
+        async createTOTPChallengeDialog() {
+            const dialogs = useDialogs();
+            return await dialogs.create({
+                async: true,
+                component: markRaw(TotpChallenge),
+                emits: [
+                    "cancel", "success", "totp-removed"
+                ],
+                fullscreen: false,
+                maxWidth: "80%",
+                title: "Multi-Factor Authentication"
+            });
+        },
+        async completeMFAchallenge(code, factor = "totp") {
+            const challenge = await account.createMFAChallenge({
+                factor
+            });
+            const challengeId = challenge.$id;
+
+            await account.updateMFAChallenge({
+                challengeId,
+                otp: code
+            });
+        },
+        async regenerateRecoveryCodes() {
+            try {
+                return (await account.createMFARecoveryCodes()).recoveryCodes;
+            } catch (error) {
+                if (error.type === "user_recovery_codes_already_exists") {
+                    const recoveryCodesResponse = await account.updateMFARecoveryCodes();
+
+                    return recoveryCodesResponse.recoveryCodes;
+                } else {
+                    throw error;
+                }
+            }
+        },
+        async getRecoveryCodes(totp) {
+            try {
+                return (await account.createMFARecoveryCodes()).recoveryCodes;
+            } catch (error) {
+                if (error.type === "user_recovery_codes_already_exists") {
+                    // if no totp, there should be a recent MFA challenge to complete
+                    if (totp) await this.completeMFAchallenge(totp);
+
+                    const recoveryCodesResponse = await account.getMFARecoveryCodes();
+
+                    return recoveryCodesResponse.recoveryCodes;
+                } else {
+                    throw error;
+                }
+            }
+        },
         async init() {
             const polarStore = usePolarStore();
             try {
                 try {
                     this.user = await account.get();
                 } catch (error) {
-                    if (error.type !== "general_unauthorized_scope") {
+                    switch (error.type) {
+                    case "general_unauthorized_scope":
+                        break;
+
+                    case "user_more_factors_required":
+                        if ((await this.createTOTPChallengeDialog()).action !== "cancel" ) {
+                            this.user = await account.get();
+                            break;
+                        } else {
+                            await account.deleteSession("current");
+                            this.user = null;
+                            break;
+                        }
+                    default:
                         throw error;
                     }
                 }
 
                 if (this.user) {
                     localStorage.setItem("previouslyLoggedInUserID", this.user.$id);
-                    if (import.meta.env.VITE_SENTRY_DSN) {
+                    if (SENTRY_DSN) {
                         setSentryUser({
                             id: this.user.$id,
                             username: this.user.name,
                             email: this.user.email
                         });
                     }
+
+                    this.mfaFactors = await account.listMFAFactors();
                 } else {
-                    if (import.meta.env.VITE_SENTRY_DSN) {
+                    if (SENTRY_DSN) {
                         setSentryUser(null);
                     }
                 }
@@ -68,7 +141,7 @@ export const useAuthStore = defineStore("auth", {
 
                 polarStore.init();
             } catch {
-                if (import.meta.env.VITE_SENTRY_DSN) {
+                if (SENTRY_DSN) {
                     setSentryUser(null);
                 }
                 this.user = null;
@@ -106,6 +179,14 @@ export const useAuthStore = defineStore("auth", {
         },
         setUser(user) {
             this.user = user;
+        },
+        setMfaFactors(factors) {
+            this.mfaFactors = factors;
+        },
+        setMFA(mfa) {
+            if (this.user) {
+                this.user.mfa = mfa;
+            }
         }
     },
     getters: {

@@ -8,7 +8,7 @@
         >
             <v-toolbar-title>
                 <v-btn
-                    to="/dash/lists"
+                    href="/dash/lists"
                     :prepend-icon="mdiGift"
                     color="on-primary-container"
                 >
@@ -18,7 +18,7 @@
 
             <template v-slot:append>
                 <v-btn
-                    to="/dash/lists"
+                    href="/dash/lists"
                     v-if="auth.user"
                     :prepend-icon="mdiFormatListBulleted"
                     color="on-primary-container"
@@ -48,42 +48,55 @@
                         </v-list>
                         <v-divider v-if="auth.user" />
                         <v-list>
-                            <v-list-item>
-                                <v-switch
-                                    v-model="auth.newUserPrefs.darkMode"
-                                    label="Dark Mode"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
+                            <v-list-item :prepend-icon="mdiCog">
+                                Quick Settings
                             </v-list-item>
                             <v-list-item>
-                                <v-switch
-                                    v-model="auth.newUserPrefs.showTotalPrice"
-                                    label="Show Total Price"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
-                            </v-list-item>                            
-                            <v-list-item v-if="!!auth.user">
-                                <v-switch
-                                    v-model="auth.newUserPrefs.spoilSurprises"
-                                    label="Spoil Surprises"
-                                    hide-details
-                                    inset
-                                    color="primary"
-                                />
+                                <v-list>
+                                    <v-list-item title="Dark Mode">
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.darkMode"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>
+                                    <v-list-item title="Show Total Price">
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.showTotalPrice"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>                            
+                                    <v-list-item
+                                        v-if="!!auth.user"
+                                        title="Spoil Surprises"
+                                    >
+                                        <template #prepend>
+                                            <v-switch
+                                                v-model="auth.newUserPrefs.spoilSurprises"
+                                                hide-details
+                                                inset
+                                                color="primary"
+                                                class="mr-4"
+                                            />
+                                        </template>
+                                    </v-list-item>
+                                </v-list>
                             </v-list-item>
-                            <v-list-item v-if="!!auth.user">
-                                <v-btn
-                                    to="/dash/account"
-                                    :prepend-icon="mdiCog"
-                                    class="ml-2"
-                                    variant="tonal"
-                                >   
-                                    Account Settings
-                                </v-btn>
+                            <v-list-item
+                                v-if="!!auth.user"
+                                href="/dash/settings"
+                                :prepend-icon="mdiAccountCircle"
+                            >
+                                Account Settings
                             </v-list-item>
                         </v-list>
                         <v-card-actions>
@@ -138,7 +151,6 @@ import {
 } from "@mdi/js";
 import { account } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
-import { useRoute } from "vue-router";
 
 
 
@@ -161,8 +173,7 @@ export default {
             mdiGithub,
             mdiLockReset,
             mdiMenu,
-            menu: false,
-            route: useRoute()
+            menu: false
         };
     },
     methods: {
@@ -181,12 +192,8 @@ export default {
         logIn() {
             this.loadingLoginLogout = true;
             this.menu = false;
-            this.$router.push({
-                path: "/dash/login",
-                query: {
-                    redirect: this.$route.fullPath
-                }
-            });
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = `/dash/login?redirect=${encodeURIComponent(currentPath)}`;
             this.loadingLoginLogout = false;
         },
         async logout() {
@@ -195,16 +202,13 @@ export default {
             this.auth.user = null;
             this.menu = false;
             await this.auth.init();
-            if (this.$route.meta && this.$route.meta.requiresAuth) {
+            // Check if current route requires auth (you may need to adjust this logic)
+            const requiresAuth = window.location.pathname.startsWith("/dash/");
+            if (requiresAuth) {
                 this.logIn();
             } else {
                 this.loadingLoginLogout = false;
             }
-        }
-    },
-    watch: {
-        "$route"() {
-            this.menu = false;
         }
     }
 };

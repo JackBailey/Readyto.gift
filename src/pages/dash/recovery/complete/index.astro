@@ -1,0 +1,13 @@
+---
+import CompleteRecovery from "./_CompleteRecovery.vue";
+import VueLayout from "@/layouts/Vue.astro";
+import "vuetify/styles";
+import Layout from "@/layouts/Layout.astro";
+---
+<Layout>
+    <VueLayout>
+        <CompleteRecovery
+            client:only
+        />
+    </VueLayout>
+</Layout>

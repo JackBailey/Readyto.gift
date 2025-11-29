@@ -1,8 +1,15 @@
 import { Account, Avatars, Client, Databases, Functions, Locale, Storage } from "appwrite";
+import {
+    APPWRITE_DEV_KEY,
+    APPWRITE_ENDPOINT,
+    APPWRITE_PROJECT
+} from "astro:env/client";
 
-const host = import.meta.env.VITE_APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1";
+const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT);
 
-const client = new Client().setEndpoint(host).setProject(import.meta.env.VITE_APPWRITE_PROJECT);
+if (APPWRITE_DEV_KEY) {
+    client.setDevKey(APPWRITE_DEV_KEY);
+}
 
 const account = new Account(client);
 

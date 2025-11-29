@@ -86,9 +86,6 @@ function getImages(doc, rootUrl, imagesPropertyType) {
                         src,
                         location: "meta"
                     });
-                    console.log({
-                        imagePropertyType, src
-                    });
                 }
             }
         });
@@ -146,16 +143,16 @@ function getPrice(doc, url) {
         const currency = doc("span.a-price-symbol").first().text();
         const wholePriceText = doc("span.a-price-whole").first().contents().first().text();
         const fractionPriceText = doc("span.a-price-fraction").first().contents().first().text();
-    
+
         const wholePrice = parseInt(wholePriceText, 10);
         const fractionPrice = parseFloat(`0.${fractionPriceText}`);
-    
+
         const price = wholePrice + fractionPrice;
 
         return { currency, price };
     } else {
         let price = null;
-        // let currency = null;
+        let currency = null;
         const pricePatterns = [
             ".pd__cost__retail-price",
             ".price",
@@ -166,22 +163,37 @@ function getPrice(doc, url) {
         ];
 
         pricePatterns.forEach((pattern) => {
-            const element = doc(pattern).first();
-            if (element && element.length) {
-                const text = element.text();
-                const priceMatch = text.match(/(\d{1,3}(,\d{3})*(\.\d{2})?)/);
-                if (priceMatch) {
-                    const extractedPrice = priceMatch[0].replace(/,/g, "");
-                    price = parseFloat(extractedPrice);
-                    // const currencyMatch = text.match(/[^\d.,\s]+/);
-                    // console.log({extractedPrice, pattern, currencyMatch});
+            if (price) return;
+            console.log(`Trying pattern: ${pattern}`);
+            const elements = doc(pattern).toArray();
+            console.log(`Found ${elements.length} elements`);
+            elements.forEach((element) => {
+                if (price) return;
+                element = doc(element);
+                if (element && element.length) {
+                    const text = element.text();
+                    if (!text.includes(" / month")) { // Mostly for steam, but should be useful for others anyway
+                        const priceMatch = text.match(
+                            /(\d{1,3}(,\d{3})*(\.\d{2})?)/
+                        );
+                        if (priceMatch) {
+                            const extractedPrice = priceMatch[0].replace(
+                                /,/g,
+                                ""
+                            );
+                            price = parseFloat(extractedPrice);
+                            const currencyMatch = text.match(/[^\d.,\s]+/);
 
-                    // if (currencyMatch) currency = currencyMatch[0];
+                            if (currencyMatch) currency = currencyMatch[0];
+
+                            console.log({ currency });
+                        }
+                    }
                 }
-            }
+            });
         });
 
-        if (price) return { price };
+        if (price) return { price, currency };
     }
 }
 

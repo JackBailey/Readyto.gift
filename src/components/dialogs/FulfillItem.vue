@@ -105,6 +105,7 @@ import { AppwriteException, ID } from "appwrite";
 import { mdiAlert, mdiGift, mdiGiftOff } from "@mdi/js";
 import { databases } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
+import { APPWRITE_DB, APPWRITE_FULFILLMENT_COLLECTION } from "astro:env/client";
 
 export default {
     title: "ListDialog",
@@ -137,8 +138,8 @@ export default {
             let result;
             try {
                 result = await databases.createDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_FULFILLMENT_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_FULFILLMENT_COLLECTION,
                     ID.unique(),
                     {
                         item: this.item.$id,
@@ -171,8 +172,8 @@ export default {
             this.alert = false;
             try {
                 await databases.deleteDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_FULFILLMENT_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_FULFILLMENT_COLLECTION,
                     this.item.fulfillment.$id
                 );
             } catch (e) {

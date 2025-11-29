@@ -11,8 +11,8 @@
                 base-color="primary"
                 :variant="variant"
                 v-if="!item"
-            >       
-                Add{{ wishlistOwner ? '' : ' Purchased' }} Item
+            >
+                Add{{ wishlistOwner ? "" : " Purchased" }} Item
             </v-btn>
             <v-btn
                 v-bind="activatorProps"
@@ -24,7 +24,13 @@
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card :title="autofillLoading ? 'Autofilling data...' : item ? 'Edit' + (wishlistOwner ? '' : ' Purchased')  + ' Item' : 'Create' + (wishlistOwner ? '' : ' Purchased')  + ' Item'">
+            <v-card
+                :title="
+                    item
+                        ? 'Edit' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                        : 'Create' + (wishlistOwner ? '' : ' Purchased') + ' Item'
+                "
+            >
                 <v-card-text>
                     <v-alert
                         v-if="!wishlistOwner && !item"
@@ -34,7 +40,9 @@
                         class="m-4 mb-8"
                         color="primary"
                     >
-                        You are adding an item to someone else's wishlist. This item will be marked as purchased on their list, but it will not be shown to the wishlist owner. This should help prevent duplicate items.
+                        You are adding an item to someone else's wishlist. This item will be marked
+                        as purchased on their list, but it will not be shown to the wishlist owner.
+                        This should help prevent duplicate items.
                     </v-alert>
                     <ItemFields
                         v-model:item="modifiedItem"
@@ -57,19 +65,17 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-tooltip
-                        :open-on-hover="modifiedItem.url === ''"
-                    >
-                        <template v-slot:activator="{ props }">
-                            <span v-bind="props">
+                    <v-tooltip :open-on-hover="!modifiedItem.url">
+                        <template v-slot:activator="{ tooltipProps }">
+                            <span v-bind="tooltipProps">
                                 <v-btn
                                     text="Auto-fill"
                                     :prepend-icon="mdiRobot"
                                     variant="tonal"
-                                    @click="autoFill"
-                                    :loading="autofillLoading"
-                                    :disabled="modifiedItem.url === ''"
-                                /></span>
+                                    :disabled="!modifiedItem.url"
+                                    @click="autofill"
+                                />
+                            </span>
                         </template>
                         <span>Please enter a URL to use the auto-fill feature</span>
                     </v-tooltip>
@@ -101,10 +107,17 @@
 
 <script>
 import { AppwriteException, ID } from "appwrite";
-import { databases, functions, storage } from "@/appwrite";
+import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
+import ImageSelector from "@/components/dialogs/ImageSelector.vue";
 import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
+import { markRaw } from "vue";
+import mime from "mime-types";
+import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
+
 export default {
     title: "ListDialog",
     props: {
@@ -139,8 +152,8 @@ export default {
         return {
             alert: false,
             auth: useAuthStore(),
-            autofillLoading: false,
             dialogOpen: false,
+            dialogs: useDialogs(),
             errors: {},
             fileState: false,
             itemID: null,
@@ -188,107 +201,149 @@ export default {
 
                     if (this.item.imageID) {
                         const file = await storage.getFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                            APPWRITE_IMAGE_BUCKET,
                             this.item.imageID
                         );
 
-                        this.modifiedItem.imageFile = new File(["a".repeat(file.sizeOriginal)], file.name);
+                        this.modifiedItem.imageFile = new File(
+                            ["a".repeat(file.sizeOriginal)],
+                            file.name
+                        );
                     }
                 } else {
                     this.itemID = ID.unique();
                 }
+            } else {
+                this.previousValues = {};
+                this.modifiedItem = {
+                    description: "",
+                    displayPrice: true,
+                    image: null,
+                    imageFile: null,
+                    imageID: null,
+                    price: "",
+                    priority: "none",
+                    title: "",
+                    url: ""
+                };
             }
         },
-        quickCreateURL(newURL) {
+        async quickCreateURL(newURL) {
             if (newURL) {
-                this.dialogOpen = true;
+                this.dialogOpen = false;
                 this.modifiedItem.url = newURL;
                 this.itemID = ID.unique();
-                this.autoFill();
-
                 this.$emit("unsetQuickCreateURL", "");
+
+                await this.autofill();
+
+                this.dialogOpen = true;
             }
         }
     },
     methods: {
-        async setFileState(value) {
-            this.fileState = value;
-            if (value === "removed") {
-                await storage.deleteFile(
-                    import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                    this.modifiedItem.imageID
-                );
-                this.modifiedItem.imageFile = null;
-                this.modifiedItem.imageID = null;
+        async autofill() {
+            this.previousValues = { ...this.modifiedItem };
+
+            const resp = await this.dialogs.create({
+                async: true,
+                component: markRaw(ProcessingAutofill),
+                emits: [
+                    "complete", "error"
+                ],
+                fullscreen: false,
+                maxWidth: "90%",
+                props: {
+                    currency: this.currency,
+                    itemID: this.itemID,
+                    url: this.modifiedItem.url
+                }
+            });
+
+            console.log(resp.action);
+
+            if (resp.action === "closed") {
+                return;
             }
-        },
-        async autoFill() {
-            this.errors = {};
-            const url = this.modifiedItem.url;
-            if (!url) {
-                this.errors = {
-                    url: "Please enter a URL to use the auto-fill feature."
+
+            if (resp.action === "error") {
+                this.alert = {
+                    text: resp.data || "An unknown error occurred during auto-fill.",
+                    title: "Error"
                 };
                 return;
             }
-            this.autofillLoading = true;
-            this.previousValues = {
-                ...this.modifiedItem
-            };
 
-            try {
-                const result = await functions.createExecution(
-                    "get-autofill-data",
-                    JSON.stringify({
-                        currency: this.currency,
-                        itemID: this.itemID,
-                        url: url
-                    }),
-                    false
-                );
-
-                if (result.status === "completed") {
-                    const responseData = JSON.parse(result.responseBody);
-                    if (!Object.prototype.hasOwnProperty.call(responseData, "error")) {
-                        if (!responseData.title && !responseData.image && !responseData.price) {
-                            this.errors = {
-                                url: "Unable to autofill data."
-                            };
-                            this.autofillLoading = false;
-                            return;
-                        }
-
-                        if (responseData.title === "Access Denied") {
-                            this.errors = {
-                                url: "Access Denied. Please input data manually."
-                            };
-                            this.autofillLoading = false;
-                            return;
-                        }
-
-                        this.modifiedItem.title = responseData.title || this.modifiedItem.title;
-                        this.modifiedItem.price = responseData.price ? responseData.price.price : this.modifiedItem.price;
-                        this.modifiedItem.image = responseData.image || this.modifiedItem.image;
-
-                        if (responseData.imageID) {
-                            this.modifiedItem.imageFile = new File(["a".repeat(responseData.imageSize)], responseData.imageID);
-                            this.modifiedItem.imageID = responseData.imageID;
-                        }
-                    } else {
-                        this.errors = {
-                            url: responseData.error
-                        };
-                    }
-                } else {
-                    this.errors = {
-                        url: "Unable to autofill data." + result.errors
-                    };
-                }
-            } catch (e) {
-                console.error("Error:", e);
+            const autofillData = JSON.parse(resp.data);
+            if (!autofillData) {
+                this.alert = {
+                    text: "No data was returned from the auto-fill process.",
+                    title: "Error"
+                };
+                return;
             }
 
-            this.autofillLoading = false;
+            if (autofillData.images.length > 1) {
+                const images = autofillData.images.map((image) => {
+                    image.best = image.src === autofillData.bestImage.src;
+                    return image;
+                }).sort((a, b) => {
+                    if (a.best && !b.best) {
+                        return -1;
+                    }
+                    if (!a.best && b.best) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                const imageSelectorResp = await this.dialogs.create({
+                    async: true,
+                    component: markRaw(ImageSelector),
+                    emits: [
+                        "select-image"
+                    ],
+                    fullscreen: false,
+                    props: {
+                        images: images
+                    }
+                });
+                if (imageSelectorResp.action === "select-image") {
+                    this.modifiedItem.image = images[0].src;
+                    this.modifiedItem.imageFile = null;
+                    this.modifiedItem.imageID = null;
+                } else {
+                    // User cancelled image selection
+                    this.modifiedItem.image = this.previousValues.image;
+                    this.modifiedItem.imageFile = null;
+                    this.modifiedItem.imageID = null;
+                }
+            } else if (autofillData.images.length === 1) {
+                this.modifiedItem.image = autofillData.images[0].src;
+                this.modifiedItem.imageFile = null;
+                this.modifiedItem.imageID = null;
+            }
+
+            this.modifiedItem.title = autofillData.title || this.modifiedItem.title;
+            this.modifiedItem.price = autofillData.price
+                ? autofillData.price.price
+                : this.modifiedItem.price;
+
+            this.modifiedItem.url = autofillData.url || this.modifiedItem.url;
+        },
+        async setFileState(value) {
+            this.fileState = value;
+            if (value === "removed") {
+                try {
+                    await storage.deleteFile(
+                        APPWRITE_IMAGE_BUCKET,
+                        this.modifiedItem.imageID
+                    );
+                } catch (e) {
+                    console.error("Failed to delete file:", e);
+                }
+                this.modifiedItem.imageFile = null;
+                this.modifiedItem.imageID = null;
+            }
         },
         async createItem() {
             let result;
@@ -304,11 +359,14 @@ export default {
                 return;
             }
             try {
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
                 if (this.modifiedItem.imageFile && !this.modifiedItem.imageID) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                        this.itemID,
+                        APPWRITE_IMAGE_BUCKET,
+                        ID.unique(),
                         this.modifiedItem.imageFile
                     );
 
@@ -316,10 +374,10 @@ export default {
                     this.modifiedItem.imageID = fileUpload.$id;
                     this.modifiedItem.image = "";
                 }
-    
+
                 result = await databases.createDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.itemID,
                     {
                         communityList: this.wishlistOwner ? null : this.listId,
@@ -360,14 +418,14 @@ export default {
             try {
                 if (this.wishlistOwner) {
                     const updatedList = await databases.updateDocument(
-                        import.meta.env.VITE_APPWRITE_DB,
-                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        APPWRITE_DB,
+                        APPWRITE_LIST_COLLECTION,
                         this.listId,
                         {
                             itemCount: this.list.items.length
                         }
                     );
-                    
+
                     this.$emit("updateList", {
                         list: updatedList
                     });
@@ -408,21 +466,31 @@ export default {
             this.loading = true;
 
             try {
-                if (["removed", "replaced"].includes(this.fileState)) {
-                    if (this.modifiedItem.imageID) {
-                        await storage.deleteFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
-                            this.modifiedItem.imageID
-                        );
+                // Upload hotlinked image if present (manually added)
+                if (this.modifiedItem.image) {
+                    await this.downloadRemoteImage(this.modifiedItem.image);
+                }
 
-                        this.modifiedItem.imageID = null;
+                if (["removed", "replaced"].includes(this.fileState)) {
+                    try {
+                        if (this.modifiedItem.imageID) {
+                            await storage.deleteFile(
+                                APPWRITE_IMAGE_BUCKET,
+                                this.modifiedItem.imageID
+                            );
+
+                            this.modifiedItem.imageID = null;
+                        }
+
+                    } catch (e) {
+                        console.error("Failed to delete file:", e);
                     }
                 }
 
                 if (["added", "replaced"].includes(this.fileState)) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         ID.unique(),
                         this.modifiedItem.imageFile,
                         []
@@ -435,8 +503,8 @@ export default {
                 }
 
                 result = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
                         description: this.modifiedItem.description || null,
@@ -471,16 +539,42 @@ export default {
 
             this.dialogOpen = false;
             this.loading = false;
+        },
+        async downloadRemoteImage(imageURL) {
+            try {
+                const imageResponse = await fetch(imageURL);
+
+                let imageBlob = await imageResponse.blob();
+
+                let fileExt = mime.extension(imageBlob.type) || "png";
+
+                if (fileExt === "webp") {
+                    // Leave webp as is, due to https://github.com/appwrite/appwrite/issues/10699
+                    return;
+                }
+
+                const imageFile = new File(
+                    [imageBlob], `image.${fileExt}`,
+                    { type: imageBlob.type }
+                );
+                this.fileState = this.modifiedItem.imageID ? "replaced" : "added";
+                this.modifiedItem.imageFile = imageFile;
+                this.modifiedItem.image = "";
+            } catch (error) {
+                // Will just be hotlinked instead
+                console.error("Failed to download remote image:", error);
+            }
         }
     },
-    mounted() {
+    async mounted() {
         if (this.quickCreateURL) {
-            this.dialogOpen = true;
+            this.dialogOpen = false;
             this.modifiedItem.url = this.quickCreateURL;
             this.itemID = ID.unique();
-            this.autoFill();
-    
             this.$emit("unsetQuickCreateURL", "");
+            await this.autofill();
+
+            this.dialogOpen = true;
         }
     }
 };

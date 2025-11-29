@@ -55,6 +55,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION } from "astro:env/client";
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
@@ -87,13 +88,13 @@ export default {
             try {
                 if (this.item.imageID) {
                     await storage.deleteFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         this.item.imageID
                     );
                 }
                 await databases.deleteDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.item.$id
                 );
             } catch (e) {

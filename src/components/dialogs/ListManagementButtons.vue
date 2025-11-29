@@ -17,13 +17,13 @@
             @newItem="(data) => $emit('newItem', data)"
             @updateList="$emit('updateList', $event)"
             v-if="auth.isLoggedIn"
-        /> 
+        />
 
         <v-btn
             size="small"
             icon
             variant="outlined"
-            v-if="wishlistOwner"
+            v-if="wishlistOwner && !$vuetify.display.mobile"
             v-bind="menuOpen"
         >
             <v-icon :icon="mdiMenuDown" />
@@ -70,10 +70,8 @@
                     variant="outlined"
                     @click="quickCreate"
                     v-else
-                > 
-                    <template v-if="!$vuetify.display.mobile">
-                        Quickcreate
-                    </template>
+                >
+                    <template v-if="!$vuetify.display.mobile"> Quickcreate </template>
                 </v-btn>
             </template>
 
@@ -131,7 +129,6 @@
 
 <script setup>
 import { mdiClipboard, mdiMenuDown, mdiShare, mdiStar, mdiStarOff } from "@mdi/js";
-import { useRoute, useRouter } from "vue-router";
 import { account } from "@/appwrite";
 import DeleteList from "./DeleteList.vue";
 import EditList from "./EditList.vue";
@@ -181,9 +178,6 @@ const props = defineProps({
     }
 });
 
-const router = useRouter();
-const route = useRoute();
-
 let quickCreateURL = ref("");
 let quickCreateError = ref({
     text: "",
@@ -192,7 +186,6 @@ let quickCreateError = ref({
 
 let quickcreateDialogOpen = ref(false);
 let listSaveLoading = ref(false);
-
 
 const copyListURL = async () => {
     const listURL = `${window.location.origin}/${props.list.shortUrl ? props.list.shortUrl : "list/" + props.list.$id}`;
@@ -203,12 +196,11 @@ const copyListURL = async () => {
             });
 
             return;
-        }
-        catch (error) {
+        } catch (error) {
             if (error?.name === "AbortError") return;
         }
     }
-    
+
     navigator.clipboard.writeText(listURL);
     shareButtonSnackbarOpen.value = true;
 };
@@ -223,7 +215,7 @@ const saveList = async () => {
                     action: "close",
                     color: "primary",
                     text: "Log In",
-                    to: "/dash/login?redirect=" + encodeURIComponent(route.fullPath)
+                    to: "/dash/login?redirect=" + encodeURIComponent(window.location.pathname + window.location.search)
                 },
                 {
                     action: "close",
@@ -239,7 +231,9 @@ const saveList = async () => {
         return;
     }
     if (auth.newUserPrefs.savedLists && auth.newUserPrefs.savedLists.includes(props.list.$id)) {
-        auth.newUserPrefs.savedLists = auth.newUserPrefs.savedLists.filter((listId) => listId !== props.list.$id);
+        auth.newUserPrefs.savedLists = auth.newUserPrefs.savedLists.filter(
+            (listId) => listId !== props.list.$id
+        );
         try {
             const accountResp = await account.updatePrefs(auth.newUserPrefs);
             auth.userPrefs = accountResp.prefs;
@@ -254,7 +248,9 @@ const saveList = async () => {
                         text: "OK"
                     }
                 ],
-                text: "An error occurred while trying to unsave this list. Please try again later. " + error.message,
+                text:
+                    "An error occurred while trying to unsave this list. Please try again later. " +
+                    error.message,
                 title: "Error",
                 variant: "error"
             });
@@ -275,12 +271,14 @@ const saveList = async () => {
                         text: "OK"
                     }
                 ],
-                text: "An error occurred while trying to save this list. Please try again later. " + error.message,
+                text:
+                    "An error occurred while trying to save this list. Please try again later. " +
+                    error.message,
                 title: "Error",
                 variant: "error"
             });
         }
-    }   
+    }
 };
 
 const quickCreate = async () => {
@@ -310,9 +308,14 @@ const quickCreate = async () => {
 
 const resetQuickCreateURL = () => {
     quickCreateURL.value = "";
-    const { quickcreateurl, ...remainingQueries } = route.query;
+    const { quickcreateurl, ...remainingQueries } = Object.fromEntries(
+        new URLSearchParams(window.location.search)
+    );
     if (quickcreateurl) {
-        router.replace({ query: remainingQueries });
+        const newQueryString = new URLSearchParams(remainingQueries).toString();
+        const newURL =
+            window.location.pathname + (newQueryString ? `?${newQueryString}` : "");
+        window.history.replaceState({}, document.title, newURL);
     }
 };
 

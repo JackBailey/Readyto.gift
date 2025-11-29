@@ -1,4 +1,4 @@
-import { Client, Storage } from "node-appwrite";
+import { Client, Databases, ID, Permission, Role, Storage } from "node-appwrite";
 import { Buffer } from "buffer";
 import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
@@ -35,7 +35,7 @@ const formatTitle = (data, site) => {
     return title ? title.slice(0, 128).trim() : "";
 };
 
-const getPreview = async (url, country, site, storage, itemID, userID, { log, error }) => {
+const getRequestMethods = ({ country }) => {
     const requestMethods = [];
 
     if (process.env.APPWRITE_USE_LOCAL_FETCH !== "false") {
@@ -86,12 +86,31 @@ const getPreview = async (url, country, site, storage, itemID, userID, { log, er
         }
     }
 
+    return requestMethods;
+};
+
+const getPreview = async ({ url, requestMethods, site, itemID, executionID, databases, log, error }) => {
+    const updateStatus = (data) => {
+        return databases.updateDocument(
+            "wishlist",
+            "autofills",
+            executionID,
+            data
+        );
+    };
+
     log(`Total request methods to try: ${requestMethods.length}`);
 
     let totalBandwidth = 0;
 
-    for (const method of requestMethods) {
+    for (const [index, method] of requestMethods.entries()) {
         log(`Trying request method: ${method.name}`);
+
+        await updateStatus({
+            attempt: index + 1,
+            attemptStatus: "starting",
+            totalAttempts: requestMethods.length
+        });
 
         const fetchOptions = {
             followRedirects: "follow",
@@ -104,8 +123,12 @@ const getPreview = async (url, country, site, storage, itemID, userID, { log, er
         };
 
         try {
-            console.log({ method });
             const data = await getLinkPreview({ url, log, error }, fetchOptions);
+
+            await updateStatus({
+                attemptStatus: "processing"
+            });
+
             totalBandwidth += parseInt(data.size) || 0;
 
             log(`Request method succeeded: ${method.name}`);
@@ -118,6 +141,9 @@ const getPreview = async (url, country, site, storage, itemID, userID, { log, er
             }
 
             if (data.images && data.images.length) {
+                await updateStatus({
+                    attemptStatus: "finding-best-image"
+                });
                 const bestImageResult = await getBestImage({
                     images: data.images,
                     site,
@@ -130,35 +156,17 @@ const getPreview = async (url, country, site, storage, itemID, userID, { log, er
                 if (bestImageResult.image) {
                     const bestImage = bestImageResult.image;
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
-                    try {
-                    // delete original
-                        await storage.deleteFile(
-                            "66866e74001d3e2f2629",
-                            itemID
-                        );
-                    }  catch {
-                    // ignore error if file does not exist
-                    }
 
-                    log({ length: bestImage.data.byteLength });
-    
-                    const imageBuffer = Buffer.from(bestImage.data);
-
-                    const mimeType = bestImage.contentType || "image/jpeg";
-                    const fileExt = mime.extension(mimeType) || "png";
-    
-                    const result = await storage.createFile(
-                        "66866e74001d3e2f2629",
-                        itemID,
-                        InputFile.fromBuffer(imageBuffer, `image.${fileExt}`)
-                    );
-
-                    data.imageID = result.$id;
-                    data.imageSize = result.sizeOriginal;
+                    data.bestImage = bestImage.image;
                 } else {
                     log("No suitable image found.");
                 }
             }
+
+            await updateStatus({
+                attempt: index + 1,
+                attemptStatus: "completed"
+            });
 
             const bandwidthGB = totalBandwidth / (1024 * 1024 * 1024);
             const costInCents = parseFloat((bandwidthGB * bandwidthCostPerGB.amount).toFixed(12));
@@ -185,38 +193,25 @@ const getPreview = async (url, country, site, storage, itemID, userID, { log, er
 
             return data;
         } catch (err) {
+            await updateStatus({
+                attemptStatus: "failed"
+            });
             error(`Request method failed: ${method.name} - ${err.message}`);
             // try next method
         }
     }
+
+    await updateStatus({
+        status: "failed"
+    });
 
     throw new Error("All request methods failed, it may be blocked.");
 };
 
 export default async ({ req, res, log, error }) => {
     try {
-        const { url, currency, itemID } = req.bodyJson;
-        const userID = req.headers["x-appwrite-user-id"];
-
-        if (!url) {
-            return res.json({
-                error: "No URL provided"
-            });
-        }
-
-        if (!itemID) {
-            return res.json({
-                error: "No item ID provided"
-            });
-        }
-
-        const countryMap = {
-            USD: "us",
-            GBP: "gb",
-            EUR: "eu",
-            AUD: "au",
-            CAD: "ca"
-        };
+        let executionRowExists = false;
+        let executionID = null;
 
         const client = new Client()
             .setEndpoint("https://appwrite.readyto.gift/v1") // Your API Endpoint
@@ -224,33 +219,94 @@ export default async ({ req, res, log, error }) => {
             .setJWT(req.headers["x-appwrite-user-jwt"]);
 
         const storage = new Storage(client);
+        const databases = new Databases(client);
+        try {
+            let functionStartTime = new Date();
+            const { url, currency, itemID } = req.bodyJson;
+            const userID = req.headers["x-appwrite-user-id"];
 
-        let country = "";
-        if (currency && countryMap[currency]) {
-            country = countryMap[currency];
+            if (!url) {
+                return res.json({
+                    error: "No URL provided"
+                });
+            }
+
+            if (!itemID) {
+                return res.json({
+                    error: "No item ID provided"
+                });
+            }
+
+            const countryMap = {
+                USD: "us",
+                GBP: "gb",
+                EUR: "eu",
+                AUD: "au",
+                CAD: "ca"
+            };
+
+            executionID = req.headers["x-appwrite-execution-id"] || `dev-${ID.unique()}`;
+
+            let country = "";
+            if (currency && countryMap[currency]) {
+                country = countryMap[currency];
+            }
+
+            const site = getSite(url);
+
+            const requestMethods = getRequestMethods({ country });
+
+            await databases.createDocument("wishlist", "autofills", executionID, {
+                attempt: 0,
+                totalAttempts: requestMethods.length,
+                status: "processing",
+                autofillURL: url
+            }, [
+                Permission.write(Role.user(userID)),
+                Permission.read(Role.user(userID))
+            ]);
+
+            executionRowExists = true;
+
+            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error });
+
+            const autofillData = {
+                title: formatTitle(data, site),
+                url: data.url ? TidyURL.clean(data.url).url : "",
+                image: "",
+                bestImage: data.bestImage || null,
+                imageID: data.imageID,
+                imageSize: data.imageSize,
+                images: data.images,
+                price: data.price
+            };
+
+            await databases.updateDocument("wishlist", "autofills", executionID, {
+                status: "completed",
+                executionTime: new Date().getTime() - functionStartTime.getTime(),
+                outputData: JSON.stringify(autofillData)
+            });
+
+            return res.json(autofillData, 200);
+        } catch (err) {
+            error(err.message);
+
+            if (executionRowExists) {
+                await databases.updateDocument("wishlist", "autofills", executionID, {
+                    status: "failed",
+                    outputData: err.message
+                });
+            }
+
+            return res.json({
+                error: err.message
+            }, 500);
         }
-
-        const site = getSite(url);
-        const data = await getPreview(url, country, site, storage, itemID, userID, { log, error });
-
-        const autofillData = {
-            title: formatTitle(data, site),
-            url: data.url ? TidyURL.clean(data.url).url : "",
-            image: "",
-            imageID: data.imageID,
-            imageSize: data.imageSize,
-            price: data.price
-        };
-
-        log("Autofill data:", autofillData);
-
-        return res.json(autofillData);
     } catch (err) {
-        error(err);
-        error("Could not get link preview: " + err.message);
+        error(err.message);
 
         return res.json({
             error: err.message
-        });
+        }, 500);
     }
 };

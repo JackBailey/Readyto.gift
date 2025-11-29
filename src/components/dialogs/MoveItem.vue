@@ -2,7 +2,7 @@
     <v-dialog
         :max-width="$vuetify.display.mobile ? '100%' : '500px'"
         v-model="dialogOpen"
-        scrollable 
+        scrollable
     >
         <template v-slot:activator="{ props: activatorProps }">
             <v-btn
@@ -12,7 +12,7 @@
             />
         </template>
 
-        <template v-slot:default="{ isActive }">
+        <template v-slot:default="{ isActive }">s
             <template v-if="!success">
                 <v-card title="Move Item">
                     <template v-slot:title>
@@ -22,7 +22,6 @@
                         </v-card-text>
                     </template>
                     <v-card-text>
-                        
                         <div
                             class="lists mt-5 loader"
                             v-if="loading"
@@ -76,12 +75,8 @@
             </template>
             <template v-else>
                 <v-card title="Item Moved">
-                    <template v-slot:title>
-                        Item Moved
-                    </template>
-                    <v-card-text>
-                        The item has been moved to the selected list.
-                    </v-card-text>
+                    <template v-slot:title> Item Moved </template>
+                    <v-card-text> The item has been moved to the selected list. </v-card-text>
                     <v-card-actions>
                         <v-btn
                             @click="goToList"
@@ -101,6 +96,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { AppwriteException, Query } from "appwrite";
 import { mdiAlert, mdiFileDocumentArrowRight } from "@mdi/js";
 import { databases } from "@/appwrite";
@@ -156,12 +152,13 @@ export default {
             this.loading = true;
             try {
                 const response = await databases.listDocuments(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     [
                         Query.equal("author", this.auth.user.$id),
                         Query.orderDesc("$updatedAt"),
-                        Query.notEqual("$id", this.list.$id)
+                        Query.notEqual("$id", this.list.$id),
+                        Query.select(["*","items.*"])
                     ]
                 );
 
@@ -196,10 +193,11 @@ export default {
         },
         async moveToList() {
             this.loadingMove = true;
+
             try {
                 await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
                         list: this.selectedList
@@ -207,17 +205,17 @@ export default {
                 );
 
                 await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.list.$id,
                     {
                         itemCount: this.list.items.length - 1
                     }
                 );
-                
+
                 await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.selectedList.$id,
                     {
                         itemCount: this.selectedList.items.length + 1
@@ -244,8 +242,7 @@ export default {
             }
         },
         goToList() {
-            this.$router.push(`/list/${this.selectedList.$id}`);
-            this.$emit("loadList", this.selectedList.$id);
+            window.location.href = `/list/${this.selectedList.$id}`;
             this.dialogOpen = false;
         },
         selectList(list) {

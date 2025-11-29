@@ -1,0 +1,13 @@
+---
+import StartRecovery from "./_StartRecovery.vue";
+import VueLayout from "@/layouts/Vue.astro";
+import "vuetify/styles";
+import Layout from "@/layouts/Layout.astro";
+---
+<Layout>
+    <VueLayout>
+        <StartRecovery
+            client:only
+        />
+    </VueLayout>
+</Layout>

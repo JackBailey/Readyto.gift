@@ -1,0 +1,17 @@
+---
+import WishList from "./_WishList.vue";
+import "vuetify/styles";
+import VueLayout from "@/layouts/Vue.astro";
+import Layout from "@/layouts/Layout.astro";
+
+const id = Astro.params.id;
+export const prerender = false;
+---
+<Layout>
+    <VueLayout>
+        <WishList
+            client:only
+            listID={id}
+        />
+    </VueLayout>
+</Layout>
