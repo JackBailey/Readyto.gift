@@ -5,6 +5,8 @@ import vue from "@astrojs/vue";
 
 import sentry from "@sentry/astro";
 
+import vercel from "@astrojs/vercel";
+
 // https://astro.build/config
 export default defineConfig({
     env: {
@@ -24,12 +26,18 @@ export default defineConfig({
             APPWRITE_DEV_KEY: envField.string({ context: "client", access: "public", optional: true })
         }
     },
+
     integrations: [vue({
         appEntrypoint: "/src/pages/_app"
     }), sentry()],
+
     vite: {
         ssr: {
             noExternal: ["vuetify"]
         }
-    }
+    },
+
+    output: "static",
+
+    adapter: vercel()
 });
