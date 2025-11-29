@@ -57,7 +57,6 @@ if (!import.meta.env.SSR) {
         const authStore = useAuthStore();
         await authStore.init();
         if (to.meta && to.meta.requiresAuth) {
-            console.log("Route requires auth, checking login status...");
             if (!authStore.isLoggedIn) {
                 next({
                     path: "/dash/login",

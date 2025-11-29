@@ -112,7 +112,7 @@
             :base-color="previousValues.price && previousValues.price !== item.price ? 'primary' : undefined"
             :color="previousValues.price && previousValues.price !== item.price ? 'primary' : undefined"
             persistent-hint
-            hint="Leave this blank or set it to 0 to place it in the &quot;Pricess Gifts&quot; category"
+            hint="Leave this blank or set it to 0 to place it in the &quot;Flexible Gifts&quot; category"
         >
             <template #details>
                 <RevertPrompt
