@@ -106,7 +106,8 @@
 </template>
 
 <script>
-import { AppwriteException, ID } from "appwrite";
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
+import { AppwriteException, ID, Permission, Role } from "appwrite";
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiPencil, mdiPlus, mdiRobot } from "@mdi/js";
 import ImageSelector from "@/components/dialogs/ImageSelector.vue";
@@ -116,7 +117,6 @@ import mime from "mime-types";
 import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
-import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 
 export default {
     title: "ListDialog",
@@ -359,6 +359,21 @@ export default {
                 return;
             }
             try {
+                let permissions = [
+                    Permission.delete(Role.user(this.auth.user.$id)),
+                    Permission.update(Role.user(this.auth.user.$id))
+                ];
+
+                if (this.wishlistOwner && this.list.private) {
+                    permissions.push(
+                        Permission.read(Role.user(this.auth.user.$id))
+                    );
+                } else {
+                    permissions.push(
+                        Permission.read(Role.any())
+                    );
+                }
+
                 if (this.modifiedItem.image) {
                     await this.downloadRemoteImage(this.modifiedItem.image);
                 }
@@ -367,7 +382,8 @@ export default {
                     const fileUpload = await storage.createFile(
                         APPWRITE_IMAGE_BUCKET,
                         ID.unique(),
-                        this.modifiedItem.imageFile
+                        this.modifiedItem.imageFile,
+                        permissions
                     );
 
                     this.uploadingFile = false;
@@ -392,7 +408,8 @@ export default {
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
                         url: this.modifiedItem.url || null
-                    }
+                    },
+                    permissions
                 );
             } catch (e) {
                 if (e instanceof AppwriteException) {
@@ -464,6 +481,20 @@ export default {
             let result;
             this.alert = false;
             this.loading = true;
+            let permissions = [
+                Permission.delete(Role.user(this.auth.user.$id)),
+                Permission.update(Role.user(this.auth.user.$id))
+            ];
+
+            if (this.wishlistOwner && this.list.private) {
+                permissions.push(
+                    Permission.read(Role.user(this.auth.user.$id))
+                );
+            } else {
+                permissions.push(
+                    Permission.read(Role.any())
+                );
+            }
 
             try {
                 // Upload hotlinked image if present (manually added)
@@ -493,7 +524,7 @@ export default {
                         APPWRITE_IMAGE_BUCKET,
                         ID.unique(),
                         this.modifiedItem.imageFile,
-                        []
+                        permissions
                     );
 
                     this.uploadingFile = false;
@@ -515,7 +546,8 @@ export default {
                         priority: this.modifiedItem.priority,
                         title: this.modifiedItem.title,
                         url: this.modifiedItem.url || null
-                    }
+                    },
+                    permissions
                 );
             } catch (e) {
                 if (e instanceof AppwriteException) {

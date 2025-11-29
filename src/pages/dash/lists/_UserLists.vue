@@ -147,12 +147,47 @@
 
         <v-list v-else-if="!loading && lists?.length">
             <ListCard
-                v-for="list in lists"
+                v-for="list in publicLists"
                 :key="list.$id"
                 :list="list"
                 :quickCreateURL="quickCreateURL"
                 :ownList="auth.isLoggedIn && list.author === auth.user.$id"
             />
+            <v-expansion-panels
+                class="mt-4"
+                variant="accordion"
+            >
+                <v-expansion-panel color="primary">
+                    <v-expansion-panel-title>
+                        <h2>
+                            <v-icon
+                                :icon="mdiLock"
+                                class="me-2"
+                                size="24"
+                            />
+                            Your Private Lists
+                        </h2>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                        <ListCard
+                            v-for="list in privateLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                        <v-alert
+                            v-if="privateLists.length === 0"
+                            type="info"
+                            border="start"
+                            dense
+                        >
+                            You have no private lists. Create one to keep it hidden from
+                            others!
+                        </v-alert>
+                    </v-expansion-panel-text>
+                </v-expansion-panel>
+            </v-expansion-panels>
         </v-list>
         <v-card
             class="pa-0 mb-4"
@@ -198,7 +233,7 @@
 <script>
 import { account, databases } from "@/appwrite";
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { mdiInformation, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
+import { mdiEarth, mdiInformation, mdiLock, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
 import CreateList from "@/components/dialogs/CreateList.vue";
 import ListCard from "@/components/ListCard.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
@@ -219,7 +254,9 @@ export default {
             dialogs: useDialogs(),
             lists: [],
             loading: true,
+            mdiEarth,
             mdiInformation,
+            mdiLock,
             mdiSortAscending,
             mdiSortDescending,
             mdiStar,
@@ -235,6 +272,14 @@ export default {
             },
             verificationDialog: false
         };
+    },
+    computed: {
+        privateLists() {
+            return this.lists.filter((list) => list.private);
+        },
+        publicLists() {
+            return this.lists.filter((list) => !list.private);
+        }
     },
     methods: {
         createList(data) {

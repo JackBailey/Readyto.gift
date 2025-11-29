@@ -83,7 +83,7 @@ import { mdiChevronRight } from "@mdi/js";
 import "@splidejs/vue-splide/css";
 
 const currentImageIndex = shallowRef(0);
-const emit = defineEmits(["select-image"]);
+defineEmits(["select-image"]);
 
 // Ref: https://codestax.medium.com/easy-way-to-create-a-slider-in-vue-js-with-splide-js-8905e88dc8ab
 const mainSliderOptions = {

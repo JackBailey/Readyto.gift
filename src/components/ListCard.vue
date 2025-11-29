@@ -9,8 +9,32 @@
         <template v-slot:title>
             <div class="title-container">
                 <div class="title">
-                    <h2 v-if="props.header">{{ props.list.title }}</h2>
-                    <h3 v-else>{{ props.list.title }}</h3>
+                    <component
+                        :is="props.header ? 'h2' : 'h3'"
+                        v-if="props.list.title"
+                    >
+
+                        <span
+                            class="list-visibility"
+                            v-if="ownList"
+                        >
+                            <v-icon
+                                v-if="!props.list.private"
+                                :icon="mdiEarth"
+                                size="24"
+                                class="me-2"
+                                :title="'This list is public'"
+                            />
+                            <v-icon
+                                v-else
+                                :icon="mdiLock"
+                                size="24"
+                                class="me-2"
+                                :title="'This list is private'"
+                            />
+                        </span>
+                        {{ props.list.title }}
+                    </component>
                 </div>
                 <div
                     class="title-actions"
@@ -141,7 +165,7 @@
 
 <script setup>
 import { defineEmits, defineProps } from "vue";
-import { mdiAlert, mdiDotsVertical, mdiFileDocumentMultiple, mdiInvoiceList, mdiUpdate } from "@mdi/js";
+import { mdiAlert, mdiDotsVertical, mdiEarth, mdiFileDocumentMultiple, mdiInvoiceList, mdiLock, mdiUpdate } from "@mdi/js";
 import { avatars } from "@/appwrite";
 import DeleteList from "./dialogs/DeleteList.vue";
 import EditList from "./dialogs/EditList.vue";

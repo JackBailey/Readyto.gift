@@ -65,7 +65,7 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { AppwriteException, ID, Query } from "appwrite";
+import { AppwriteException, ID, Permission, Query, Role } from "appwrite";
 import { mdiAlert, mdiPlus } from "@mdi/js";
 import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
@@ -101,6 +101,7 @@ export default {
             newList: {
                 currency: "USD",
                 description: "",
+                private: false,
                 shortUrl: null,
                 title: ""
             }
@@ -166,6 +167,21 @@ export default {
             }
 
             try {
+                let permissions = [
+                    Permission.delete(Role.user(this.auth.user.$id)),
+                    Permission.update(Role.user(this.auth.user.$id))
+                ];
+
+                if (this.newList.private) {
+                    permissions.push(
+                        Permission.read(Role.user(this.auth.user.$id))
+                    );
+                } else {
+                    permissions.push(
+                        Permission.read(Role.any())
+                    );
+                }
+
                 list = await databases.createDocument(
                     APPWRITE_DB,
                     APPWRITE_LIST_COLLECTION,
@@ -175,7 +191,8 @@ export default {
                         author: this.auth.user.$id,
                         authorName: this.auth.user.name,
                         itemCount: 0
-                    }
+                    },
+                    permissions
                 );
             } catch (e) {
                 if (e instanceof AppwriteException) {

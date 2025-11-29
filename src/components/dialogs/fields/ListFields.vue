@@ -61,6 +61,7 @@
             list.shortUrl ? `Your short URL will be: ${origin}/${list.shortUrl}` : `Set a memorable short URL for your list`
         "
         hide-details="auto"
+        :disabled="list.private"
     >
         <template #details>
             <RevertPrompt
@@ -70,6 +71,15 @@
             />
         </template>
     </v-text-field>
+    <v-label class="mt-4 mb-0">List Privacy</v-label>
+    <v-switch
+        label="Private List"
+        v-model="list.private"
+        hint="When enabled, only you will be able to view and access this list."
+        persistent-hint
+        inset
+        color="primary"
+    />
 </template>
 
 <script setup>
@@ -103,5 +113,10 @@ const revertValue = (field) => {
 <style scoped>
 :deep(.v-counter) {
     margin-left: 0.5rem;
+}
+:deep(.v-messages__message) {
+    margin-top: 0.25rem;
+    font-size: 1rem;
+    line-height: 1.2;
 }
 </style>

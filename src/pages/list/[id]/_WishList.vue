@@ -250,6 +250,7 @@ export default {
             this.list.shortUrl = data.list.shortUrl;
             this.list.itemCount = data.list.itemCount;
             this.list.$updatedAt = data.list.$updatedAt;
+            this.list.private = data.list.private;
         },
         addItem(data) {
             if (data.item.communityList) {

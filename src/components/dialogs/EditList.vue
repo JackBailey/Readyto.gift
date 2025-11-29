@@ -61,10 +61,13 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { AppwriteException, Query } from "appwrite";
+import { AppwriteException, Permission, Query, Role } from "appwrite";
 import { mdiAlert, mdiPencil } from "@mdi/js";
 import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
+import { useAuthStore } from "@/stores/auth";
+import { useDialogs } from "@/stores/dialogs";
+
 export default {
     title: "ListDialog",
     props: {
@@ -83,7 +86,9 @@ export default {
     data() {
         return {
             alert: false,
+            auth: useAuthStore(),
             dialogOpen: false,
+            dialogs: useDialogs(),
             editedList: {},
             listId: null,
             loading: false,
@@ -99,6 +104,7 @@ export default {
                     currency: this.list.currency,
                     description: this.list.description,
                     itemCount: this.list.items.length,
+                    private: this.list.private,
                     shortUrl: this.list.shortUrl,
                     title: this.list.title
                 };
@@ -113,6 +119,35 @@ export default {
         async updateList() {
             this.alert = false;
             this.loading = true;
+
+            if (this.editedList.private) {
+                this.editedList.shortUrl = null;
+
+                const resp = await this.dialogs.create({
+                    actions: [
+                        {
+                            action: "close",
+                            text: "Cancel",
+                            variant: "text"
+                        },
+                        {
+                            action: "close",
+                            color: "primary",
+                            text: "Continue",
+                            variant: "elevated"
+                        }
+                    ],
+                    async: true,
+                    text: "Making your list private will remove its short URL, and delete any community-added items. Are you sure you want to proceed? Making a list public again will not restore these items.",
+                    title: "Warning"
+                });
+
+                if (resp.action !== "Continue") {
+                    this.loading = false;
+                    return;
+                }
+            }
+
             if (this.editedList.shortUrl) {
                 try {
                     const conflictingDocuments = await databases.listDocuments(
@@ -152,13 +187,25 @@ export default {
             let listResponse;
 
             try {
+                let permissions = [
+                    Permission.delete(Role.user(this.auth.user.$id)),
+                    Permission.update(Role.user(this.auth.user.$id))
+                ];
+
+                if (this.editedList.private) {
+                    permissions.push(Permission.read(Role.user(this.auth.user.$id)));
+                } else {
+                    permissions.push(Permission.read(Role.any()));
+                }
                 listResponse = await databases.updateDocument(
                     APPWRITE_DB,
                     APPWRITE_LIST_COLLECTION,
                     this.listId,
-                    this.editedList
+                    this.editedList,
+                    permissions
                 );
             } catch (e) {
+                console.log(e);
                 if (e instanceof AppwriteException) {
                     this.alert = {
                         text: e.message,
