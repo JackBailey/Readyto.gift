@@ -3,6 +3,7 @@
         :max-width="$vuetify.display.mobile ? '100%' : '500px'"
         :fullscreen="$vuetify.display.mobile ? true : false"
         v-model="dialogOpen"
+        key="delete-list-dialog"
     >
         <template v-slot:activator="{ props: activatorProps }">
             <v-list-item
@@ -11,6 +12,14 @@
                 title="Delete List"
                 link
                 base-color="error"
+                v-if="!$vuetify.display.mobile"
+            />
+            <v-btn
+                v-bind="activatorProps"
+                :icon="mdiDelete"
+                title="Delete List"
+                color="error"
+                v-else
             />
         </template>
 
@@ -30,7 +39,10 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn text="Cancel" @click="isActive.value = false" />
+                    <v-btn
+                        text="Cancel"
+                        @click="isActive.value = false"
+                    />
                     <v-btn
                         color="error"
                         text="Delete"
@@ -48,6 +60,7 @@
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 export default {
     title: "ListDialog",
     props: {
@@ -86,7 +99,7 @@ export default {
                     this.list.items.map(async (item) => {
                         if (item.imageID) {
                             await storage.deleteFile(
-                                import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                                APPWRITE_IMAGE_BUCKET,
                                 item.imageID
                             );
                         }
@@ -94,12 +107,12 @@ export default {
                 );
 
                 await databases.deleteDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.list.$id
                 );
 
-                this.$router.push("/dash/lists");
+                window.location.href = "/dash/lists";
 
                 this.dialogOpen = false;
                 this.loading = false;

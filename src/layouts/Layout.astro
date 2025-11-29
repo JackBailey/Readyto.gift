@@ -202,35 +202,15 @@
         />
     </head>
     <body>
-        <div id="app">
-            <noscript>
-                <h1>JavaScript is disabled</h1>
-                <p>
-                    This application requires JavaScript to run. Please enable JavaScript to
-                    continue.
-                </p>
-            </noscript>
-            <style>
-                body {
-                    background-color: #fcf8ff;
-                }
-                @media (prefers-color-scheme: dark) {
-                    body {
-                        background-color: #131318;
-                        color: white;
-                    }
-                }
-            </style>
-        </div>
-        <script type="module" src="/src/main.js"></script>
-        <script src="https://swetrix.org/swetrix.js" defer></script>
+        <slot />
+        <script src="https://swetrix.org/swetrix.js" defer is:inline></script>
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            swetrix.init('WQ7nlIp2JaHl', {
-            apiURL: 'https://analytics-v2.jackbailey.dev/api/log',
+            document.addEventListener('DOMContentLoaded', function() {
+                swetrix.init('WQ7nlIp2JaHl', {
+                apiURL: 'https://analytics-v2.jackbailey.dev/api/log',
+                })
+                swetrix.trackViews()
             })
-            swetrix.trackViews()
-        })
         </script>
 
         <noscript>

@@ -2,7 +2,11 @@
     <v-app :theme="auth.userPrefs.darkMode ? 'dark' : 'light'">
         <DashNav :loading="loading" />
         <v-main>
-            <RouterView />
+            <slot
+                v-if="
+                    requiresAuth === false || (requiresAuth === true && auth.isLoggedIn)
+                "
+            ></slot>
             <div class="loading-placeholder"></div>
             <SiteFooter />
         </v-main>
@@ -11,16 +15,22 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
-import { RouterView, useRouter } from "vue-router";
+import { defineProps, onMounted, ref, watch } from "vue";
+import { UMAMI_DOMAINS, UMAMI_ID, UMAMI_URL } from "astro:env/client";
 import DashNav from "@/components/DashNav.vue";
-import GlobalDialogs from "./components/GlobalDialogs.vue";
-import SiteFooter from "./components/SiteFooter.vue";
+import GlobalDialogs from "@/components/GlobalDialogs.vue";
+import SiteFooter from "@/components/SiteFooter.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
-import { usePWA } from "./stores/pwa";
+import { usePWA } from "@/stores/pwa";
 import { useTheme } from "vuetify";
 
+const props = defineProps({
+    requiresAuth: {
+        default: true,
+        type: Boolean
+    }
+});
 
 
 const auth = useAuthStore();
@@ -29,21 +39,11 @@ const pwa = usePWA();
 
 const vuetifyTheme = useTheme();
 
-const router = useRouter();
-
 const loading = ref(true);
 
-router.beforeResolve((to, from, next) => {
-    if (to.name) {
-        loading.value = true;
-    }
-
-    next();
-});
-
-router.afterEach(() => {
-    loading.value = false;
-});
+watch(() => auth.userPrefs.darkMode, (darkMode) => {
+    vuetifyTheme.change(darkMode ? "dark" : "light");
+}, { immediate: true });
 
 window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -56,9 +56,9 @@ window.addEventListener("appinstalled", () => {
 });
 
 const setThemeColor = () => {
-    document
-        .querySelector("meta[name='theme-color']")
-        .setAttribute("content", vuetifyTheme.themes.value[auth.userPrefs ? "dark" : "light"].colors.primary);
+    const elements = document
+        .querySelector("meta[name='theme-color']");
+    if (elements) elements.setAttribute("content", vuetifyTheme.themes.value[auth.userPrefs ? "dark" : "light"].colors.primary);
 };
 
 setThemeColor();
@@ -70,22 +70,23 @@ auth.$subscribe((mutation) => {
 });
 
 onMounted(async () => {
-    await currencyStore.init();
-
-    const {
-        VITE_UMAMI_URL: umamiURL,
-        VITE_UMAMI_ID: umamiID,
-        VITE_UMAMI_DOMAINS: umamiDomains
-    } = import.meta.env;
-
-    if (umamiURL && umamiID) {
+    if (UMAMI_URL && UMAMI_ID) {
         const script = document.createElement("script");
-        script.src = `${umamiURL}`;
-        script.setAttribute("data-website-id", umamiID);
-        if (umamiDomains) {
-            script.setAttribute("data-domains", umamiDomains);
+        script.src = `${UMAMI_URL}`;
+        script.setAttribute("data-website-id", UMAMI_ID);
+        if (UMAMI_DOMAINS) {
+            script.setAttribute("data-domains", UMAMI_DOMAINS);
         }
         document.head.appendChild(script);
+    }
+
+    await auth.init();
+    await currencyStore.init();
+
+    if (props.requiresAuth && !auth.user) {
+        window.location.href = "/dash/login?redirect=" + encodeURIComponent(window.location.pathname + window.location.search);
+    } else {
+        loading.value = false;
     }
 });
 </script>

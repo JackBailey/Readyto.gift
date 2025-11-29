@@ -101,6 +101,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_FULFILLMENT_COLLECTION, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { databases } from "@/appwrite";
 import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
@@ -115,6 +116,17 @@ export default {
         ListCard,
         ListItem,
         PWAPrompt
+    },
+    props: {
+        listID: {
+            type: String,
+            required: true
+        },
+        quickCreateURL: {
+            type: String,
+            required: false,
+            default: ""
+        }
     },
     data() {
         return {
@@ -135,7 +147,6 @@ export default {
             },
             priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
-            quickCreateURL: this.$route.query.quickcreateurl,
             showFulfilled: localStorage.getItem("showFulfilled") !== "false",
             sort: "price"
         };
@@ -279,8 +290,8 @@ export default {
                 this.list.items = this.list.items.filter((item) => item.$id !== id);
 
                 const updatedList = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.list.$id,
                     {
                         itemCount: this.list.items.length
@@ -341,7 +352,7 @@ export default {
                             closeAfterAction: true,
                             color: "primary",
                             text: "Log In",
-                            to: "/dash/login?redirect=" + encodeURIComponent(this.$route.fullPath),
+                            to: "/dash/login?redirect=" + encodeURIComponent(window.location.href),
                             variant: "elevated"
                         }
                     ],
@@ -359,8 +370,8 @@ export default {
         async loadList(listId) {
             try {
                 let list = await databases.getDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     listId,
                     [
                         Query.select(["*","items.*"])
@@ -368,8 +379,8 @@ export default {
                 );
 
                 const communityItems = await databases.listDocuments(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     [
                         Query.equal("communityList", list.$id)
                     ]
@@ -389,8 +400,8 @@ export default {
 
                 if (list.items && list.items.length) {
                     this.fulfillments = (await databases.listDocuments(
-                        import.meta.env.VITE_APPWRITE_DB,
-                        import.meta.env.VITE_APPWRITE_FULFILLMENT_COLLECTION,
+                        APPWRITE_DB,
+                        APPWRITE_FULFILLMENT_COLLECTION,
                         [
                             Query.equal("item", list.items.map((item) => item.$id)),
                             Query.select(["*", "item.*"])
@@ -449,7 +460,7 @@ export default {
         }
     },
     mounted() {
-        this.loadList(this.$route.params.id);
+        this.loadList(this.listID);
     }
 };
 </script>

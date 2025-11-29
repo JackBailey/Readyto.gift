@@ -116,6 +116,7 @@ import mime from "mime-types";
 import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 
 export default {
     title: "ListDialog",
@@ -200,7 +201,7 @@ export default {
 
                     if (this.item.imageID) {
                         const file = await storage.getFile(
-                            import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                            APPWRITE_IMAGE_BUCKET,
                             this.item.imageID
                         );
 
@@ -334,7 +335,7 @@ export default {
             if (value === "removed") {
                 try {
                     await storage.deleteFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         this.modifiedItem.imageID
                     );
                 } catch (e) {
@@ -364,7 +365,7 @@ export default {
                 if (this.modifiedItem.imageFile && !this.modifiedItem.imageID) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         ID.unique(),
                         this.modifiedItem.imageFile
                     );
@@ -375,8 +376,8 @@ export default {
                 }
 
                 result = await databases.createDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.itemID,
                     {
                         communityList: this.wishlistOwner ? null : this.listId,
@@ -417,8 +418,8 @@ export default {
             try {
                 if (this.wishlistOwner) {
                     const updatedList = await databases.updateDocument(
-                        import.meta.env.VITE_APPWRITE_DB,
-                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        APPWRITE_DB,
+                        APPWRITE_LIST_COLLECTION,
                         this.listId,
                         {
                             itemCount: this.list.items.length
@@ -474,7 +475,7 @@ export default {
                     try {
                         if (this.modifiedItem.imageID) {
                             await storage.deleteFile(
-                                import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                                APPWRITE_IMAGE_BUCKET,
                                 this.modifiedItem.imageID
                             );
 
@@ -489,7 +490,7 @@ export default {
                 if (["added", "replaced"].includes(this.fileState)) {
                     this.uploadingFile = true;
                     const fileUpload = await storage.createFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         ID.unique(),
                         this.modifiedItem.imageFile,
                         []
@@ -502,8 +503,8 @@ export default {
                 }
 
                 result = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.item.$id,
                     {
                         description: this.modifiedItem.description || null,

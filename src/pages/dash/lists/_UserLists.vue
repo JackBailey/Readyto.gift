@@ -151,7 +151,7 @@
                 :key="list.$id"
                 :list="list"
                 :quickCreateURL="quickCreateURL"
-                :ownList="list.author === auth.user.$id"
+                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
             />
         </v-list>
         <v-card
@@ -175,7 +175,7 @@
                 :key="list.$id"
                 :list="list"
                 :quickCreateURL="quickCreateURL"
-                :ownList="list.author === auth.user.$id"
+                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
             />
         </v-list>
 
@@ -197,6 +197,7 @@
 
 <script>
 import { account, databases } from "@/appwrite";
+import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { mdiInformation, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
 import CreateList from "@/components/dialogs/CreateList.vue";
 import ListCard from "@/components/ListCard.vue";
@@ -241,13 +242,7 @@ export default {
             if (this.quickCreateURL) {
                 query.quickcreateurl = this.quickCreateURL;
             }
-            this.$router.push({
-                name: "list",
-                params: {
-                    id: data.list.$id
-                },
-                query
-            });
+            window.location.href = `/list/${data.list.$id}?` + new URLSearchParams(query).toString();
         },
         async getLists() {
             this.loading = true;
@@ -270,8 +265,8 @@ export default {
 
             try {
                 const lists = await databases.listDocuments(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     listQuery
                 );
 
@@ -330,7 +325,9 @@ export default {
         await this.getLists();
 
         // Handle quick create URL query
-        const { title, text, url } = this.$route.query;
+        const { title, text, url } = Object.fromEntries(
+            new URLSearchParams(window.location.search)
+        );
 
         if (!title && !text && !url) return;
 

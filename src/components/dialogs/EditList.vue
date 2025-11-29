@@ -3,15 +3,30 @@
         :max-width="$vuetify.display.mobile ? '100%' : '90%'"
         :fullscreen="$vuetify.display.mobile ? true : false"
         v-model="dialogOpen"
+        key="edit-list-dialog"
     >
         <template v-slot:activator="{ props: activatorProps }">
-            <v-list-item v-bind="activatorProps" :prepend-icon="mdiPencil" title="Edit List" link />
+            <v-list-item
+                v-bind="activatorProps"
+                :prepend-icon="mdiPencil"
+                title="Edit List"
+                link
+                v-if="!$vuetify.display.mobile"
+            />
+            <v-btn
+                v-bind="activatorProps"
+                :icon="mdiPencil"
+                v-else
+            />
         </template>
 
         <template v-slot:default="{ isActive }">
             <v-card title="Edit List">
                 <v-card-text class="d-flex flex-column ga-4">
-                    <ListFields v-model:list="editedList" :previousValues="previousValues" />
+                    <ListFields
+                        v-model:list="editedList"
+                        :previousValues="previousValues"
+                    />
                     <v-alert
                         v-if="alert"
                         type="error"
@@ -25,7 +40,10 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn text="Cancel" @click="isActive.value = false" />
+                    <v-btn
+                        text="Cancel"
+                        @click="isActive.value = false"
+                    />
                     <v-btn
                         color="primary"
                         text="Save"
@@ -40,6 +58,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { AppwriteException, Query } from "appwrite";
 import { mdiAlert, mdiPencil } from "@mdi/js";
 import { databases } from "@/appwrite";
@@ -95,8 +114,8 @@ export default {
             if (this.editedList.shortUrl) {
                 try {
                     const conflictingDocuments = await databases.listDocuments(
-                        import.meta.env.VITE_APPWRITE_DB,
-                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        APPWRITE_DB,
+                        APPWRITE_LIST_COLLECTION,
                         [
                             Query.equal("shortUrl", this.editedList.shortUrl),
                             Query.notEqual("$id", this.listId)
@@ -132,8 +151,8 @@ export default {
 
             try {
                 listResponse = await databases.updateDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     this.listId,
                     this.editedList
                 );

@@ -1,7 +1,15 @@
 <template>
-    <v-dialog :max-width="$vuetify.display.mobile ? '100%' : '500px'" v-model="dialogOpen">
+    <v-dialog
+        :max-width="$vuetify.display.mobile ? '100%' : '500px'"
+        v-model="dialogOpen"
+    >
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn v-bind="activatorProps" color="error" :icon="mdiDelete" :variant="variant" />
+            <v-btn
+                v-bind="activatorProps"
+                color="error"
+                :icon="mdiDelete"
+                :variant="variant"
+            />
         </template>
 
         <template v-slot:default="{ isActive }">
@@ -28,7 +36,10 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn text="Cancel" @click="isActive.value = false" />
+                    <v-btn
+                        text="Cancel"
+                        @click="isActive.value = false"
+                    />
                     <v-btn
                         color="error"
                         text="Delete"
@@ -44,6 +55,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_ITEM_COLLECTION } from "astro:env/client";
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
@@ -76,13 +88,13 @@ export default {
             try {
                 if (this.item.imageID) {
                     await storage.deleteFile(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         this.item.imageID
                     );
                 }
                 await databases.deleteDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_ITEM_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_ITEM_COLLECTION,
                     this.item.$id
                 );
             } catch (e) {

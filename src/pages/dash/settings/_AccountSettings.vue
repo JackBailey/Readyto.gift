@@ -98,10 +98,21 @@ const personalInfo = reactive({
     }
 });
 
+auth.$subscribe((mutation) => {
+    if (!mutation?.events) return;
+    if (mutation.events.key !== "user") return;
+    const newUser = mutation.events.newValue;
+    if (newUser) {
+        personalInfo.email.value = newUser.email || "";
+        personalInfo.fullName.value = newUser.name || "";
+    }
+});
+
 const saveName = async () => {
     const result = await account.updateName(personalInfo.fullName.value);
     if (result.$id) {
         auth.setUser(result);
+        personalInfo.fullName.passwordConfirmation = "";
         return true;
     } else {
         dialogs.create({
@@ -131,6 +142,7 @@ const saveEmail = async () => {
             title: "Verification Email Sent",
             type: "info"
         });
+        personalInfo.email.passwordConfirmation = "";
         return true;
     } catch (error) {
         if (error instanceof AppwriteException) {

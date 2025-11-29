@@ -29,7 +29,7 @@
             />
             <p>
                 Remember your login?
-                <router-link to="/dash/login">Login here</router-link>
+                <a href="/dash/login">Login here</a>
             </p>
         </div>
     </div>
@@ -38,6 +38,7 @@
 <script>
 import { mdiAlert, mdiGithub } from "@mdi/js";
 import { account } from "@/appwrite";
+import { LOGIN_METHODS } from "astro:env/client";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
@@ -48,8 +49,8 @@ export default {
             loadingRecovery: false,
             mdiAlert,
             mdiGithub,
-            methods: import.meta.env.VITE_LOGIN_METHODS
-                ? import.meta.env.VITE_LOGIN_METHODS.split(",")
+            methods: LOGIN_METHODS
+                ? LOGIN_METHODS.split(",")
                 : [],
             recoveryDetails: {
                 email: ""

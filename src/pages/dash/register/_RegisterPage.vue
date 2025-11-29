@@ -43,7 +43,7 @@
         </div>
         <p>
             Already have an account?
-            <router-link :to="`/dash/login?redirect=${redirectPath}`">Login here</router-link>
+            <a :href="`/dash/login?redirect=${redirectPath}`">Login here</a>
         </p>
     </div>
 </template>
@@ -56,8 +56,11 @@ import { useAuthStore } from "@/stores/auth";
 
 export default {
     data() {
-        const redirectPath = this.$route.query.redirect
-            ? this.$route.query.redirect
+        const { redirect } = Object.fromEntries(
+            new URLSearchParams(window.location.search)
+        );
+        const redirectPath = redirect
+            ? redirect
             : "/dash/lists";
         const successRedirect = window.location.origin + redirectPath;
         return {
@@ -130,9 +133,7 @@ export default {
                     this.loadingRegistration = false;
 
                     setTimeout(() => {
-                        this.$router.push({
-                            path: `/dash/login?redirect=${this.redirectPath}`
-                        });
+                        window.location.href = `/dash/login?redirect=${this.redirectPath}`;
                     }, 2000);
                 }
             } catch (error) {

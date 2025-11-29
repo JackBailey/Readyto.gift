@@ -151,6 +151,7 @@
 <script>
 import { avatars, storage } from "@/appwrite";
 import { mdiGift, mdiOpenInNew, mdiWeb } from "@mdi/js";
+import { APPWRITE_IMAGE_BUCKET } from "astro:env/client";
 import { convertPriority } from "@/utils";
 import DeleteItem from "@/components/dialogs/DeleteItem.vue";
 import FulfillItem from "@/components/dialogs/FulfillItem.vue";
@@ -204,7 +205,7 @@ export default {
             if (this.item.imageID) {
                 try {
                     const imageURL = storage.getFilePreview(
-                        import.meta.env.VITE_APPWRITE_IMAGE_BUCKET,
+                        APPWRITE_IMAGE_BUCKET,
                         this.item.imageID,
                         undefined, // width (optional)
                         400, // height (optional)

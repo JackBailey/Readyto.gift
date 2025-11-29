@@ -46,7 +46,10 @@
                     />
                 </v-card-text>
                 <v-card-actions>
-                    <v-btn text="Cancel" @click="isActive.value = false" />
+                    <v-btn
+                        text="Cancel"
+                        @click="isActive.value = false"
+                    />
                     <v-btn
                         color="primary"
                         text="Create"
@@ -61,10 +64,11 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { AppwriteException, ID, Query } from "appwrite";
+import { mdiAlert, mdiPlus } from "@mdi/js";
 import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
-import { mdiPlus } from "@mdi/js";
 import { useAuthStore } from "@/stores/auth";
 export default {
     title: "ListDialog",
@@ -92,6 +96,7 @@ export default {
             dialogOpen: false,
             listId: null,
             loading: false,
+            mdiAlert,
             mdiPlus,
             newList: {
                 currency: "USD",
@@ -130,8 +135,8 @@ export default {
             if (this.newList.shortUrl) {
                 try {
                     const conflictingDocuments = await databases.listDocuments(
-                        import.meta.env.VITE_APPWRITE_DB,
-                        import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                        APPWRITE_DB,
+                        APPWRITE_LIST_COLLECTION,
                         [Query.equal("shortUrl", this.newList.shortUrl)]
                     );
 
@@ -162,8 +167,8 @@ export default {
 
             try {
                 list = await databases.createDocument(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     ID.unique(),
                     {
                         ...this.newList,

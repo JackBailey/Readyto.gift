@@ -1,0 +1,15 @@
+---
+import RegisterPage from "./_RegisterPage.vue";
+import "vuetify/styles";
+import VueLayout from "@/layouts/Vue.astro";
+import Layout from "@/layouts/Layout.astro";
+
+export const prerender = false;
+---
+<Layout>
+    <VueLayout>
+        <RegisterPage
+            client:only
+        />
+    </VueLayout>
+</Layout>

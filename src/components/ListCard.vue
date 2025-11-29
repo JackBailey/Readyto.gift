@@ -7,8 +7,40 @@
         :class="['list-card', 'mb-4', props.type]"
     >
         <template v-slot:title>
-            <h1 v-if="props.header">{{ props.list.title }}</h1>
-            <h3 v-else>{{ props.list.title }}</h3>
+            <div class="title-container d-flex align-center justify-space-between w-100">
+                <div class="title">
+                    <h2 v-if="props.header">{{ props.list.title }}</h2>
+                    <h3 v-else>{{ props.list.title }}</h3>
+                </div>
+                <div class="title-actions">
+                    <v-speed-dial
+                        location="bottom center"
+                        :transition="false"
+                        v-if="$vuetify.display.mobile && props.ownList && props.type !== 'selectable'"
+                    >
+                        <template v-slot:activator="{ props: activatorProps }">
+                            <v-fab
+                                v-bind="activatorProps"
+                                size="small"
+                                variant="tonal"
+                                color="on-surface"
+                                :icon="mdiDotsVertical"
+                            />
+                        </template>
+
+                        <EditList
+                            :list="props.list"
+                            @updateList="(data) => emit('updateList', data)"
+                            key="1"
+                        />
+
+                        <DeleteList
+                            :list="props.list"
+                            key="2"
+                        />
+                    </v-speed-dial>
+                </div>
+            </div>
         </template>
         <template
             v-slot:subtitle
@@ -95,10 +127,10 @@
                 class="m-4 mb-8"
                 color="primary"
             >
-                <router-link
+                <a
                     style="color: inherit; font-weight: bold;"
-                    to="/dash/login"
-                >Log in</router-link> to add your own items, to avoid the list creator receiving duplicate gifts, and to manage your wish lists!
+                    href="/dash/login"
+                >Log in</a> to add your own items, to avoid the list creator receiving duplicate gifts, and to manage your wish lists!
             </v-alert>
         </v-card-text>
     </v-card>
@@ -106,8 +138,10 @@
 
 <script setup>
 import { defineEmits, defineProps } from "vue";
-import { mdiFileDocumentMultiple, mdiInvoiceList, mdiUpdate } from "@mdi/js";
+import { mdiAlert, mdiDotsVertical, mdiFileDocumentMultiple, mdiInvoiceList, mdiUpdate } from "@mdi/js";
 import { avatars } from "@/appwrite";
+import DeleteList from "./dialogs/DeleteList.vue";
+import EditList from "./dialogs/EditList.vue";
 import ListManagementButtons from "@/components/dialogs/ListManagementButtons.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";

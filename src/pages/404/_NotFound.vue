@@ -19,6 +19,7 @@
 </template>
 
 <script>
+import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { databases } from "@/appwrite";
 import { Query } from "appwrite";
 export default {
@@ -28,18 +29,30 @@ export default {
         };
     },
     async mounted() {
-        if (this.$route.params.id) {
+        const path = window.location.pathname.slice(1);
+        
+        const redirectMap = {
+            "": "/dash/lists",
+            "/dash": "/dash/lists"
+        };
+
+        if (redirectMap[path]) {
+            window.location.href = redirectMap[path] + window.location.search;
+            return;
+        }
+
+        if (path) {
             try {
                 const document = await databases.listDocuments(
-                    import.meta.env.VITE_APPWRITE_DB,
-                    import.meta.env.VITE_APPWRITE_LIST_COLLECTION,
+                    APPWRITE_DB,
+                    APPWRITE_LIST_COLLECTION,
                     [
-                        Query.equal("shortUrl", this.$route.params.id)
+                        Query.equal("shortUrl", path)
                     ]
                 );
 
                 if (document.total !== 0) {
-                    this.$router.push(`/list/${document.documents[0].$id}`);
+                    window.location.href = `/list/${document.documents[0].$id}`;
                 } else {
                     this.notFound = true;
                 }
@@ -47,6 +60,8 @@ export default {
                 this.notFound = true;
                 this.error = error.code;
             }
+        } else {
+            window.location.href = "/dash/lists";
         }
     }
 };

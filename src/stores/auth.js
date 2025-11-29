@@ -1,6 +1,7 @@
 import { account, avatars } from "@/appwrite";
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
+import { SENTRY_DSN } from "astro:env/client";
 import { setUser as setSentryUser } from "@sentry/vue";
 import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
 import { useDialogs } from "./dialogs";
@@ -113,7 +114,7 @@ export const useAuthStore = defineStore("auth", {
 
                 if (this.user) {
                     localStorage.setItem("previouslyLoggedInUserID", this.user.$id);
-                    if (import.meta.env.VITE_SENTRY_DSN) {
+                    if (SENTRY_DSN) {
                         setSentryUser({
                             id: this.user.$id,
                             username: this.user.name,
@@ -123,7 +124,7 @@ export const useAuthStore = defineStore("auth", {
 
                     this.mfaFactors = await account.listMFAFactors();
                 } else {
-                    if (import.meta.env.VITE_SENTRY_DSN) {
+                    if (SENTRY_DSN) {
                         setSentryUser(null);
                     }
                 }
@@ -136,7 +137,7 @@ export const useAuthStore = defineStore("auth", {
                     };
                 }
             } catch {
-                if (import.meta.env.VITE_SENTRY_DSN) {
+                if (SENTRY_DSN) {
                     setSentryUser(null);
                 }
                 this.user = null;

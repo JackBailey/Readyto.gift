@@ -8,7 +8,7 @@
         >
             <v-toolbar-title>
                 <v-btn
-                    to="/dash/lists"
+                    href="/dash/lists"
                     :prepend-icon="mdiGift"
                     color="on-primary-container"
                 >
@@ -18,7 +18,7 @@
 
             <template v-slot:append>
                 <v-btn
-                    to="/dash/lists"
+                    href="/dash/lists"
                     v-if="auth.user"
                     :prepend-icon="mdiFormatListBulleted"
                     color="on-primary-container"
@@ -93,7 +93,7 @@
                             </v-list-item>
                             <v-list-item
                                 v-if="!!auth.user"
-                                to="/dash/account"
+                                href="/dash/settings"
                                 :prepend-icon="mdiAccountCircle"
                             >
                                 Account Settings
@@ -151,7 +151,6 @@ import {
 } from "@mdi/js";
 import { account } from "@/appwrite";
 import { useAuthStore } from "@/stores/auth";
-import { useRoute } from "vue-router";
 
 
 
@@ -174,8 +173,7 @@ export default {
             mdiGithub,
             mdiLockReset,
             mdiMenu,
-            menu: false,
-            route: useRoute()
+            menu: false
         };
     },
     methods: {
@@ -194,12 +192,8 @@ export default {
         logIn() {
             this.loadingLoginLogout = true;
             this.menu = false;
-            this.$router.push({
-                path: "/dash/login",
-                query: {
-                    redirect: this.$route.fullPath
-                }
-            });
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = `/dash/login?redirect=${encodeURIComponent(currentPath)}`;
             this.loadingLoginLogout = false;
         },
         async logout() {
@@ -208,16 +202,13 @@ export default {
             this.auth.user = null;
             this.menu = false;
             await this.auth.init();
-            if (this.$route.meta && this.$route.meta.requiresAuth) {
+            // Check if current route requires auth (you may need to adjust this logic)
+            const requiresAuth = window.location.pathname.startsWith("/dash/");
+            if (requiresAuth) {
                 this.logIn();
             } else {
                 this.loadingLoginLogout = false;
             }
-        }
-    },
-    watch: {
-        "$route"() {
-            this.menu = false;
         }
     }
 };

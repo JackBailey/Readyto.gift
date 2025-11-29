@@ -35,7 +35,18 @@ export default {
             this.loadingVerification = true;
             this.alert = false;
 
-            const { userId, secret } = this.$route.query;
+            const { userId, secret } = Object.fromEntries(
+                new URLSearchParams(window.location.search)
+            );
+
+            if (!userId || !secret) {
+                this.alert = {
+                    text: "Invalid verification link.",
+                    title: "Error"
+                };
+                this.loadingVerification = false;
+                return;
+            }
 
             try {
                 await account.updateVerification(userId, secret);
@@ -50,9 +61,7 @@ export default {
                 await this.auth.init();
 
                 setTimeout(() => {
-                    this.$router.push({
-                        path: "/dash/lists"
-                    });
+                    window.location.href = "/dash/lists";
                 }, 2000);
             } catch (error) {
                 this.alert = {

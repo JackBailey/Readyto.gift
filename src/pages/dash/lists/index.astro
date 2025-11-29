@@ -1,0 +1,18 @@
+---
+import UserLists from "./_UserLists.vue";
+import "vuetify/styles";
+import VueLayout from "@/layouts/Vue.astro";
+import Layout from "@/layouts/Layout.astro";
+
+const id = Astro.params.id;
+const quickCreateURL = "";
+
+export const prerender = false;
+---
+<Layout>
+    <VueLayout requiresAuth={true}>
+        <UserLists
+            client:only
+        />
+    </VueLayout>
+</Layout>

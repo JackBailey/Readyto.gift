@@ -58,6 +58,10 @@
 import { client, databases, functions } from "@/appwrite";
 import { computed, defineProps, onMounted, onUnmounted, shallowRef } from "vue";
 import { mdiCheck, mdiFileDocument, mdiFileDocumentCheck, mdiImage, mdiImageCheck, mdiLoading, mdiWeb, mdiWebCheck } from "@mdi/js";
+import { useDialogs } from "@/stores/dialogs";
+import { APPWRITE_DB } from "astro:env/client";
+
+const dialogs = useDialogs();
 
 const totalAttempts = shallowRef(0);
 const currentAttempt = shallowRef(0);
@@ -145,7 +149,7 @@ const autofill = async () => {
             pollingFallback = setInterval(async () => {
                 try {
                     const pollResult = await databases.getDocument(
-                        import.meta.env.VITE_APPWRITE_DB,
+                        APPWRITE_DB,
                         "autofills",
                         executionID
                     );

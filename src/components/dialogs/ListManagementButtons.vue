@@ -19,7 +19,13 @@
             v-if="auth.isLoggedIn"
         />
 
-        <v-btn size="small" icon variant="outlined" v-if="wishlistOwner" v-bind="menuOpen">
+        <v-btn
+            size="small"
+            icon
+            variant="outlined"
+            v-if="wishlistOwner && !$vuetify.display.mobile"
+            v-bind="menuOpen"
+        >
             <v-icon :icon="mdiMenuDown" />
 
             <v-menu
@@ -28,13 +34,21 @@
                 transition="fade-transition"
                 v-model="menuOpen"
             >
-                <v-list density="compact" min-width="250" rounded="lg" slim>
+                <v-list
+                    density="compact"
+                    min-width="250"
+                    rounded="lg"
+                    slim
+                >
                     <EditList
                         :list="list"
                         @updateList="$emit('updateList', $event)"
                         @dialogClosed="menuOpen = false"
                     />
-                    <DeleteList :list="list" @dialogClosed="menuOpen = false" />
+                    <DeleteList
+                        :list="list"
+                        @dialogClosed="menuOpen = false"
+                    />
                 </v-list>
             </v-menu>
         </v-btn>
@@ -51,7 +65,12 @@
                     @click="quickCreate"
                     v-if="$vuetify.display.mobile"
                 />
-                <v-btn :prepend-icon="mdiClipboard" variant="outlined" @click="quickCreate" v-else>
+                <v-btn
+                    :prepend-icon="mdiClipboard"
+                    variant="outlined"
+                    @click="quickCreate"
+                    v-else
+                >
                     <template v-if="!$vuetify.display.mobile"> Quickcreate </template>
                 </v-btn>
             </template>
@@ -62,7 +81,10 @@
                         {{ quickCreateError.text }}
                     </v-card-text>
                     <v-card-actions>
-                        <v-btn text="OK" @click="isActive.value = false" />
+                        <v-btn
+                            text="OK"
+                            @click="isActive.value = false"
+                        />
                     </v-card-actions>
                 </v-card>
             </template>
@@ -75,7 +97,12 @@
             v-if="$vuetify.display.mobile && wishlistOwner"
         />
 
-        <v-btn variant="outlined" :prepend-icon="mdiShare" @click="copyListURL" v-else>
+        <v-btn
+            variant="outlined"
+            :prepend-icon="mdiShare"
+            @click="copyListURL"
+            v-else
+        >
             Share
         </v-btn>
 
@@ -102,7 +129,6 @@
 
 <script setup>
 import { mdiClipboard, mdiMenuDown, mdiShare, mdiStar, mdiStarOff } from "@mdi/js";
-import { useRoute, useRouter } from "vue-router";
 import { account } from "@/appwrite";
 import DeleteList from "./DeleteList.vue";
 import EditList from "./EditList.vue";
@@ -152,9 +178,6 @@ const props = defineProps({
     }
 });
 
-const router = useRouter();
-const route = useRoute();
-
 let quickCreateURL = ref("");
 let quickCreateError = ref({
     text: "",
@@ -192,7 +215,7 @@ const saveList = async () => {
                     action: "close",
                     color: "primary",
                     text: "Log In",
-                    to: "/dash/login?redirect=" + encodeURIComponent(route.fullPath)
+                    to: "/dash/login?redirect=" + encodeURIComponent(window.location.pathname + window.location.search)
                 },
                 {
                     action: "close",
@@ -285,9 +308,14 @@ const quickCreate = async () => {
 
 const resetQuickCreateURL = () => {
     quickCreateURL.value = "";
-    const { quickcreateurl, ...remainingQueries } = route.query;
+    const { quickcreateurl, ...remainingQueries } = Object.fromEntries(
+        new URLSearchParams(window.location.search)
+    );
     if (quickcreateurl) {
-        router.replace({ query: remainingQueries });
+        const newQueryString = new URLSearchParams(remainingQueries).toString();
+        const newURL =
+            window.location.pathname + (newQueryString ? `?${newQueryString}` : "");
+        window.history.replaceState({}, document.title, newURL);
     }
 };
 

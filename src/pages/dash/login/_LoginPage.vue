@@ -59,28 +59,30 @@
         </div>
         <p>
             Don't have an account?
-            <router-link :to="`/dash/register?redirect=${redirectPath}`">Register here</router-link>
+            <a :href="`/dash/register?redirect=${redirectPath}`">Register here</a>
         </p>
         <p v-if="methods.includes('password')">
-            <router-link to="/dash/recovery/start">Forgot your password?</router-link>
+            <a href="/dash/recovery/start">Forgot your password?</a>
         </p>
     </div>
 </template>
 
 <script>
+import { LOGIN_METHODS, SENTRY_DSN } from "astro:env/client";
 import { mdiAlert, mdiGithub } from "@mdi/js";
 import { account } from "@/appwrite";
 import { OAuthProvider } from "appwrite";
 import { setUser as setSentryUser } from "@sentry/vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
-import { markRaw } from "vue";
-import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
 
 export default {
     data() {
-        const redirectPath = this.$route.query.redirect
-            ? decodeURIComponent(this.$route.query.redirect)
+        const { redirect } = Object.fromEntries(
+            new URLSearchParams(window.location.search)
+        );
+        const redirectPath = window.location.search.includes("redirect")
+            ? decodeURIComponent(redirect)
             : "/dash/lists";
         const errorRedirect = window.location.origin + "/dash/error";
         const successRedirect = window.location.origin + redirectPath;
@@ -91,8 +93,8 @@ export default {
             loadingLogin: false,
             mdiAlert,
             mdiGithub,
-            methods: import.meta.env.VITE_LOGIN_METHODS
-                ? import.meta.env.VITE_LOGIN_METHODS.split(",")
+            methods: LOGIN_METHODS
+                ? LOGIN_METHODS.split(",")
                 : [],
             methodsData: {
                 github: {
@@ -127,7 +129,7 @@ export default {
                     this.passwordLoginDetails.password
                 );
 
-                if (import.meta.env.VITE_SENTRY_DSN) {
+                if (SENTRY_DSN) {
                     setSentryUser({
                         email: accountResp.email,
                         id: accountResp.$id,
@@ -138,14 +140,14 @@ export default {
                 this.auth.setPreviouslyLoggedInUserID(accountResp.$id);
 
                 await this.auth.init();
-                this.$router.push(this.redirectPath);
+                window.location.href = this.redirectPath;
             } catch (error) {
                 if (error.type === "user_more_factors_required") {
                     console.log("Opening TOTP dialog");
                     const totpChallengeResp = this.auth.createTOTPChallengeDialog();
 
                     if (totpChallengeResp.action === "success" || totpChallengeResp.action === "totp-removed") {
-                        this.$router.push(this.redirectPath);
+                        window.location.href = this.redirectPath;
                     } else {
                         this.loadingLogin = false;
                     }

@@ -34,7 +34,7 @@
         </div>
         <p>
             Already have an account?
-            <router-link to="/dash/login">Login here</router-link>
+            <a href="/dash/login">Login here</a>
         </p>
     </div>
 </template>
@@ -99,9 +99,7 @@ export default {
                 this.loadingRecovery = false;
 
                 setTimeout(() => {
-                    this.$router.push({
-                        path: "/dash/login"
-                    });
+                    window.location.href = "/dash/login";
                 }, 2000);
             } catch (error) {
                 this.alert = {
@@ -115,7 +113,9 @@ export default {
         }
     },
     mounted() {
-        const { userId, secret } = this.$route.query;
+        const { userId, secret } = Object.fromEntries(
+            new URLSearchParams(window.location.search)
+        );
 
         this.recoveryDetails.userId = userId;
         this.recoveryDetails.secret = secret;
