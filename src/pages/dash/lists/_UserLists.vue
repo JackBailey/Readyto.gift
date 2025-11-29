@@ -145,30 +145,63 @@
             <v-skeleton-loader type="list-item-two-line" />
         </div>
 
-        <v-list v-else-if="!loading && lists?.length">
-            <ListCard
-                v-for="list in publicLists"
-                :key="list.$id"
-                :list="list"
-                :quickCreateURL="quickCreateURL"
-                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
-            />
-            <v-expansion-panels
-                class="mt-4"
-                variant="accordion"
+
+        <v-sheet
+            elevation="4"
+            v-else-if="!loading"
+        >
+            <v-tabs
+                color="primary"
+                v-model="tab"
             >
-                <v-expansion-panel color="primary">
-                    <v-expansion-panel-title>
-                        <h2>
-                            <v-icon
-                                :icon="mdiLock"
-                                class="me-2"
-                                size="24"
-                            />
-                            Your Private Lists
-                        </h2>
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
+                <v-tab
+                    value="public"
+                    :prepend-icon="mdiEarth"
+                >
+                    Public {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+                <v-tab
+                    value="private"
+                    :prepend-icon="mdiLock"
+                >
+                    Private {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+                <v-tab
+                    value="saved"
+                    :prepend-icon="mdiStar"
+                >
+                    Saved {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                </v-tab>
+            </v-tabs>
+
+            <v-divider/>
+
+            <v-tabs-window v-model="tab">
+                <v-tabs-window-item
+                    value="public"
+                >
+                    <v-list>
+                        <ListCard
+                            v-for="list in publicLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                    </v-list>
+                    <v-alert
+                        v-if="publicLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        There are no public lists available. Create a new list and make it
+                        public to share it with others!
+                    </v-alert>
+
+                </v-tabs-window-item>
+                <v-tabs-window-item value="private">
+                    <v-list>
                         <ListCard
                             v-for="list in privateLists"
                             :key="list.$id"
@@ -176,57 +209,39 @@
                             :quickCreateURL="quickCreateURL"
                             :ownList="auth.isLoggedIn && list.author === auth.user.$id"
                         />
-                        <v-alert
-                            v-if="privateLists.length === 0"
-                            type="info"
-                            border="start"
-                            dense
-                        >
-                            You have no private lists. Create one to keep it hidden from
-                            others!
-                        </v-alert>
-                    </v-expansion-panel-text>
-                </v-expansion-panel>
-            </v-expansion-panels>
-        </v-list>
-        <v-card
-            class="pa-0 mb-4"
-            variant="flat"
-            color="surface"
-            v-if="!loading && savedLists.length"
-        >
-            <v-card-item class="px-0">
-                <template v-slot:title>
-                    <h2 class="mb-0">Saved lists</h2>
-                </template>
-                <template v-slot:prepend>
-                    <v-icon>{{ mdiStar }}</v-icon>
-                </template>
-            </v-card-item>
-        </v-card>
-        <v-list v-if="!loading && savedLists.length">
-            <ListCard
-                v-for="list in savedLists"
-                :key="list.$id"
-                :list="list"
-                :quickCreateURL="quickCreateURL"
-                :ownList="auth.isLoggedIn && list.author === auth.user.$id"
-            />
-        </v-list>
-
-        <div
-            class="no-items"
-            v-if="!loading && !lists?.length && !savedLists.length"
-        >
-            <v-spacer height="20" />
-            <v-alert
-                type="info"
-                :icon="mdiInformation"
-                elevation="2"
-                class="mt-5"
-                text="No lists currently exist. Add some!"
-            />
-        </div>
+                    </v-list>
+                    <v-alert
+                        v-if="privateLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        You have no private lists. Create one to keep it hidden from
+                        others!
+                    </v-alert>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="saved">
+                    <v-list>
+                        <ListCard
+                            v-for="list in savedLists"
+                            :key="list.$id"
+                            :list="list"
+                            :quickCreateURL="quickCreateURL"
+                            :ownList="auth.isLoggedIn && list.author === auth.user.$id"
+                        />
+                    </v-list>
+                    <v-alert
+                        v-if="savedLists.length === 0"
+                        type="info"
+                        border="start"
+                        dense
+                    >
+                        You have no saved lists. Save lists to access them quickly from
+                        here!
+                    </v-alert>
+                </v-tabs-window-item>
+            </v-tabs-window>
+        </v-sheet>
     </div>
 </template>
 
@@ -270,6 +285,7 @@ export default {
                     { name: "Item Count", value: "itemCount" }
                 ]
             },
+            tab: "public",
             verificationDialog: false
         };
     },
