@@ -39,6 +39,28 @@ export default async ({ req, res, log, error }) => {
                 });
             }
 
+            const userPrivateLists = await tables.listRows({
+                databaseId: process.env.APPWRITE_DATABASE,
+                tableId: process.env.APPWRITE_LIST_COLLECTION,
+                queries: [
+                    Query.equal("author", list.author),
+                    Query.equal("private", true),
+                    Query.limit(500000)
+                ]
+            });
+
+            const userPublicLists = await tables.listRows({
+                databaseId: process.env.APPWRITE_DATABASE,
+                tableId: process.env.APPWRITE_LIST_COLLECTION,
+                queries: [
+                    Query.equal("author", list.author),
+                    Query.equal("private", false),
+                    Query.limit(500000)
+                ]
+            });
+
+            log(`User ${list.author} has ${userPrivateLists.total} private lists and ${userPublicLists.total} public lists.`);
+
             if (list.private) {
                 const ownerPermissions = [
                     Permission.read(Role.user(list.author)),
