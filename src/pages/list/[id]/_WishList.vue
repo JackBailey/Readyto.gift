@@ -1,7 +1,7 @@
 <template>
     <div
         class="page-content"
-        v-if="!list"
+        v-if="!list && !newItem.notFound"
     >
         <v-skeleton-loader type="card" />
         <v-skeleton-loader type="card" />
@@ -9,7 +9,7 @@
     </div>
     <div
         class="page-content"
-        v-else
+        v-else-if="!newItem.notFound"
     >
         <PWAPrompt class="mb-5"/>
         <ListCard
@@ -98,6 +98,7 @@
             </v-alert>
         </div>
     </div>
+    <NotFound v-else />
 </template>
 
 <script>
@@ -106,15 +107,18 @@ import { databases } from "@/appwrite";
 import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import { mdiInformation  } from "@mdi/js";
+import NotFound from "@/pages/404/_NotFound.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
 import { Query } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
 import { useDialogs } from "@/stores/dialogs";
+
 export default {
     components: {
         ListCard,
         ListItem,
+        NotFound,
         PWAPrompt
     },
     props: {
@@ -142,6 +146,7 @@ export default {
                 title: "",
                 url: ""
             },
+            notFound: false,
             priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
             quickCreateURL,
@@ -436,6 +441,10 @@ export default {
                     }
                 });
             } catch (error) {
+                if (error?.code === 404) {
+                    this.newItem.notFound = true;
+                    return;
+                }
                 console.error(error);
                 this.dialogs.create({
                     actions: [
