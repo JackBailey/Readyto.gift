@@ -5,8 +5,6 @@ import VueLayout from "@/layouts/Vue.astro";
 import Layout from "@/layouts/Layout.astro";
 
 const id = Astro.params.id;
-const quickCreateURL = "";
-
 export const prerender = false;
 ---
 <Layout>
@@ -14,7 +12,6 @@ export const prerender = false;
         <WishList
             client:only
             listID={id}
-            quickCreateURL={quickCreateURL}
         />
     </VueLayout>
 </Layout>

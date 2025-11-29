@@ -121,14 +121,11 @@ export default {
         listID: {
             type: String,
             required: true
-        },
-        quickCreateURL: {
-            type: String,
-            required: false,
-            default: ""
         }
     },
     data() {
+        const query = new URLSearchParams(window.location.search);
+        const quickCreateURL = query.get("quickcreateurl") || this.quickCreateURL || "";
         return {
             auth: useAuthStore(),
             communityItems: [],
@@ -147,6 +144,7 @@ export default {
             },
             priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
+            quickCreateURL,
             showFulfilled: localStorage.getItem("showFulfilled") !== "false",
             sort: "price"
         };

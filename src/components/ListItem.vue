@@ -75,7 +75,8 @@
                 <v-img
                     :src="imageURL"
                     alt=""
-                    height="200"
+                    max-height="200"
+                    height="auto"
                     width="auto"
                     max-width="300"
                     position="center right"
@@ -90,6 +91,7 @@
         </div>
         <template
             v-slot:actions
+            v-if="item.fulfilledBy || item.price || item.priority !== 'none' || item.url || item.communityList"
         >
             <div class="item-footer">
                 <div class="chips">

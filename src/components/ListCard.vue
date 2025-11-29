@@ -7,16 +7,19 @@
         :class="['list-card', 'mb-4', props.type]"
     >
         <template v-slot:title>
-            <div class="title-container d-flex align-center justify-space-between w-100">
+            <div class="title-container">
                 <div class="title">
                     <h2 v-if="props.header">{{ props.list.title }}</h2>
                     <h3 v-else>{{ props.list.title }}</h3>
                 </div>
-                <div class="title-actions">
+                <div
+                    class="title-actions"
+                    v-if="props.header"
+                >
                     <v-speed-dial
                         location="bottom center"
-                        :transition="false"
                         v-if="$vuetify.display.mobile && props.ownList && props.type !== 'selectable'"
+                        @click.stop
                     >
                         <template v-slot:activator="{ props: activatorProps }">
                             <v-fab
@@ -45,7 +48,7 @@
         <template
             v-slot:subtitle
         >
-            <div class="chips">
+            <div class="chips mt-4">
                 <v-chip
                     v-if="!props.ownList && props.type !== 'selectable'"
                     :prepend-avatar="userAvatar(list.authorName)"
@@ -211,10 +214,26 @@ const userAvatar = (name) => {
         gap: 0.5rem;
     }
 }
+
+
 :deep(.v-card-title) {
-    h1, h3 {
-        word-break: break-word;
-        white-space: pre-wrap;
+    .title-container {
+        display: grid;
+        grid-template-columns: 1fr max-content;
+        align-items: center;
+        gap: 1rem;
+    
+        h2, h3 {
+            word-break: break-word;
+            white-space: pre-wrap;
+            word-wrap: normal;
+        }
+    
+        h2 {
+            @media screen and (max-width: 768px){
+                font-size: 1.5rem;
+            }
+        }
     }
 }
 :deep(.v-card-subtitle) {
