@@ -1,8 +1,5 @@
 import { defineStore } from "pinia";
 import { functions } from "@/appwrite";
-import { Polar } from "@polar-sh/sdk";
-
-const polar = new Polar();
 
 export const usePolarStore = defineStore("polar", {
     state: () => ({
