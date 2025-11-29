@@ -9,16 +9,16 @@
   },
   "dependencies": {
     "abort-controller": "^3.0.0",
-    "cheerio": "1.0.0",
+    "cheerio": "1.1.2",
     "cross-fetch": "4.1.0",
     "https-proxy-agent": "^7.0.6",
     "image-size": "^2.0.2",
     "mime-types": "^3.0.1",
-    "node-appwrite": "^14.0.0",
+    "node-appwrite": "^20.3.0",
     "tidy-url": "^1.18.3",
     "url": "0.11.4"
   },
   "devDependencies": {
-    "prettier": "^3.2.5"
+    "prettier": "^3.6.2"
   }
 }
