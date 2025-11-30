@@ -6,9 +6,13 @@ import { HttpsProxyAgent } from "https-proxy-agent";
 import { Polar } from "@polar-sh/sdk";
 import { TidyURL } from "tidy-url";
 
-const polar = new Polar({
-    accessToken: process.env["POLAR_ACCESS_TOKEN"] ?? ""
-});
+let polar;
+
+if (process.env.POLAR_ACCESS_TOKEN) {
+    polar = new Polar({
+        accessToken: process.env["POLAR_ACCESS_TOKEN"]
+    });
+}
 
 const bandwidthCostPerGB = {
     currency: "usd",
@@ -235,22 +239,25 @@ export default async ({ req, res, log, error }) => {
             }
 
             let enableAutofill = process.env.FREE_TIER_ENABLE_AUTOFILL === "true";
-            const customer = await polar.customers.get({
-                externalCustomerId: userID
-            });
 
-            if (customer.id) {
-                console.log(`Fetching benefits for customer ID: ${customer.id}`);
-                const benefits = await polar.benefitGrants.list({
-                    customerId: customer.id,
-                    isGranted: true
+            if (polar) {
+                const customer = await polar.customers.getExternal({
+                    externalId: userID
                 });
-
-                const benefitNames = benefits.result.items.map(b => b.benefit.description);
-
-                if (benefitNames.includes("Autofill")) {
-                    enableAutofill = true;
-                    log("Autofill benefit is granted to the user.");
+    
+                if (customer.id) {
+                    console.log(`Fetching benefits for customer ID: ${customer.id}`);
+                    const benefits = await polar.benefitGrants.list({
+                        customerId: customer.id,
+                        isGranted: true
+                    });
+    
+                    const benefitNames = benefits.result.items.map(b => b.benefit.description);
+    
+                    if (benefitNames.includes("Autofill")) {
+                        enableAutofill = true;
+                        log("Autofill benefit is granted to the user.");
+                    }
                 }
             }
 

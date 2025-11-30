@@ -273,8 +273,6 @@ export default {
                 }
             });
 
-            console.log(resp.action);
-
             if (resp.action === "closed") {
                 return;
             }

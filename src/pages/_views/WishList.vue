@@ -124,9 +124,6 @@ export default {
         PWAPrompt
     },
     data() {
-        const route = clientRouter.currentRoute.value;
-        const { quickcreateurl: quickCreateURL } = route.query;
-        const { listId } = route.params;
         return {
             auth: useAuthStore(),
             avoidSpoilersDialogShown: false,
@@ -135,7 +132,6 @@ export default {
             dialogs: useDialogs(),
             fulfillments: [],
             list: false,
-            listID: listId,
             loadedAsAuthor: false,
             mdiInformation,
             newItem: {
@@ -150,7 +146,6 @@ export default {
             userLists: useUserLists(),
             priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
-            quickCreateURL,
             showFulfilled: localStorage.getItem("showFulfilled") !== "false",
             sort: "price"
         };
@@ -235,6 +230,11 @@ export default {
         listSaved() {
             if (!this.auth.userPrefs.savedLists) return false;
             return this.auth.userPrefs.savedLists.includes(this.list.$id);
+        },
+        quickCreateURL() {
+            if (!this.list) return "";
+            const route = clientRouter.currentRoute.value;
+            return route.query.quickcreateurl || "";
         },
         spoilSurprises() {
             return this.auth.userPrefs.spoilSurprises;
@@ -468,7 +468,9 @@ export default {
         }
     },
     async mounted() {
-        await this.loadList(this.listID);
+        const route = clientRouter.currentRoute.value;
+        const { listId } = route.params;
+        await this.loadList(listId);
 
         if (this.loadedAsAuthor) {
             this.auth.$subscribe(async (mutation, state) => {
