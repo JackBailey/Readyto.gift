@@ -3,9 +3,17 @@ import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { InputFile } from "node-appwrite/file";
-import mime from "mime-types";
+import { Polar } from "@polar-sh/sdk";
 import { TidyURL } from "tidy-url";
+
+const polar = new Polar({
+    accessToken: process.env["POLAR_ACCESS_TOKEN"] ?? ""
+});
+
+const bandwidthCostPerGB = {
+    currency: "usd",
+    amount: 8
+};
 
 const formatTitle = (data, site) => {
     let { title, description } = data;
@@ -78,7 +86,7 @@ const getRequestMethods = ({ country }) => {
     return requestMethods;
 };
 
-const getPreview = async ({ url, requestMethods, site, storage, itemID, executionID, databases, log, error }) => {
+const getPreview = async ({ url, requestMethods, site, itemID, executionID, databases, log, error, userID }) => {
     const updateStatus = (data) => {
         return databases.updateDocument(
             "wishlist",
@@ -89,6 +97,8 @@ const getPreview = async ({ url, requestMethods, site, storage, itemID, executio
     };
 
     log(`Total request methods to try: ${requestMethods.length}`);
+
+    let totalBandwidth = 0;
 
     for (const [index, method] of requestMethods.entries()) {
         log(`Trying request method: ${method.name}`);
@@ -116,6 +126,8 @@ const getPreview = async ({ url, requestMethods, site, storage, itemID, executio
                 attemptStatus: "processing"
             });
 
+            totalBandwidth += parseInt(data.size) || 0;
+
             log(`Request method succeeded: ${method.name}`);
 
             if (
@@ -129,14 +141,17 @@ const getPreview = async ({ url, requestMethods, site, storage, itemID, executio
                 await updateStatus({
                     attemptStatus: "finding-best-image"
                 });
-                const bestImage = await getBestImage({
+                const bestImageResult = await getBestImage({
                     images: data.images,
                     site,
                     fetchOptions,
                     log
                 });
 
-                if (bestImage) {
+                totalBandwidth += bestImageResult.fetchedSize || 0;
+
+                if (bestImageResult.image) {
+                    const bestImage = bestImageResult.image;
                     log("Best image found:", JSON.stringify(bestImage.image, null, 2));
 
                     data.bestImage = bestImage.image;
@@ -149,6 +164,29 @@ const getPreview = async ({ url, requestMethods, site, storage, itemID, executio
                 attempt: index + 1,
                 attemptStatus: "completed"
             });
+
+            const bandwidthGB = totalBandwidth / (1024 * 1024 * 1024);
+            const costInCents = parseFloat((bandwidthGB * bandwidthCostPerGB.amount).toFixed(12));
+
+            try {
+                await polar.events.ingest({
+                    events: [{
+                        name: "autofill",
+                        externalCustomerId: userID,
+                        metadata: {
+                            itemID,
+                            imageFound: data.imageID ? true : false,
+                            totalBandwidth,
+                            _cost: {
+                                amount: costInCents,
+                                currency: bandwidthCostPerGB.currency
+                            }
+                        }
+                    }]
+                });
+            } catch (err) {
+                error(`Polar event ingestion failed: ${err.message}`);
+            }
 
             return data;
         } catch (err) {
@@ -196,6 +234,32 @@ export default async ({ req, res, log, error }) => {
                 });
             }
 
+            let enableAutofill = process.env.FREE_TIER_ENABLE_AUTOFILL === "true";
+            const customer = await polar.customers.get({
+                externalCustomerId: userID
+            });
+
+            if (customer.id) {
+                console.log(`Fetching benefits for customer ID: ${customer.id}`);
+                const benefits = await polar.benefitGrants.list({
+                    customerId: customer.id,
+                    isGranted: true
+                });
+
+                const benefitNames = benefits.result.items.map(b => b.benefit.description);
+
+                if (benefitNames.includes("Autofill")) {
+                    enableAutofill = true;
+                    log("Autofill benefit is granted to the user.");
+                }
+            }
+
+            if (!enableAutofill) {
+                return res.json({
+                    error: "Autofill feature is not enabled for this user"
+                }, 403);
+            }
+
             const countryMap = {
                 USD: "us",
                 GBP: "gb",
@@ -227,7 +291,7 @@ export default async ({ req, res, log, error }) => {
 
             executionRowExists = true;
 
-            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error });
+            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error, userID });
 
             const autofillData = {
                 title: formatTitle(data, site),

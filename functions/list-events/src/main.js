@@ -23,10 +23,12 @@ export default async ({ req, res, log, error }) => {
     const eventParts = event.split(".");
     const eventType = eventParts.at(-1);
 
+    console.log(`Function triggered by ${trigger} event: ${event}`);
+
     if (trigger === "event" && (eventType === "create" || eventType === "update")) {
         try {
             const listID = eventParts.at(-2);
-            const list = await tables.getRow({
+            let list = await tables.getRow({
                 databaseId: process.env.APPWRITE_DATABASE,
                 tableId: process.env.APPWRITE_LIST_COLLECTION,
                 rowId: listID
@@ -59,7 +61,56 @@ export default async ({ req, res, log, error }) => {
                 ]
             });
 
-            log(`User ${list.author} has ${userPrivateLists.total} private lists and ${userPublicLists.total} public lists.`);
+            let publicListLimit = process.env.FREE_TIER_PUBLIC_LIST_LIMIT !== undefined ? parseInt(process.env.FREE_TIER_PUBLIC_LIST_LIMIT) : -1;
+
+            // Only check benefits if user is over the free tier limit
+            // This is blocked in the UI, but this is to handle cases where users may have bypassed the UI limits
+            if (publicListLimit !== -1 && userPublicLists.total > publicListLimit) {
+                console.log(`User ${list.author} is over the free tier public list limit of ${publicListLimit} with ${userPublicLists.total} public lists. Checking Polar benefits...`);
+                const customer = await polar.customers.getExternal({
+                    externalId: list.author
+                });
+    
+                if (customer.id) {
+                    console.log(`Fetching benefits for customer ID: ${customer.id}`);
+                    const benefits = await polar.benefitGrants.list({
+                        customerId: customer.id,
+                        isGranted: true
+                    });
+    
+                    const benefitNames = benefits.result.items.map(b => b.benefit.description);
+    
+                    if (benefitNames.includes("Unlimited Public Lists")) {
+                        publicListLimit = -1;
+                    }
+                }
+            }
+
+            log(`User ${list.author} has ${userPrivateLists.total} private lists and ${userPublicLists.total}/${publicListLimit} public lists.`);
+
+            console.log(`Processing list ID: ${list.$id}, private: ${list.private}`);
+
+            if (!list.private) {
+                console.log({
+                    publicListLimit,
+                    userPublicListsTotal: userPublicLists.total
+                });
+                if (publicListLimit !== -1 && userPublicLists.total > publicListLimit) {
+                    // Update the list to be private, as the user has exceeded their public list limit
+                    log(`User ${list.author} has exceeded their public list limit of ${publicListLimit}. Making list ${list.$id} private.`);
+                    await tables.updateRow({
+                        databaseId: process.env.APPWRITE_DATABASE,
+                        tableId: process.env.APPWRITE_LIST_COLLECTION,
+                        rowId: list.$id,
+                        data: { private: true }
+                    });
+                    // Event will re-trigger and fix permissions
+                    return res.json({
+                        success: true,
+                        message: `List ${list.$id} set to private due to public list limit exceeded.`
+                    });
+                }
+            }
 
             if (list.private) {
                 const ownerPermissions = [
