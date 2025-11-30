@@ -58,7 +58,7 @@ if (!import.meta.env.SSR) {
         await authStore.init();
         if (to.meta && to.meta.requiresAuth) {
             if (!authStore.isLoggedIn) {
-                next({
+                return next({
                     path: "/dash/login",
                     query: { redirect: encodeURIComponent(to.fullPath) }
                 });

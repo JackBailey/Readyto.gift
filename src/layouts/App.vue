@@ -4,7 +4,6 @@
         <v-main>
             <router-view v-if="!loading"/>
             <div class="loading-placeholder"></div>
-            <SiteFooter />
         </v-main>
         <GlobalDialogs />
     </v-app>
@@ -15,7 +14,6 @@ import { onMounted, ref, watch } from "vue";
 import { UMAMI_DOMAINS, UMAMI_ID, UMAMI_URL } from "astro:env/client";
 import DashNav from "@/components/DashNav.vue";
 import GlobalDialogs from "@/components/GlobalDialogs.vue";
-import SiteFooter from "@/components/SiteFooter.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
 import { usePWA } from "@/stores/pwa";

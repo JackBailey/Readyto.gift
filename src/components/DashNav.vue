@@ -1,10 +1,70 @@
 <template>
     <div class="app-nav">
+        <v-navigation-drawer
+            expand-on-hover
+            permanent
+            rail
+            v-if="$vuetify.display.mdAndUp"
+        >
+            <v-list v-if="auth.user">
+                <v-list-item
+                    :prepend-avatar="auth.avatar"
+                    :title="auth.user.name || auth.user.email"
+                    :subtitle="auth.user.email"
+                />
+            </v-list>
+            <v-divider/>
+            <v-list
+                density="compact"
+                nav
+            >
+                <v-list-item
+                    :prepend-icon="mdiFormatListBulleted"
+                    title="Lists"
+                    to="/dash/lists"
+                />
+            </v-list>
+            <template v-slot:append>
+                <v-list>
+                    <v-list-item
+                        :prepend-icon="mdiGithub"
+                        href="https://github.com/ReadyToGift/Website"
+                        title="GitHub"
+                        target="_blank"
+                    />
+                    <QuickSettings>
+                        <template v-slot:activator="{ props }">
+                            <v-list-item
+                                :prepend-icon="mdiCog"
+                                title="Settings"
+                                v-bind="props"
+                            />
+                        </template>
+                    </QuickSettings>
+                    <v-list-item
+                        :prepend-icon="mdiLogout"
+                        title="Log Out"
+                        @click="logout"
+                        :loading="loadingLoginLogout"
+                        v-if="auth.user"
+                    />
+                    <v-list-item
+                        :prepend-icon="mdiLogin"
+                        title="Log In"
+                        @click="logIn"
+                        :loading="loadingLoginLogout"
+                        v-else
+                    />
+                </v-list>
+            </template>
+        </v-navigation-drawer>
+
         <v-app-bar
             color="primary"
             width="lg"
             variant="tonal"
             elevation="6"
+            v-else
         >
             <v-toolbar-title>
                 <v-btn
@@ -23,12 +83,11 @@
                     :prepend-icon="mdiFormatListBulleted"
                     color="on-primary-container"
                     variant="tonal"
-                >Lists</v-btn>
-
-                <v-menu
-                    :close-on-content-click="false"
-                    v-model="menu"
                 >
+                    Lists
+                </v-btn>
+
+                <QuickSettings>
                     <template v-slot:activator="{ props }">
                         <v-btn
                             :icon="mdiAccountCircle"
@@ -38,93 +97,7 @@
                             size="large"
                         />
                     </template>
-                    <v-card>
-                        <v-list v-if="auth.user">
-                            <v-list-item
-                                :prepend-avatar="auth.user.name ? auth.avatar.href : null"
-                                :subtitle="auth.user.name ? auth.user.email : null"
-                                :title="auth.user.name || auth.user.email"
-                            />
-                        </v-list>
-                        <v-divider v-if="auth.user" />
-                        <v-list>
-                            <v-list-item :prepend-icon="mdiCog">
-                                Quick Settings
-                            </v-list-item>
-                            <v-list-item>
-                                <v-list>
-                                    <v-list-item title="Dark Mode">
-                                        <template #prepend>
-                                            <v-switch
-                                                v-model="auth.newUserPrefs.darkMode"
-                                                hide-details
-                                                inset
-                                                color="primary"
-                                                class="mr-4"
-                                            />
-                                        </template>
-                                    </v-list-item>
-                                    <v-list-item title="Show Total Price">
-                                        <template #prepend>
-                                            <v-switch
-                                                v-model="auth.newUserPrefs.showTotalPrice"
-                                                hide-details
-                                                inset
-                                                color="primary"
-                                                class="mr-4"
-                                            />
-                                        </template>
-                                    </v-list-item>                            
-                                    <v-list-item
-                                        v-if="!!auth.user"
-                                        title="Spoil Surprises"
-                                    >
-                                        <template #prepend>
-                                            <v-switch
-                                                v-model="auth.newUserPrefs.spoilSurprises"
-                                                hide-details
-                                                inset
-                                                color="primary"
-                                                class="mr-4"
-                                            />
-                                        </template>
-                                    </v-list-item>
-                                </v-list>
-                            </v-list-item>
-                            <v-list-item
-                                v-if="!!auth.user"
-                                to="/dash/settings"
-                                :prepend-icon="mdiAccountCircle"
-                            >
-                                Account Settings
-                            </v-list-item>
-                        </v-list>
-                        <v-card-actions>
-                            <v-spacer />
-                            <v-btn
-                                @click="logIn"
-                                color="primary"
-                                v-if="!auth.user"
-                                :loading="loadingLoginLogout"
-                            >
-                                Log In</v-btn>
-
-                            <v-btn
-                                @click="logout"
-                                color="error"
-                                :loading="loadingLoginLogout"
-                                v-else
-                            >Logout</v-btn>
-                            <v-btn @click="menu = false">Cancel</v-btn>
-
-                            <v-btn
-                                @click="updatePrefs"
-                                color="primary"
-                                variant="elevated"
-                            >Save</v-btn>
-                        </v-card-actions>
-                    </v-card>
-                </v-menu>
+                </QuickSettings>
             </template>
 
 
@@ -147,13 +120,19 @@ import {
     mdiGift,
     mdiGithub,
     mdiLockReset,
-    mdiMenu
+    mdiLogin,
+    mdiLogout,
+    mdiMenu, mdiTune
 } from "@mdi/js";
 import { account } from "@/appwrite";
 import { clientRouter } from "@/pages/_clientRouter";
+import QuickSettings from "./dialogs/QuickSettings.vue";
 import { useAuthStore } from "@/stores/auth";
 
 export default {
+    components: {
+        QuickSettings
+    },
     props: {
         loading: {
             type: Boolean,
@@ -163,7 +142,6 @@ export default {
     data() {
         return {
             auth: useAuthStore(),
-            drawer: true,
             loadingLoginLogout: false,
             mdiAccountCircle,
             mdiCog,
@@ -171,26 +149,15 @@ export default {
             mdiGift,
             mdiGithub,
             mdiLockReset,
+            mdiLogin,
+            mdiLogout,
             mdiMenu,
-            menu: false
+            mdiTune
         };
     },
     methods: {
-        async updatePrefs() {
-            if (this.auth.user) {
-                const accountResponse = await account.updatePrefs(this.auth.newUserPrefs);
-                this.auth.userPrefs = accountResponse.prefs;
-            } else {
-                localStorage.setItem("userPrefs", JSON.stringify(this.auth.newUserPrefs));
-            }
-
-            this.auth.userPrefs = { ...this.auth.newUserPrefs };
-
-            this.menu = false;
-        },
-        logIn() {
+        logIn () {
             this.loadingLoginLogout = true;
-            this.menu = false;
             const currentPath = window.location.pathname + window.location.search;
             clientRouter.push({
                 path: "/dash/login",
@@ -202,21 +169,13 @@ export default {
             this.loadingLoginLogout = true;
             await account.deleteSession("current");
             this.auth.user = null;
-            this.menu = false;
             await this.auth.init();
-            // Check if current route requires auth (you may need to adjust this logic)
-            const requiresAuth = window.location.pathname.startsWith("/dash/");
-            if (requiresAuth) {
+            this.loadingLoginLogout = false;
+            const route = clientRouter.currentRoute.value;
+            if (route.meta.requiresAuth) {
                 this.logIn();
-            } else {
-                this.loadingLoginLogout = false;
             }
         }
-    },
-    mounted() {
-        clientRouter.afterEach(() => {
-            this.menu = false;
-        });
     }
 };
 </script>

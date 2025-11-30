@@ -115,7 +115,7 @@ export const useAuthStore = defineStore("auth", {
                 }
 
                 if (this.user) {
-                    localStorage.setItem("previouslyLoggedInUserID", this.user.$id);
+                    this.setPreviouslyLoggedInUserID(this.user.$id);
                     if (SENTRY_DSN) {
                         setSentryUser({
                             id: this.user.$id,
