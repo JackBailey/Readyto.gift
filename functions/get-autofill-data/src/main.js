@@ -1,11 +1,8 @@
 import { Client, Databases, ID, Permission, Role, Storage } from "node-appwrite";
-import { Buffer } from "buffer";
 import getBestImage from "./modules/get-best-image.js";
 import { getLinkPreview } from "./link-preview-js.js";
 import getSite from "./get-site.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { InputFile } from "node-appwrite/file";
-import mime from "mime-types";
 import { Polar } from "@polar-sh/sdk";
 import { TidyURL } from "tidy-url";
 
@@ -89,7 +86,7 @@ const getRequestMethods = ({ country }) => {
     return requestMethods;
 };
 
-const getPreview = async ({ url, requestMethods, site, itemID, executionID, databases, log, error }) => {
+const getPreview = async ({ url, requestMethods, site, itemID, executionID, databases, log, error, userID }) => {
     const updateStatus = (data) => {
         return databases.updateDocument(
             "wishlist",
@@ -237,6 +234,32 @@ export default async ({ req, res, log, error }) => {
                 });
             }
 
+            let enableAutofill = process.env.FREE_TIER_ENABLE_AUTOFILL === "true";
+            const customer = await polar.customers.get({
+                externalCustomerId: userID
+            });
+
+            if (customer.id) {
+                console.log(`Fetching benefits for customer ID: ${customer.id}`);
+                const benefits = await polar.benefitGrants.list({
+                    customerId: customer.id,
+                    isGranted: true
+                });
+
+                const benefitNames = benefits.result.items.map(b => b.benefit.description);
+
+                if (benefitNames.includes("Autofill")) {
+                    enableAutofill = true;
+                    log("Autofill benefit is granted to the user.");
+                }
+            }
+
+            if (!enableAutofill) {
+                return res.json({
+                    error: "Autofill feature is not enabled for this user"
+                }, 403);
+            }
+
             const countryMap = {
                 USD: "us",
                 GBP: "gb",
@@ -268,7 +291,7 @@ export default async ({ req, res, log, error }) => {
 
             executionRowExists = true;
 
-            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error });
+            const data = await getPreview({ url, requestMethods, site, storage, itemID, executionID, databases, log, error, userID });
 
             const autofillData = {
                 title: formatTitle(data, site),

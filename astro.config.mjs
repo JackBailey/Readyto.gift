@@ -25,7 +25,8 @@ export default defineConfig({
             SENTRY_DSN: envField.string({ context: "client", access: "public", optional: true }),
             APPWRITE_DEV_KEY: envField.string({ context: "client", access: "public", optional: true }),
             FREE_TIER_PUBLIC_LIST_LIMIT: envField.number({ context: "client", access: "public", default: -1 }),
-            FREE_TIER_ENABLE_AUTOFILL: envField.boolean({ context: "client", access: "public", default: true })
+            FREE_TIER_ENABLE_AUTOFILL: envField.boolean({ context: "client", access: "public", default: true }),
+            ENABLE_POLAR: envField.boolean({ context: "client", access: "public", default: false })
         }
     },
 

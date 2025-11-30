@@ -3,7 +3,7 @@ import { functions } from "@/appwrite";
 import { Polar } from "@polar-sh/sdk";
 import { useUserLists } from "./userLists";
 
-import { FREE_TIER_ENABLE_AUTOFILL, FREE_TIER_PUBLIC_LIST_LIMIT } from "astro:env/client";
+import { ENABLE_POLAR, FREE_TIER_ENABLE_AUTOFILL, FREE_TIER_PUBLIC_LIST_LIMIT } from "astro:env/client";
 
 const polar = new Polar();
 
@@ -18,6 +18,11 @@ export const usePolarStore = defineStore("polar", {
     actions: {
         async init() {
             this.sessionLoading = true;
+            if (!ENABLE_POLAR) {
+                this.sessionLoading = false;
+                return;
+            }
+
             const polarSession = await functions.createExecution({
                 functionId: "690fc8f4002cff45eddc",
                 async: false

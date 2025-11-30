@@ -62,22 +62,33 @@
                         :title="alert.title"
                         :text="alert.text"
                         class="mt-4"
-                    />
+                    />                    
                 </v-card-text>
                 <v-card-actions>
-                    <v-tooltip :open-on-hover="!modifiedItem.url">
-                        <template v-slot:activator="{ tooltipProps }">
-                            <span v-bind="tooltipProps">
+                    <v-tooltip
+                        :open-on-hover="false"
+                        :open-on-click="true"
+                        location="top"
+                    >
+                        <template v-slot:activator="{ props }">
+                            <span v-bind="props">
                                 <v-btn
                                     text="Auto-fill"
                                     :prepend-icon="mdiRobot"
                                     variant="tonal"
-                                    :disabled="!modifiedItem.url"
+                                    :disabled="!(modifiedItem.url && polar.enableAutofill)"
                                     @click="autofill"
                                 />
                             </span>
                         </template>
-                        <span>Please enter a URL to use the auto-fill feature</span>
+                        <span>
+                            <template v-if="polar.enableAutofill && !modifiedItem.url">
+                                Please enter a URL to use the auto-fill feature.
+                            </template>
+                            <template v-else-if="!polar.enableAutofill">
+                                Auto-fill feature is not available on the free plan. Please upgrade to use this feature.
+                            </template>
+                        </span>
                     </v-tooltip>
                     <v-btn
                         text="Cancel"
@@ -117,6 +128,7 @@ import mime from "mime-types";
 import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
+import { usePolarStore } from "@/stores/polar";
 
 export default {
     title: "ListDialog",
@@ -174,6 +186,7 @@ export default {
                 title: "",
                 url: ""
             },
+            polar: usePolarStore(),
             previousValues: {},
             uploadingFile: false
         };

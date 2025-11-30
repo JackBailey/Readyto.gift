@@ -41,26 +41,6 @@ export default async ({ req, res, log, error }) => {
                 });
             }
 
-            let publicListLimit = process.env.FREE_TIER_PUBLIC_LIST_LIMIT !== undefined ? parseInt(process.env.FREE_TIER_PUBLIC_LIST_LIMIT) : -1;
-
-            const customer = await polar.customers.getExternal({
-                externalId: list.author
-            });
-
-            if (customer.id) {
-                console.log(`Fetching benefits for customer ID: ${customer.id}`);
-                const benefits = await polar.benefitGrants.list({
-                    customerId: customer.id,
-                    isGranted: true
-                });
-
-                const benefitNames = benefits.result.items.map(b => b.benefit.description);
-
-                if (benefitNames.includes("Unlimited Public Lists")) {
-                    publicListLimit = -1;
-                }
-            }
-
             const userPrivateLists = await tables.listRows({
                 databaseId: process.env.APPWRITE_DATABASE,
                 tableId: process.env.APPWRITE_LIST_COLLECTION,
@@ -80,6 +60,31 @@ export default async ({ req, res, log, error }) => {
                     Query.limit(500000)
                 ]
             });
+
+            let publicListLimit = process.env.FREE_TIER_PUBLIC_LIST_LIMIT !== undefined ? parseInt(process.env.FREE_TIER_PUBLIC_LIST_LIMIT) : -1;
+
+            // Only check benefits if user is over the free tier limit
+            // This is blocked in the UI, but this is to handle cases where users may have bypassed the UI limits
+            if (publicListLimit !== -1 && userPublicLists.total > publicListLimit) {
+                console.log(`User ${list.author} is over the free tier public list limit of ${publicListLimit} with ${userPublicLists.total} public lists. Checking Polar benefits...`);
+                const customer = await polar.customers.getExternal({
+                    externalId: list.author
+                });
+    
+                if (customer.id) {
+                    console.log(`Fetching benefits for customer ID: ${customer.id}`);
+                    const benefits = await polar.benefitGrants.list({
+                        customerId: customer.id,
+                        isGranted: true
+                    });
+    
+                    const benefitNames = benefits.result.items.map(b => b.benefit.description);
+    
+                    if (benefitNames.includes("Unlimited Public Lists")) {
+                        publicListLimit = -1;
+                    }
+                }
+            }
 
             log(`User ${list.author} has ${userPrivateLists.total} private lists and ${userPublicLists.total}/${publicListLimit} public lists.`);
 
