@@ -27,7 +27,13 @@ if (!import.meta.env.SSR) {
             },
             {
                 path: "/dash/settings",
-                component: () => import("@/pages/_views/dash/AccountSettings.vue")
+                component: () => import("@/pages/_views/dash/settings/SettingsPage.vue"),
+                children: [
+                    {
+                        path: "account",
+                        component: () => import("@/pages/_views/dash/settings/AccountSettings.vue")
+                    }
+                ]
             },
             {
                 path: "/dash/recovery/start",
