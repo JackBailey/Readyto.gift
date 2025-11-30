@@ -28,17 +28,19 @@
                 </SplideSlide>
 
             </SplideTrack>
-            <div class="splide__arrows">
-                <v-btn
-                    class="splide__arrow splide__arrow--prev"
-                    :icon="mdiChevronRight"
-                />
-                <v-btn
-                    class="splide__arrow splide__arrow--next"
-                    :icon="mdiChevronRight"
-                />
-            </div>
         </Splide>
+        <div class="carousel-arrows">
+            <v-btn
+                class="carousel-arrow carousel-arrow-prev"
+                :icon="mdiChevronRight"
+                @click="prevSlide"
+            />
+            <v-btn
+                class="carousel-arrow carousel-arrow-next"
+                :icon="mdiChevronRight"
+                @click="nextSlide"
+            />
+        </div>
         <Splide
             :options="thumbSliderOptions"
             ref="thumbnail"
@@ -87,7 +89,7 @@ defineEmits(["select-image"]);
 
 // Ref: https://codestax.medium.com/easy-way-to-create-a-slider-in-vue-js-with-splide-js-8905e88dc8ab
 const mainSliderOptions = {
-    arrows: true,
+    arrows: false,
     pagination: false,
     perPage: 1,
     type: "slide"
@@ -113,6 +115,14 @@ defineProps({
     }
 });
 
+const nextSlide = () => {
+    mainSlider.value.splide.go("+1");
+};
+
+const prevSlide = () => {
+    mainSlider.value.splide.go("-1");
+};
+
 onMounted(() => {
     mainSlider.value.splide.sync(thumbnailSlider.value.splide);
 
@@ -127,6 +137,20 @@ onMounted(() => {
 .thumbnail {
     .splide__track--nav > .splide__list > .splide__slide.is-active {
         border: 5px solid rgb(var(--v-theme-primary));
+    }
+}
+.carousel-arrows {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    margin-block: 0.5rem 1rem;
+    .carousel-arrow {
+        position: static;
+        transform: none;
+
+        &.carousel-arrow-prev {
+            transform: rotate(180deg);
+        }
     }
 }
 </style>
