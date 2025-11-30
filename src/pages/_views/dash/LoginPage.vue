@@ -137,8 +137,6 @@ export default {
                     });
                 }
 
-                this.auth.setPreviouslyLoggedInUserID(accountResp.$id);
-
                 await this.auth.init();
                 clientRouter.push(this.redirectPath);
             } catch (error) {

@@ -128,12 +128,14 @@ export default {
         const { listId } = route.params;
         return {
             auth: useAuthStore(),
+            avoidSpoilersDialogShown: false,
             communityItems: [],
             currency: useCurrencyStore(),
             dialogs: useDialogs(),
             fulfillments: [],
             list: false,
             listID: listId,
+            loadedAsAuthor: false,
             mdiInformation,
             newItem: {
                 description: "",
@@ -337,7 +339,9 @@ export default {
             });
         },
         async createAvoidSpoilersDialog(list) {
+            if (this.avoidSpoilersDialogShown) return;
             if (!this.auth.user && this.auth.previouslyLoggedInUserID && list.author === this.auth.previouslyLoggedInUserID) {
+                this.avoidSpoilersDialogShown = true;
                 const dialogResponse = await this.dialogs.create({
                     actions: [
                         {
@@ -394,11 +398,10 @@ export default {
 
                 this.communityItems = communityItems.documents;
 
-                let loadedAsAuthor = this.auth.user && list.author === this.auth.user.$id;
+                this.loadedAsAuthor = this.auth.user && list.author === this.auth.user.$id;
 
-                const redirectingToLoginPage = await this.createAvoidSpoilersDialog(list);
-
-                if (redirectingToLoginPage) return;
+                this.avoidSpoilersDialogShown = await this.createAvoidSpoilersDialog(list);
+                if (this.avoidSpoilersDialogShown) return;
 
                 window.document.title = list.title + " - Readyto.gift";
 
@@ -436,13 +439,6 @@ export default {
                 window.addEventListener("appinstalled", () => {
                     this.pwaPromo = false;
                 });
-
-                this.auth.$subscribe((mutation, state) => {
-                    if (!state.user && loadedAsAuthor) {
-                        this.createAvoidSpoilersDialog(this.list);
-                        loadedAsAuthor = false;
-                    }
-                });
             } catch (error) {
                 if (error?.code === 404) {
                     this.newItem.notFound = true;
@@ -469,8 +465,19 @@ export default {
             localStorage.setItem("showFulfilled", val);
         }
     },
-    mounted() {
-        this.loadList(this.listID);
+    async mounted() {
+        await this.loadList(this.listID);
+
+        if (this.loadedAsAuthor) {
+            this.auth.$subscribe(async (mutation, state) => {
+                if (!state.user && this.loadedAsAuthor) {
+                    console.log("Creating avoid spoilers dialog");
+                    await this.createAvoidSpoilersDialog(this.list);
+                    this.loadedAsAuthor = false;
+                }
+            });
+        }
+
     }
 };
 </script>
