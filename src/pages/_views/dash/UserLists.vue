@@ -47,24 +47,6 @@
                 <template v-slot:title>
                     <h1 class="mb-0">Your lists</h1>
                 </template>
-                <v-card-text v-if="polar.meters.publicLists">
-                    {{ polar.meters.publicLists.consumedUnits }} / {{ polar.meters.publicLists.creditedUnits }} lists used.
-                    <v-progress-linear
-                        :model-value="
-                            (
-                                Math.min(
-                                    polar.meters.publicLists.consumedUnits,
-                                    polar.meters.publicLists.creditedUnits
-                                )
-                                / polar.meters.publicLists.creditedUnits
-                            ) * 100
-                        "
-                        color="primary"
-                        height="8"
-                        rounded="lg"
-                        class="mt-2"
-                    />
-                </v-card-text>
                 <template v-slot:append>
                     <CreateList
                         @createList="createList"
@@ -177,12 +159,26 @@
                     :prepend-icon="mdiEarth"
                 >
                     Public {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                    <v-chip
+                        rounded="pill"
+                        variant="tonal"
+                        class="ml-4"
+                    >
+                        {{ publicLists.length }} / 2
+                    </v-chip>
                 </v-tab>
                 <v-tab
                     value="private"
                     :prepend-icon="mdiLock"
                 >
                     Private {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                    <v-chip
+                        rounded="pill"
+                        variant="tonal"
+                        class="ml-4"
+                    >
+                        {{ privateLists.length }}
+                    </v-chip>
                 </v-tab>
                 <v-tab
                     value="saved"
@@ -190,6 +186,13 @@
                     :disabled="!!quickCreateURL"
                 >
                     Saved {{ $vuetify.display.mobile ? '' : 'Lists' }}
+                    <v-chip
+                        rounded="pill"
+                        variant="tonal"
+                        class="ml-4"
+                    >
+                        {{ savedLists.length }}
+                    </v-chip>
                 </v-tab>
             </v-tabs>
 
