@@ -64,6 +64,7 @@ import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
 import { clientRouter } from "@/pages/_clientRouter";
+import { useUserLists } from "@/stores/userLists";
 
 export default {
     title: "ListDialog",
@@ -84,7 +85,8 @@ export default {
             listId: null,
             loading: false,
             mdiAlert,
-            mdiDelete
+            mdiDelete,
+            userLists: useUserLists()
         };
     },
     watch: {
@@ -107,6 +109,7 @@ export default {
                                 item.imageID
                             );
                         }
+                        // List <=> Items are set to cascade delete in Appwrite console
                     })
                 );
 
@@ -115,6 +118,8 @@ export default {
                     APPWRITE_LIST_COLLECTION,
                     this.list.$id
                 );
+
+                this.userLists.adjustCount(this.list.private, -1);
 
                 clientRouter.push("/dash/lists");
 

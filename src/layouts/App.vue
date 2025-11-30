@@ -2,7 +2,7 @@
     <v-app :theme="auth.userPrefs.darkMode ? 'dark' : 'light'">
         <DashNav :loading="loading" />
         <v-main>
-            <router-view v-if="!loading"/>
+            <router-view />
             <div class="loading-placeholder"></div>
         </v-main>
         <GlobalDialogs />
@@ -16,13 +16,14 @@ import DashNav from "@/components/DashNav.vue";
 import GlobalDialogs from "@/components/GlobalDialogs.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
+import { usePolarStore } from "@/stores/polar";
 import { usePWA } from "@/stores/pwa";
 import { useTheme } from "vuetify";
 
 const auth = useAuthStore();
 const currencyStore = useCurrencyStore();
 const pwa = usePWA();
-
+const polarStore = usePolarStore();
 const vuetifyTheme = useTheme();
 
 const loading = ref(true);
@@ -67,6 +68,11 @@ onMounted(async () => {
     }
 
     await currencyStore.init();
+    console.log("Initializing polar store from App.vue");
+    if (auth.isLoggedIn) {
+        console.log("User is logged in, initializing polar store");
+        await polarStore.init();
+    }
 
     loading.value = false;
 });

@@ -1,16 +1,23 @@
 import { defineStore } from "pinia";
 import { functions } from "@/appwrite";
+import { Polar } from "@polar-sh/sdk";
+import { useUserLists } from "./userLists";
+
+import { FREE_TIER_ENABLE_AUTOFILL, FREE_TIER_PUBLIC_LIST_LIMIT } from "astro:env/client";
+
+const polar = new Polar();
 
 export const usePolarStore = defineStore("polar", {
     state: () => ({
-        hasFreeSubscription: null,
-        hasProSubscription: null,
-        meters: {
-            publicLists: null
-        }
+        sessionLoading: false,
+        subscriptions: [],
+        session: null,
+        publicListLimit: FREE_TIER_PUBLIC_LIST_LIMIT,
+        enableAutofill: FREE_TIER_ENABLE_AUTOFILL
     }),
     actions: {
         async init() {
+            this.sessionLoading = true;
             const polarSession = await functions.createExecution({
                 functionId: "690fc8f4002cff45eddc",
                 async: false
@@ -18,12 +25,25 @@ export const usePolarStore = defineStore("polar", {
 
             if (polarSession.status === "completed") {
                 const responseData = JSON.parse(polarSession.responseBody);
-                this.hasFreeSubscription = responseData.hasFreeSubscription;
-                this.hasProSubscription = responseData.hasProSubscription;
-                this.meters.publicLists = responseData.publicListMeter;
+                this.session = responseData.customerSession;
+
+                const benefits = await polar.customerPortal.benefitGrants.list({
+                    customerSession: this.session.token
+                }, {});
+
+                const benefitNames = benefits.result.items.map(b => b.benefit.description);
+
+                if (benefitNames.includes("Autofill")) {
+                    this.enableAutofill = true;
+                }
+
+                if (benefitNames.includes("Unlimited Public Lists")) {
+                    this.publicListLimit = -1;
+                }
             } else {
                 console.error("Failed to retrieve Polar session");
             }
+            this.sessionLoading = false;
         },
         async getProCheckout() {
             const checkout = await functions.createExecution({
@@ -37,6 +57,28 @@ export const usePolarStore = defineStore("polar", {
             }
             
             throw new Error("Failed to retrieve Polar Pro checkout URL");
+        },
+        async getSubscriptions() {
+            const subscriptions = await polar.customerPortal.subscriptions.list({
+                customerSession: this.session.token
+            }, {});
+
+            if (subscriptions.result.pagination.totalCount === 0) {
+                this.subscriptions = [];
+                this.sessionLoading = false;
+                return;
+            }
+
+            this.subscriptions = subscriptions.result.items;
+        }
+    },
+    getters: {
+        publicListLimitReached() {
+            const userLists = useUserLists();
+            if (this.publicListLimit === -1) {
+                return false;
+            }
+            return this.publicListLimit <= userLists.listCount.public;
         }
     }
 });

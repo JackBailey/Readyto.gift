@@ -51,6 +51,7 @@
                     <CreateList
                         @createList="createList"
                         :disabled="auth?.user?.emailVerification === false"
+                        :private="tab === 'private'"
                     />
                 </template>
             </v-card-item>
@@ -164,7 +165,10 @@
                         variant="tonal"
                         class="ml-4"
                     >
-                        {{ publicLists.length }} / 2
+                        {{ userLists.listCount.public }}
+                        <template v-if="polar.publicListLimit">
+                            / {{ polar.publicListLimit }}
+                        </template>
                     </v-chip>
                 </v-tab>
                 <v-tab
@@ -177,7 +181,7 @@
                         variant="tonal"
                         class="ml-4"
                     >
-                        {{ privateLists.length }}
+                        {{ userLists.listCount.private }}
                     </v-chip>
                 </v-tab>
                 <v-tab
@@ -278,8 +282,9 @@ import PWAPrompt from "@/components/PWAPrompt.vue";
 import { Query } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
-import validation from "@/utils/validation";
 import { usePolarStore } from "@/stores/polar";
+import { useUserLists } from "@/stores/userLists";
+import validation from "@/utils/validation";
 
 export default {
     components: {
@@ -311,6 +316,7 @@ export default {
                 ]
             },
             tab: "public",
+            userLists: useUserLists(),
             verificationDialog: false
         };
     },
@@ -364,6 +370,11 @@ export default {
                 this.lists = lists.documents.filter(
                     (list) => !this.auth.userPrefs.savedLists.includes(list.$id)
                 );
+
+                this.userLists.setCount({
+                    private: this.privateLists.length,
+                    public: this.publicLists.length
+                });
 
                 this.loading = false;
             } catch (error) {

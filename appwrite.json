@@ -102,13 +102,13 @@
             "timeout": 15,
             "entrypoint": "src/main.js",
             "commands": "npm install",
-            "specification": "s-0.5vcpu-512mb",
+            "specification": "s-1vcpu-512mb",
             "path": "functions/polar-update-customers"
         },
         {
             "$id": "690fc8f4002cff45eddc",
             "execute": ["users"],
-            "name": "get-polar-customer-data",
+            "name": "get-polar-customer-session",
             "enabled": true,
             "logging": true,
             "runtime": "node-20.0",
@@ -116,10 +116,10 @@
             "events": [],
             "schedule": "",
             "timeout": 15,
-            "entrypoint": "src/main.js",
+            "entrypoint": "src/get-customer-session.js",
             "commands": "npm install",
             "specification": "s-0.5vcpu-512mb",
-            "path": "functions/get-polar-customer-data"
+            "path": "functions/polar"
         },
         {
             "$id": "690fc8f4002cff45eddd",

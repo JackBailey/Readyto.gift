@@ -69,24 +69,6 @@ export default async ({ req, res, log, error }) => {
                         log(`Failed to create Polar customer for Appwrite user ${appwriteUser.$id}: ${err.message}`);
                     }
                 }
-
-                const subscriptions = await polar.subscriptions.list({
-                    externalCustomerId: appwriteUser.$id
-                });
-
-                const hasFreeSubscription = subscriptions.result.items.find((sub) => sub.productId === process.env.POLAR_FREE_PRODUCT_ID);
-                
-                if (!hasFreeSubscription) {
-                    try {
-                        await polar.subscriptions.create({
-                            externalCustomerId: appwriteUser.$id,
-                            productId: process.env.POLAR_FREE_PRODUCT_ID
-                        });
-                        log(`Created free subscription for Appwrite user ${appwriteUser.$id}`);
-                    } catch (err) {
-                        log(`Failed to create free subscription for Appwrite user ${appwriteUser.$id}: ${err.message}`);
-                    }
-                }
             }
 
             const unmatchedPolarCustomers = polarCustomers.result.items.filter(c => {
@@ -139,15 +121,6 @@ export default async ({ req, res, log, error }) => {
                         name: appwriteUser.name
                     });
                     log(`Created Polar customer for Appwrite user ${appwriteUser.$id}`);
-                    try {
-                        await polar.subscriptions.create({
-                            externalCustomerId: appwriteUser.$id,
-                            productId: process.env.POLAR_FREE_PRODUCT_ID
-                        });
-                        log(`Created free subscription for Appwrite user ${appwriteUser.$id}`);
-                    } catch (err) {
-                        log(`Failed to create free subscription for Appwrite user ${appwriteUser.$id}: ${err.message}`);
-                    }
                 } catch (err) {
                     log(`Failed to create Polar customer for Appwrite user ${appwriteUser.$id}: ${err.message}`);
                 }

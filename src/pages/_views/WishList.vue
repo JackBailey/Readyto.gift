@@ -114,6 +114,7 @@ import { Query } from "appwrite";
 import { useAuthStore } from "@/stores/auth";
 import { useCurrencyStore } from "@/stores/currency";
 import { useDialogs } from "@/stores/dialogs";
+import { useUserLists } from "@/stores/userLists";
 
 export default {
     components: {
@@ -146,6 +147,7 @@ export default {
                 url: ""
             },
             notFound: false,
+            userLists: useUserLists(),
             priceGroups: [0, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
             pwaPromo: false,
             quickCreateURL,
@@ -478,6 +480,23 @@ export default {
             });
         }
 
+        if (this.auth.isLoggedIn) {
+            const lists = await databases.listDocuments(
+                APPWRITE_DB,
+                APPWRITE_LIST_COLLECTION,
+                [
+                    Query.equal("author", this.auth.user.$id)
+                ]
+            );
+
+            const publicLists = lists.documents.filter((list) => !list.private);
+            const privateLists = lists.documents.filter((list) => list.private);
+
+            this.userLists.setCount({
+                public: publicLists.length,
+                private: privateLists.length
+            });
+        }
     }
 };
 </script>

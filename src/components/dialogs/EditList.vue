@@ -33,12 +33,31 @@
                             type="error"
                             dismissible
                             border="start"
-                            class="mt-4"
+                            class="mt-4 min-w-0 overflow-visible flex-shrink-1"
                             elevation="2"
                             :icon="mdiAlert"
                             :title="alert.title"
                             :text="alert.text"
                         />
+                        <v-alert
+                            v-if="!editedList.private && polar.publicListLimitReached"
+                            type="warning"
+                            border="start"
+                            class="mt-4 min-w-0 overflow-visible flex-shrink-1"
+                            elevation="2"
+                            variant="tonal"
+                        >
+                            You have reached your public list allowance.<br/><br/>
+                            Please upgrade to create unlimited public lists, or make some of your existing lists private.
+                            <br/>
+                            <v-btn
+                                to="/dash/billing"
+                                color="warning"
+                                class="mt-4"
+                            >
+                                Upgrade
+                            </v-btn>
+                        </v-alert>
                     </v-card-text>
                     <v-card-actions>
                         <v-btn
@@ -51,6 +70,7 @@
                             @click="updateList"
                             variant="elevated"
                             :loading="loading"
+                            :disabled="!editedList.private && polar.publicListLimitReached"
                         />
                     </v-card-actions>
                 </v-card>
@@ -67,6 +87,8 @@ import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
+import { usePolarStore } from "@/stores/polar";
+import { useUserLists } from "@/stores/userLists";
 
 export default {
     title: "ListDialog",
@@ -94,7 +116,9 @@ export default {
             loading: false,
             mdiAlert,
             mdiPencil,
-            previousValues: {}
+            polar: usePolarStore(),
+            previousValues: {},
+            userLists: useUserLists()
         };
     },
     watch: {
@@ -224,6 +248,16 @@ export default {
             this.$emit("updateList", {
                 list: listResponse
             });
+
+            if (this.previousValues.private !== this.editedList.private) {
+                if (this.editedList.private) {
+                    this.userLists.adjustCount(true, 1);
+                    this.userLists.adjustCount(false, -1);
+                } else {
+                    this.userLists.adjustCount(false, 1);
+                    this.userLists.adjustCount(true, -1);
+                }
+            }
 
             this.loading = false;
             this.dialogOpen = false;

@@ -1,11 +1,10 @@
-import { account, avatars, functions } from "@/appwrite";
+import { account, avatars } from "@/appwrite";
 import { defineStore } from "pinia";
 import { markRaw } from "vue";
 import { SENTRY_DSN } from "astro:env/client";
 import { setUser as setSentryUser } from "@sentry/vue";
 import TotpChallenge from "@/components/dialogs/account/mfa/totp/TotpChallenge.vue";
 import { useDialogs } from "./dialogs";
-import { usePolarStore } from "./polar";
 
 export const useAuthStore = defineStore("auth", {
     state: () => ({
@@ -91,7 +90,6 @@ export const useAuthStore = defineStore("auth", {
             }
         },
         async init() {
-            const polarStore = usePolarStore();
             try {
                 try {
                     this.user = await account.get();
@@ -124,22 +122,21 @@ export const useAuthStore = defineStore("auth", {
                         });
                     }
 
+                    if (this.user.name) this.avatar = avatars.getInitials(this.user.name);
+                    if (this.user.prefs) {
+                        this.userPrefs = {
+                            ...this.userPrefs,
+                            ...this.user.prefs
+                        };
+                    }
+
                     this.mfaFactors = await account.listMFAFactors();
+
                 } else {
                     if (SENTRY_DSN) {
                         setSentryUser(null);
                     }
                 }
-
-                if (this.user.name) this.avatar = avatars.getInitials(this.user.name);
-                if (this.user.prefs) {
-                    this.userPrefs = {
-                        ...this.userPrefs,
-                        ...this.user.prefs
-                    };
-                }
-
-                polarStore.init();
             } catch {
                 if (SENTRY_DSN) {
                     setSentryUser(null);

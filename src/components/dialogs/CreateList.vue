@@ -38,12 +38,31 @@
                         v-if="alert"
                         type="error"
                         border="start"
-                        class="mt-4"
+                        class="mt-4 min-w-0 overflow-visible flex-shrink-1"
                         elevation="2"
                         :icon="mdiAlert"
                         :title="alert.title"
                         :text="alert.text"
                     />
+                    <v-alert
+                        v-if="!newList.private && polar.publicListLimitReached"
+                        type="warning"
+                        border="start"
+                        class="mt-4 min-w-0 overflow-visible flex-shrink-1"
+                        elevation="2"
+                        variant="tonal"
+                    >
+                        You have reached your public list allowance.<br/><br/>
+                        Please upgrade to create unlimited public lists, or make some of your existing lists private.
+                        <br/>
+                        <v-btn
+                            to="/dash/billing"
+                            color="warning"
+                            class="mt-4"
+                        >
+                            Upgrade
+                        </v-btn>
+                    </v-alert>
                 </v-card-text>
                 <v-card-actions>
                     <v-btn
@@ -56,6 +75,7 @@
                         @click="createList"
                         variant="elevated"
                         :loading="loading"
+                        :disabled="!newList.private && polar.publicListLimitReached"
                     />
                 </v-card-actions>
             </v-card>
@@ -70,6 +90,9 @@ import { mdiAlert, mdiPlus } from "@mdi/js";
 import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
 import { useAuthStore } from "@/stores/auth";
+import { usePolarStore } from "@/stores/polar";
+import { useUserLists } from "@/stores/userLists";
+
 export default {
     title: "ListDialog",
     props: {
@@ -80,6 +103,10 @@ export default {
         list: {
             type: Object,
             default: () => ({})
+        },
+        private: {
+            type: Boolean,
+            default: false
         },
         variant: {
             type: String,
@@ -101,21 +128,19 @@ export default {
             newList: {
                 currency: "USD",
                 description: "",
-                private: false,
+                private: this.private,
                 shortUrl: null,
                 title: ""
-            }
+            },
+            polar: usePolarStore(),
+            userLists: useUserLists()
         };
     },
     watch: {
         dialogOpen(open) {
             if (open === true) {
-                this.editedList = {
-                    description: this.list.description,
-                    shortUrl: this.list.shortUrl,
-                    title: this.list.title
-                };
                 this.listId = this.list.$id;
+                this.newList.private = this.private;
             }
         }
     },
