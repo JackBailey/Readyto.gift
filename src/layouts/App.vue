@@ -102,7 +102,7 @@ onMounted(async () => {
 
     await currencyStore.init();
 
-    versionStore.startVersionCheck(1000 * 10);
+    versionStore.startVersionCheck(1000 * 60 * 5); // check every 5 minutes
 
     loading.value = false;
 });
