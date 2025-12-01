@@ -118,7 +118,7 @@
             "timeout": 15,
             "entrypoint": "src/get-customer-session.js",
             "commands": "npm install",
-            "specification": "s-0.5vcpu-512mb",
+            "specification": "s-1vcpu-512mb",
             "path": "functions/polar"
         },
         {
@@ -134,8 +134,24 @@
             "timeout": 15,
             "entrypoint": "src/main.js",
             "commands": "npm install",
-            "specification": "s-0.5vcpu-512mb",
+            "specification": "s-1vcpu-512mb",
             "path": "functions/get-polar-checkout"
+        },
+        {
+            "$id": "692cc181001e5fa6195f",
+            "execute": ["any"],
+            "name": "get-polar-pro-product",
+            "enabled": true,
+            "logging": true,
+            "runtime": "node-20.0",
+            "scopes": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "entrypoint": "src/get-pro.js",
+            "commands": "npm install",
+            "specification": "s-1vcpu-512mb",
+            "path": "functions/polar"
         }
     ],
     "tablesDB": [

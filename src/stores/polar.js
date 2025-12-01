@@ -63,6 +63,16 @@ export const usePolarStore = defineStore("polar", {
             
             throw new Error("Failed to retrieve Polar Pro checkout URL");
         },
+        async getProPricing () {
+            const response = await fetch("/api/checkout/pro/price");
+            const data = await response.json();
+
+            if (data.success) {
+                return data.price;
+            } else {
+                throw new Error(data.error || "Failed to fetch Pro pricing");
+            }
+        },
         async getSubscriptions() {
             const subscriptions = await polar.customerPortal.subscriptions.list({
                 customerSession: this.session.token

@@ -26,7 +26,10 @@ export default defineConfig({
             APPWRITE_DEV_KEY: envField.string({ context: "client", access: "public", optional: true }),
             FREE_TIER_PUBLIC_LIST_LIMIT: envField.number({ context: "client", access: "public", default: -1 }),
             FREE_TIER_ENABLE_AUTOFILL: envField.boolean({ context: "client", access: "public", default: true }),
-            ENABLE_POLAR: envField.boolean({ context: "client", access: "public", default: false })
+            ENABLE_POLAR: envField.boolean({ context: "client", access: "public", default: false }),
+
+            POLAR_ACCESS_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
+            POLAR_PRO_PRODUCT_ID: envField.string({ context: "server", access: "secret", optional: true })
         }
     },
 
