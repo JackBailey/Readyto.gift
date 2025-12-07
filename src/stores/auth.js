@@ -130,11 +130,6 @@ export const useAuthStore = defineStore("auth", {
                     }
                 }
 
-                if (SENTRY_DSN) {
-                    const replay = Sentry.getReplay();
-                    replay.start();
-                }
-
                 if (this.user.name) this.avatar = avatars.getInitials(this.user.name);
                 if (this.user.prefs) {
                     this.userPrefs = {
