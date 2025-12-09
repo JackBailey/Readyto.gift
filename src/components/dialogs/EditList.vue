@@ -112,6 +112,11 @@ export default {
                 this.listId = this.list.$id;
             } else {
                 this.$emit("dialogClosed");
+
+                this.alert = false;
+                this.loading = false;
+                this.editedList = {};
+                this.previousValues = {};
             }
         }
     },

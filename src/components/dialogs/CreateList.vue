@@ -116,6 +116,16 @@ export default {
                     title: this.list.title
                 };
                 this.listId = this.list.$id;
+            } else {
+                this.alert = false;
+                this.loading = false;
+                this.newList = {
+                    currency: "USD",
+                    description: "",
+                    private: false,
+                    shortUrl: null,
+                    title: ""
+                };
             }
         }
     },
