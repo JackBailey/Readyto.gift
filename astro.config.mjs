@@ -9,6 +9,8 @@ import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 export default defineConfig({
+    site: "https://readyto.gift",
+    
     env: {
         schema: {
             APPWRITE_PROJECT: envField.string({ context: "client", access: "public" }),
@@ -18,12 +20,13 @@ export default defineConfig({
             APPWRITE_LIST_COLLECTION: envField.string({ context: "client", access: "public" }),
             APPWRITE_FULFILLMENT_COLLECTION: envField.string({ context: "client", access: "public" }),
             APPWRITE_IMAGE_BUCKET: envField.string({ context: "client", access: "public" }),
-            LOGIN_METHODS: envField.string({ context: "client", access: "public", optional: true }),
+            LOGIN_METHODS: envField.string({ context: "client", access: "public", default: "password" }),
             UMAMI_URL: envField.string({ context: "client", access: "public", optional: true }),
             UMAMI_ID: envField.string({ context: "client", access: "public", optional: true }),
             UMAMI_DOMAINS: envField.string({ context: "client", access: "public", optional: true }),
             SENTRY_DSN: envField.string({ context: "client", access: "public", optional: true }),
-            APPWRITE_DEV_KEY: envField.string({ context: "client", access: "public", optional: true })
+            APPWRITE_DEV_KEY: envField.string({ context: "client", access: "public", optional: true }),
+            APPWRITE_KEY: envField.string({ context: "server", access: "secret" })
         }
     },
 
