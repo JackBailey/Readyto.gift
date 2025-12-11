@@ -1,7 +1,7 @@
 # Readyto.gift
 
-![list with 1 item](<docs/Screenshot 2024-06-29 at 17-52-37 Wishlist.png>)
-![list of lists with 1 list](<docs/Screenshot 2024-06-29 at 17-51-25 Wishlist.png>)
+![list of lists with 1 list](docs/example-lists-view.png)
+![list with 1 item](docs/example-list.png)
 
 This is a simple Wishlist app, to keep track of things you'd like. If anyone buys you anything from it, they can mark it down as such, so you don't get duplicates.
 
