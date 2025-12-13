@@ -115,7 +115,7 @@ import ItemFields from "@/components/dialogs/fields/ItemFields.vue";
 import { markRaw } from "vue";
 import mime from "mime-types";
 import ProcessingAutofill from "@/components/dialogs/autofill/ProcessingAutofill.vue";
-import { useAuthStore } from "@/stores/auth";
+// import { useAuthStore } from "@/stores/auth";
 import { useDialogs } from "@/stores/dialogs";
 
 export default {
@@ -151,7 +151,7 @@ export default {
     data() {
         return {
             alert: false,
-            auth: useAuthStore(),
+            // auth: useAuthStore(),
             dialogOpen: false,
             dialogs: useDialogs(),
             errors: {},
