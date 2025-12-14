@@ -15,16 +15,8 @@ if (!import.meta.env.SSR) {
                 redirect: "/dash/lists"
             },
             {
-                path: "/list/:listId",
-                component: () => import("@/pages/_views/WishList.vue")
-            },
-            {
                 path: "/dash/register",
                 component: () => import("@/pages/_views/dash/RegisterPage.vue")
-            },
-            {
-                path: "/dash/settings",
-                component: () => import("@/pages/_views/dash/AccountSettings.vue")
             },
             {
                 path: "/dash/recovery/start",
@@ -41,10 +33,6 @@ if (!import.meta.env.SSR) {
             {
                 path: "/:pathMatch(.*)",
                 component: () => import("@/pages/_views/NotFound.vue")
-            },
-            {
-                path: "/dash/about",
-                component: () => import("@/pages/_views/dash/AboutPage.vue")
             }
         ]
     });
