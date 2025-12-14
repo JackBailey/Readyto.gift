@@ -266,8 +266,6 @@ import validation from "@/utils/validation";
 const prefs = useStore($prefs);
 const user = useStore(auth.user);
 
-console.log(user.value);
-
 const props = defineProps({
     title: {
         type: String,
