@@ -63,7 +63,6 @@ import { APPWRITE_DB, APPWRITE_IMAGE_BUCKET, APPWRITE_LIST_COLLECTION } from "as
 import { databases, storage } from "@/appwrite";
 import { mdiAlert, mdiDelete } from "@mdi/js";
 import { AppwriteException } from "appwrite";
-import { clientRouter } from "@/pages/_clientRouter";
 
 export default {
     title: "ListDialog",
@@ -116,7 +115,7 @@ export default {
                     this.list.$id
                 );
 
-                clientRouter.push("/dash/lists");
+                window.location.href = "/dash/lists";
 
                 this.dialogOpen = false;
                 this.loading = false;

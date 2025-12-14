@@ -66,6 +66,8 @@ import { mdiAlert, mdiPencil } from "@mdi/js";
 import { create as createDialog } from "@/stores/dialogs";
 import { databases } from "@/appwrite";
 import ListFields from "@/components/dialogs/fields/ListFields.vue";
+import { user as userStore } from "@/stores/auth";
+import { useStore } from "@nanostores/vue";
 
 export default {
     title: "ListDialog",
@@ -85,7 +87,7 @@ export default {
     data() {
         return {
             alert: false,
-            // auth: useAuthStore(),
+            user: useStore(userStore),
             createDialog,
             dialogOpen: false,
             editedList: {},
@@ -192,12 +194,12 @@ export default {
 
             try {
                 let permissions = [
-                    Permission.delete(Role.user(this.auth.user.$id)),
-                    Permission.update(Role.user(this.auth.user.$id))
+                    Permission.delete(Role.user(this.user.$id)),
+                    Permission.update(Role.user(this.user.$id))
                 ];
 
                 if (this.editedList.private) {
-                    permissions.push(Permission.read(Role.user(this.auth.user.$id)));
+                    permissions.push(Permission.read(Role.user(this.user.$id)));
                 } else {
                     permissions.push(Permission.read(Role.any()));
                 }
