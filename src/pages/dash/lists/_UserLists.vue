@@ -37,6 +37,7 @@
                 </v-dialog>
             </v-card-actions>
         </v-alert>
+        <PWAPrompt />
         <v-card
             color="surface"
             variant="flat"
@@ -248,7 +249,7 @@
 </template>
 
 <script setup>
-import { account, databases, tablesDB } from "@/appwrite";
+import { account, tablesDB } from "@/appwrite";
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
 import { computed, ref } from "vue";
 import { mdiEarth, mdiInformation, mdiLock, mdiSortAscending, mdiSortDescending, mdiStar } from "@mdi/js";
@@ -261,6 +262,7 @@ import { useStore } from "@nanostores/vue";
 
 import CreateList from "@/components/dialogs/CreateList.vue";
 import ListCard from "@/components/ListCard.vue";
+import PWAPrompt from "@/components/PWAPrompt.vue";
 import validation from "@/utils/validation";
 
 const prefs = useStore($prefs);
