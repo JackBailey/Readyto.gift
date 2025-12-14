@@ -5,14 +5,18 @@ import vue from "@astrojs/vue";
 
 import sentry from "@sentry/astro";
 
-// import vercel from "@astrojs/vercel";
-// const adapter = vercel();
-
 import node from "@astrojs/node";
-const adapter = node({
-    mode: "standalone"
-});
+import vercel from "@astrojs/vercel";
 
+let adapter;
+
+if (import.meta.env.PROD) {
+    adapter = vercel();
+} else {
+    adapter = node({
+        mode: "standalone"
+    });
+}
 
 // https://astro.build/config
 export default defineConfig({
