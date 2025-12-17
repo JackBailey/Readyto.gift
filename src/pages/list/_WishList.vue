@@ -118,7 +118,7 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { avatars, databases, tablesDB } from "@/appwrite";
+import { avatars, databases } from "@/appwrite";
 import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import { mdiInformation  } from "@mdi/js";
@@ -130,7 +130,6 @@ import { $prefs, addToHistory } from "@/stores/prefs";
 import { previouslyLoggedInUserID as previouslyLoggedInUserIDStore, user as userStore } from "@/stores/auth";
 import { create as createDialog } from "@/stores/dialogs";
 import { formatter as currencyFormatter } from "@/stores/currency";
-import { load as loadList } from "@/utils/list.js";
 import { useStore } from "@nanostores/vue";
 
 export default {
@@ -144,7 +143,6 @@ export default {
     data() {
         return {
             addToHistory,
-            avoidSpoilersDialogShown: false,
             communityItems: [],
             currencyFormatter,
             createDialog,
@@ -392,9 +390,7 @@ export default {
             });
         },
         async createAvoidSpoilersDialog(list) {
-            if (this.avoidSpoilersDialogShown) return;
             if (!this.user && this.previouslyLoggedInUserID && list.author === this.previouslyLoggedInUserID) {
-                this.avoidSpoilersDialogShown = true;
                 const dialogResponse = await this.createDialog({
                     actions: [
                         {
@@ -424,28 +420,14 @@ export default {
                     variant: "warning"
                 });
 
-                return dialogResponse === "No";
+                return dialogResponse.action === "Continue Anyway";
             }
+            return true;
         },
-        async loadList({ id: listId, listData }) {
+        async loadList({ listData }) {
             try {
-                if (!listData) {
-                    listData = await loadList({
-                        tablesDB,
-                        listId,
-                        avoidSpoilersDialogShown: this.avoidSpoilersDialogShown,
-                        createAvoidSpoilersDialog: this.createAvoidSpoilersDialog,
-                        loadedAsAuthor: this.loadedAsAuthor,
-                        sort: this.sort,
-                        user: this.user
-                    });
-                } else {
-                    console.log("Using preloaded list data");
-                }
-
                 this.list = listData.list;
                 this.loadedAsAuthor = listData.loadedAsAuthor;
-                this.avoidSpoilersDialogShown = listData.avoidSpoilersDialogShown;
                 this.fulfillments = listData.fulfillments;
                 this.communityItems = listData.communityItems;
                 window.document.title = `${this.list.title} - Readyto.gift`;
@@ -483,9 +465,14 @@ export default {
         }
     },
     async mounted() {
+        if (this.listData && this.listData.list) {
+            const continueAnyway = await this.createAvoidSpoilersDialog(this.listData.list);
+            if (!continueAnyway) {
+                return; // redirected to login
+            }
+        }
         await this.loadList({ id: this.listId, listData: this.listData });
         this.quickCreateURL = this.quickCreateURLParam;
-        // show spoilers dialog, maybe before mounted or hide until shown
     }
 };
 </script>
