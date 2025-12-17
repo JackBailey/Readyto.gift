@@ -45,7 +45,8 @@ export default defineConfig({
         appEntrypoint: "/src/pages/_app"
     }), sentry({
         org: "sentry",
-        project: "readytogift"
+        project: "readytogift",
+        url: "https://sentry.jackbailey.cloud/"
     })],
 
     vite: {
