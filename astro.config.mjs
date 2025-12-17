@@ -43,7 +43,10 @@ export default defineConfig({
 
     integrations: [vue({
         appEntrypoint: "/src/pages/_app"
-    }), sentry()],
+    }), sentry({
+        org: "sentry",
+        project: "readytogift"
+    })],
 
     vite: {
         ssr: {
