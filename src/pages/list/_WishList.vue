@@ -118,7 +118,7 @@
 
 <script>
 import { APPWRITE_DB, APPWRITE_LIST_COLLECTION } from "astro:env/client";
-import { avatars, databases } from "@/appwrite";
+import { avatars, databases, tablesDB } from "@/appwrite";
 import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import { mdiInformation  } from "@mdi/js";
@@ -130,6 +130,7 @@ import { $prefs, addToHistory } from "@/stores/prefs";
 import { previouslyLoggedInUserID as previouslyLoggedInUserIDStore, user as userStore } from "@/stores/auth";
 import { create as createDialog } from "@/stores/dialogs";
 import { formatter as currencyFormatter } from "@/stores/currency";
+import { load as loadList } from "@/utils/list";
 import { useStore } from "@nanostores/vue";
 
 export default {
@@ -424,7 +425,7 @@ export default {
             }
             return true;
         },
-        async loadList({ listData }) {
+        async setList({ listData }) {
             try {
                 this.list = listData.list;
                 this.loadedAsAuthor = listData.loadedAsAuthor;
@@ -465,13 +466,14 @@ export default {
         }
     },
     async mounted() {
-        if (this.listData && this.listData.list) {
-            const continueAnyway = await this.createAvoidSpoilersDialog(this.listData.list);
+        const listData = await loadList({ listId: this.listId, tablesDB, user: this.user });
+        if (listData && listData.list) {
+            const continueAnyway = await this.createAvoidSpoilersDialog(listData.list);
             if (!continueAnyway) {
                 return; // redirected to login
             }
         }
-        await this.loadList({ id: this.listId, listData: this.listData });
+        await this.setList({ listData });
         this.quickCreateURL = this.quickCreateURLParam;
     }
 };

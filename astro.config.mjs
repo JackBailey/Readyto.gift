@@ -43,11 +43,7 @@ export default defineConfig({
 
     integrations: [vue({
         appEntrypoint: "/src/pages/_app"
-    }), sentry({
-        org: "sentry",
-        project: "readytogift",
-        url: "https://sentry.jackbailey.cloud/"
-    })],
+    }), sentry()],
 
     vite: {
         ssr: {
