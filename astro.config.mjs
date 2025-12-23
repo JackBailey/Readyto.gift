@@ -7,6 +7,7 @@ import sentry from "@sentry/astro";
 
 import node from "@astrojs/node";
 import vercel from "@astrojs/vercel";
+import vuetify from "vite-plugin-vuetify";
 
 let adapter;
 
