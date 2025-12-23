@@ -124,7 +124,7 @@ export default {
                     this.list.$id
                 );
 
-                window.location.href = "/dash/lists";
+                this.$router.push("/dash/lists");
 
                 this.dialogOpen = false;
                 this.loading = false;

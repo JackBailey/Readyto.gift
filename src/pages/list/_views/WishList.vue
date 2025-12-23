@@ -124,14 +124,14 @@ import ListCard from "@/components/ListCard.vue";
 import ListItem from "@/components/ListItem.vue";
 import { mdiInformation  } from "@mdi/js";
 import ModifyItem from "@/components/dialogs/ModifyItem.vue";
-import NotFound from "../404/_NotFound.vue";
+import NotFound from "../../404/_NotFound.vue";
 import PWAPrompt from "@/components/PWAPrompt.vue";
 
 import { $prefs, addToHistory } from "@/stores/prefs";
 import { previouslyLoggedInUserID as previouslyLoggedInUserIDStore, user as userStore } from "@/stores/auth";
 import { create as createDialog } from "@/stores/dialogs";
 import { formatter as currencyFormatter } from "@/stores/currency";
-import { load as loadList } from "@/utils/list";
+import { get as getList } from "@/utils/list";
 import { useStore } from "@nanostores/vue";
 
 export default {
@@ -183,11 +183,6 @@ export default {
         quickCreateURLParam: {
             type: String,
             required: false
-        },
-        listData: {
-            type: Object,
-            required: false,
-            default: null
         }
     },
     computed: {
@@ -411,7 +406,10 @@ export default {
                         },
                         {
                             action: async () => {
-                                window.location.href = "/dash/login?redirect=" + encodeURIComponent(window.location.href);
+                                this.$router.push({ 
+                                    path: "/dash/login", 
+                                    query: { redirect: window.location.pathname + window.location.search }
+                                });
                             },
                             closeAfterAction: true,
                             color: "primary",
@@ -464,23 +462,38 @@ export default {
                     variant: "error"
                 });
             }
+        },
+        async loadList() {
+            try {
+                const listData = await getList({ listId: this.listId, tablesDB, user: this.user });
+                if (listData && listData.list) {
+                    const continueAnyway = await this.createAvoidSpoilersDialog(listData.list);
+                    if (!continueAnyway) {
+                        return; // redirected to login
+                    }
+                }
+                await this.setList({ listData });
+                this.quickCreateURL = this.quickCreateURLParam;
+            } catch (error) {
+                if (error.code === 404) {
+                    this.newItem.notFound = true;
+                    return;
+                }
+            }
         }
     },
     watch: {
         showFulfilled(val) {
             localStorage.setItem("showFulfilled", val);
+        },
+        async listId() {
+            this.list = false;
+            this.newItem.notFound = false;
+            this.loadList();
         }
     },
-    async mounted() {
-        const listData = await loadList({ listId: this.listId, tablesDB, user: this.user });
-        if (listData && listData.list) {
-            const continueAnyway = await this.createAvoidSpoilersDialog(listData.list);
-            if (!continueAnyway) {
-                return; // redirected to login
-            }
-        }
-        await this.setList({ listData });
-        this.quickCreateURL = this.quickCreateURLParam;
+    mounted() {
+        this.loadList();
     }
 };
 </script>
